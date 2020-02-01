@@ -21,7 +21,7 @@ const SalaryBox: React.FunctionComponent<SalaryBoxProps> = ({
     id,
     name,
     hourlyRate,
-    salary,
+    salary = 0,
     dispatch,
     ...props
 }) => {

@@ -34,6 +34,7 @@ const TopNav = styled(Toolbar)`
 
 const App: React.FC = () => {
     const [state, dispatch] = useStore();
+    // TODO: Move these to central store for persistence
     const [minSalary, setMinSalary] = useState(0);
     const [maxSalary, setMaxSalary] = useState(75000);
 

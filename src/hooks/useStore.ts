@@ -35,20 +35,22 @@ export interface Action {
 
 let nameIndex = 1;
 
-const initialState: State = {
-    salaries: {
-        [generateId()]: {
-            name: `Company${nameIndex}`,
-            hourlyRate: '',
-            salary: 0
-        }
-    }
-};
+// Grab initialState from persistedState in localStorage if exists
+const initialState: State = window.localStorage.getItem('persistedState')
+    ? JSON.parse(window.localStorage.getItem('persistedState') || '{}')
+    : {
+          salaries: {
+              [generateId()]: {
+                  name: `Company${nameIndex}`,
+                  hourlyRate: '',
+                  salary: 0
+              }
+          }
+      };
 
-const reducer: React.Reducer<State, Action> = (
-    state = initialState,
-    { type, payload }
-) => {
+const reduceState = (state: State, action: Action) => {
+    const { type, payload } = action;
+
     switch (type) {
         case ActionType.AddSalary:
             nameIndex++;
@@ -87,6 +89,7 @@ const reducer: React.Reducer<State, Action> = (
                 salaries: {
                     ...state.salaries,
                     [payload.id]: {
+                        ...state.salaries[payload.id],
                         hourlyRate,
                         salary: calculateSalary(Number(hourlyRate))
                     }
@@ -98,13 +101,28 @@ const reducer: React.Reducer<State, Action> = (
                 ...state,
                 salaries: {
                     ...state.salaries,
-                    [payload.id]: { name: payload.name }
+                    [payload.id]: {
+                        ...state.salaries[payload.id],
+                        name: payload.data
+                    }
                 }
             };
 
         default:
             return state;
     }
+};
+
+const reducer: React.Reducer<State, Action> = (
+    state = initialState,
+    action
+) => {
+    const newState = reduceState(state, action);
+    console.log(newState);
+
+    localStorage.setItem('persistedState', JSON.stringify(newState));
+
+    return newState;
 };
 
 export const calculateSalary = (hourlyRate: number) => {
