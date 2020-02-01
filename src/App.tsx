@@ -122,6 +122,7 @@ const App: React.FC = () => {
                                     ({ salary }) => salary
                                 )}
                                 valueLabelFormat={(val: number) => {
+                                    // TODO: 1 dec place if exists
                                     if (val >= 1000000) {
                                         return `${Math.floor(val / 1000000)}M`;
                                     } else if (val >= 1000) {
