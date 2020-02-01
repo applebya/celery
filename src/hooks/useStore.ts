@@ -36,6 +36,7 @@ export interface Action {
 let nameIndex = 1;
 
 // Grab initialState from persistedState in localStorage if exists
+// TODO: Watch window.onfocus/onblur to keep things current, mark store with uniqueID (new Date())
 const initialState: State = window.localStorage.getItem('persistedState')
     ? JSON.parse(window.localStorage.getItem('persistedState') || '{}')
     : {
@@ -118,7 +119,6 @@ const reducer: React.Reducer<State, Action> = (
     action
 ) => {
     const newState = reduceState(state, action);
-    console.log(newState);
 
     localStorage.setItem('persistedState', JSON.stringify(newState));
 
