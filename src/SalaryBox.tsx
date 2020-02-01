@@ -8,12 +8,12 @@ import {
     Box
 } from '@material-ui/core';
 import { Action, ActionType } from './hooks/useStore';
-import { calculateSalary } from './utils';
 
 interface SalaryBoxProps {
     id: string;
     name: string;
     hourlyRate: string;
+    salary: number;
     dispatch: (action: Action) => void;
 }
 
@@ -21,6 +21,7 @@ const SalaryBox: React.FunctionComponent<SalaryBoxProps> = ({
     id,
     name,
     hourlyRate,
+    salary,
     dispatch,
     ...props
 }) => {
@@ -87,7 +88,7 @@ const SalaryBox: React.FunctionComponent<SalaryBoxProps> = ({
                         Salary:{' '}
                         <strong>
                             $
-                            {calculateSalary(Number(hourlyRate))
+                            {salary
                                 .toFixed(2)
                                 .replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}
                         </strong>{' '}

@@ -19,7 +19,6 @@ import styled from 'styled-components';
 
 import SalaryBox from './SalaryBox';
 import useStore, { ActionType } from './hooks/useStore';
-import { calculateSalary } from './utils';
 
 const Layout = styled.div`
     height: 100vh;
@@ -66,6 +65,7 @@ const App: React.FC = () => {
             <Container
                 style={{
                     height: 'calc(100vh - 64px)',
+                    maxHeight: 'calc(100vh - 64px)',
                     display: 'flex',
                     flexDirection: 'column',
                     padding: '3em 0 1em'
@@ -105,7 +105,7 @@ const App: React.FC = () => {
                 </Grid>
 
                 <Grid item>
-                    <Grid container spacing={2}>
+                    <Grid container spacing={2} style={{ marginTop: '3em' }}>
                         <Grid item>
                             <Typography variant="h6" color="textSecondary">
                                 Min
@@ -118,10 +118,8 @@ const App: React.FC = () => {
                                 track={false}
                                 min={minSalary}
                                 max={maxSalary}
-                                value={Object.values(
-                                    state.salaries
-                                ).map(({ hourlyRate }) =>
-                                    calculateSalary(Number(hourlyRate))
+                                value={Object.values(state.salaries).map(
+                                    ({ salary }) => salary
                                 )}
                                 valueLabelFormat={(val: number) => {
                                     if (val >= 1000000) {

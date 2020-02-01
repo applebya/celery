@@ -18,6 +18,7 @@ export enum StartingUnit {
 export interface SalaryState {
     name: string;
     hourlyRate: string;
+    salary: number;
 }
 
 export interface State {
@@ -36,7 +37,11 @@ let nameIndex = 1;
 
 const initialState: State = {
     salaries: {
-        [generateId()]: { name: `Company${nameIndex}`, hourlyRate: '' }
+        [generateId()]: {
+            name: `Company${nameIndex}`,
+            hourlyRate: '',
+            salary: 0
+        }
     }
 };
 
@@ -54,7 +59,8 @@ const reducer: React.Reducer<State, Action> = (
                     ...state.salaries,
                     [generateId()]: {
                         name: `Company${nameIndex}`,
-                        hourlyRate: ''
+                        hourlyRate: '',
+                        salary: 0
                     }
                 }
             };
@@ -80,7 +86,10 @@ const reducer: React.Reducer<State, Action> = (
                 ...state,
                 salaries: {
                     ...state.salaries,
-                    [payload.id]: { hourlyRate }
+                    [payload.id]: {
+                        hourlyRate,
+                        salary: calculateSalary(Number(hourlyRate))
+                    }
                 }
             };
 
@@ -96,6 +105,13 @@ const reducer: React.Reducer<State, Action> = (
         default:
             return state;
     }
+};
+
+export const calculateSalary = (hourlyRate: number) => {
+    if (!hourlyRate) return 0;
+
+    // Every day in the year, minus weekends
+    return hourlyRate * 8 * (365.25 - 52 * 2);
 };
 
 const useStore = () =>
