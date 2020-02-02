@@ -42,6 +42,7 @@ const App: React.FC = () => {
                 window.localStorage.getItem('persistedStore') || '{}'
             );
 
+            // Override the store with persisted one if it's newer
             if (persistedStore && persistedStore.timestamp > state.timestamp) {
                 dispatch({
                     type: ActionType.SetStore,
@@ -53,7 +54,7 @@ const App: React.FC = () => {
         window.addEventListener('focus', checkLocalStorage);
 
         return () => window.removeEventListener('focus', checkLocalStorage);
-    }, [state.timestamp, state.initTimestamp, dispatch, state]);
+    }, [state.timestamp, dispatch]);
 
     return (
         <Layout>

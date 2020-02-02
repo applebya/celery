@@ -26,8 +26,6 @@ export interface SalaryState {
 
 export interface State {
     timestamp: number;
-    prevTimestamp?: number;
-    initTimestamp: number;
     min: number;
     max: number;
     salaries: {
@@ -58,8 +56,7 @@ const defaultState = {
     min: 0,
     max: 75000, // TODO: Come up with better default, or have UX step to ask
     salaries: newSalary(),
-    timestamp: +new Date(),
-    initTimestamp: +new Date()
+    timestamp: +new Date()
 };
 
 const PERSISTED_STORE_NAME = 'persistedStore';
@@ -138,14 +135,13 @@ const reducer: React.Reducer<State, Action> = (
     state = initialState,
     action
 ) => {
-    // Middleware to timestamp this (and prev) version of the store
+    // Middleware to timestamp this version of the state
     state = {
         ...state,
-        timestamp: +new Date(),
-        ...(state.timestamp ? { prevTimestamp: state.timestamp } : {})
+        timestamp: +new Date()
     };
 
-    // Reduce data
+    // Reduce state with dispatched action
     state = reduceStore(state, action);
 
     // Persist new state to localStorage
