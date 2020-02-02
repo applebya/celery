@@ -5,7 +5,9 @@ export enum ActionType {
     AddSalary = 'addSalary',
     RemoveSalary = 'removeSalary',
     SetHourlyRate = 'setHourlyRate',
-    SetName = 'setName'
+    SetName = 'setName',
+    SetMin = 'setMin',
+    SetMax = 'setMax'
 }
 
 export enum StartingUnit {
@@ -22,6 +24,8 @@ export interface SalaryState {
 }
 
 export interface State {
+    min: number;
+    max: number;
     salaries: {
         [x: string]: SalaryState;
     };
@@ -35,21 +39,33 @@ export interface Action {
 
 let nameIndex = 1;
 
-// Grab initialState from persistedState in localStorage if exists
-// TODO: Watch window.onfocus/onblur to keep things current, mark store with uniqueID (new Date())
-const initialState: State = window.localStorage.getItem('persistedState')
-    ? JSON.parse(window.localStorage.getItem('persistedState') || '{}')
-    : {
-          salaries: {
-              [generateId()]: {
-                  name: `Company${nameIndex}`,
-                  hourlyRate: '',
-                  salary: 0
-              }
-          }
-      };
+const newSalary = () => ({
+    [generateId()]: {
+        name: `Company${nameIndex}`,
+        hourlyRate: '',
+        salary: 0
+    }
+});
 
-const reduceState = (state: State, action: Action) => {
+// Grab initialState from persistedState in localStorage if exists
+// TODO: Persisted chrome store? navigator.storage.persist().then(granted => {...
+// TODO: Watch window.onfocus/onblur to keep things current, mark store with uniqueID (new Date())
+const defaultState = {
+    min: 0,
+    max: 75000, // TODO: Come up with better default, or have UX step to ask
+    salaries: newSalary()
+};
+
+const persistedState = window.localStorage.getItem('persistedState');
+
+const initialState: State = persistedState
+    ? JSON.parse(persistedState || '{}')
+    : defaultState;
+
+const reducer: React.Reducer<State, Action> = (
+    state = initialState,
+    action
+) => {
     const { type, payload } = action;
 
     switch (type) {
@@ -60,11 +76,7 @@ const reduceState = (state: State, action: Action) => {
                 ...state,
                 salaries: {
                     ...state.salaries,
-                    [generateId()]: {
-                        name: `Company${nameIndex}`,
-                        hourlyRate: '',
-                        salary: 0
-                    }
+                    ...newSalary()
                 }
             };
 
@@ -112,17 +124,6 @@ const reduceState = (state: State, action: Action) => {
         default:
             return state;
     }
-};
-
-const reducer: React.Reducer<State, Action> = (
-    state = initialState,
-    action
-) => {
-    const newState = reduceState(state, action);
-
-    localStorage.setItem('persistedState', JSON.stringify(newState));
-
-    return newState;
 };
 
 export const calculateSalary = (hourlyRate: number) => {

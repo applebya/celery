@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { hot } from 'react-hot-loader/root';
 import {
     Button,
@@ -32,11 +32,18 @@ const TopNav = styled(Toolbar)`
     justify-content: space-between;
 `;
 
+const consoleIt = () => {
+    console.log('yeh!');
+};
+
 const App: React.FC = () => {
     const [state, dispatch] = useStore();
-    // TODO: Move these to central store for persistence
-    const [minSalary, setMinSalary] = useState(0);
-    const [maxSalary, setMaxSalary] = useState(75000);
+
+    useEffect(() => {
+        window.addEventListener('focus', consoleIt);
+
+        return () => window.removeEventListener('focus', consoleIt);
+    });
 
     return (
         <Layout>
@@ -117,8 +124,8 @@ const App: React.FC = () => {
                             <Slider
                                 color="secondary"
                                 track={false}
-                                min={minSalary}
-                                max={maxSalary}
+                                min={state.min}
+                                max={state.max}
                                 value={Object.values(state.salaries).map(
                                     ({ salary }) => salary
                                 )}
@@ -150,9 +157,12 @@ const App: React.FC = () => {
                                 onChange={(
                                     e: React.ChangeEvent<HTMLInputElement>
                                 ) => {
-                                    setMinSalary(Number(e.target.value));
+                                    dispatch({
+                                        type: ActionType.SetMin,
+                                        payload: Number(e.target.value)
+                                    });
                                 }}
-                                value={minSalary}
+                                value={state.min}
                                 placeholder="0.00"
                                 InputProps={{
                                     startAdornment: (
@@ -169,9 +179,12 @@ const App: React.FC = () => {
                                 onChange={(
                                     e: React.ChangeEvent<HTMLInputElement>
                                 ) => {
-                                    setMaxSalary(Number(e.target.value));
+                                    dispatch({
+                                        type: ActionType.SetMax,
+                                        payload: Number(e.target.value)
+                                    });
                                 }}
-                                value={maxSalary}
+                                value={state.max}
                                 placeholder="0.00"
                                 InputProps={{
                                     startAdornment: (
