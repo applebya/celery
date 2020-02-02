@@ -7,7 +7,8 @@ export enum ActionType {
     SetHourlyRate = 'setHourlyRate',
     SetName = 'setName',
     SetMin = 'setMin',
-    SetMax = 'setMax'
+    SetMax = 'setMax',
+    SetStore = 'setStore'
 }
 
 export enum StartingUnit {
@@ -24,6 +25,9 @@ export interface SalaryState {
 }
 
 export interface State {
+    timestamp: number;
+    prevTimestamp?: number;
+    initTimestamp: number;
     min: number;
     max: number;
     salaries: {
@@ -47,25 +51,26 @@ const newSalary = () => ({
     }
 });
 
-// Grab initialState from persistedState in localStorage if exists
+// Grab initialState from persistedStore in localStorage if exists
 // TODO: Persisted chrome store? navigator.storage.persist().then(granted => {...
 // TODO: Watch window.onfocus/onblur to keep things current, mark store with uniqueID (new Date())
 const defaultState = {
     min: 0,
     max: 75000, // TODO: Come up with better default, or have UX step to ask
-    salaries: newSalary()
+    salaries: newSalary(),
+    timestamp: +new Date(),
+    initTimestamp: +new Date()
 };
 
-const persistedState = window.localStorage.getItem('persistedState');
+const PERSISTED_STORE_NAME = 'persistedStore';
 
-const initialState: State = persistedState
-    ? JSON.parse(persistedState || '{}')
+const persistedStore = window.localStorage.getItem(PERSISTED_STORE_NAME);
+
+const initialState: State = persistedStore
+    ? JSON.parse(persistedStore || '{}')
     : defaultState;
 
-const reducer: React.Reducer<State, Action> = (
-    state = initialState,
-    action
-) => {
+const reduceStore = (state: State, action: Action) => {
     const { type, payload } = action;
 
     switch (type) {
@@ -121,9 +126,34 @@ const reducer: React.Reducer<State, Action> = (
                 }
             };
 
+        case ActionType.SetStore:
+            return payload;
+
         default:
             return state;
     }
+};
+
+const reducer: React.Reducer<State, Action> = (
+    state = initialState,
+    action
+) => {
+    // Middleware to timestamp this (and prev) version of the store
+    state = {
+        ...state,
+        timestamp: +new Date(),
+        ...(state.timestamp ? { prevTimestamp: state.timestamp } : {})
+    };
+
+    // Reduce data
+    state = reduceStore(state, action);
+
+    // Persist new state to localStorage
+    if ('localStorage' in window) {
+        localStorage.setItem(PERSISTED_STORE_NAME, JSON.stringify(state));
+    }
+
+    return state;
 };
 
 export const calculateSalary = (hourlyRate: number) => {

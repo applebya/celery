@@ -32,18 +32,28 @@ const TopNav = styled(Toolbar)`
     justify-content: space-between;
 `;
 
-const consoleIt = () => {
-    console.log('yeh!');
-};
-
 const App: React.FC = () => {
     const [state, dispatch] = useStore();
 
     useEffect(() => {
-        window.addEventListener('focus', consoleIt);
+        const checkLocalStorage = () => {
+            // TODO: Add State as type somehow?
+            const persistedStore = JSON.parse(
+                window.localStorage.getItem('persistedStore') || '{}'
+            );
 
-        return () => window.removeEventListener('focus', consoleIt);
-    });
+            if (persistedStore && persistedStore.timestamp > state.timestamp) {
+                dispatch({
+                    type: ActionType.SetStore,
+                    payload: persistedStore
+                });
+            }
+        };
+
+        window.addEventListener('focus', checkLocalStorage);
+
+        return () => window.removeEventListener('focus', checkLocalStorage);
+    }, [state.timestamp, state.initTimestamp, dispatch, state]);
 
     return (
         <Layout>
