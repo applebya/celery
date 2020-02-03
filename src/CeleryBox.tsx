@@ -5,26 +5,26 @@ import {
     Grid,
     Paper,
     Button,
-    Box
+    Box,
+    Typography
 } from '@material-ui/core';
-import { Action, ActionType } from './hooks/useStore';
+import { Action, ActionType, Celery } from './hooks/useStore';
+import calculateSalary from './calculateSalary';
 
-interface SalaryBoxProps {
+type CeleryBoxProps = Celery & {
     id: string;
-    name: string;
-    hourlyRate: string;
-    salary: number;
     dispatch: (action: Action) => void;
-}
+};
 
-const SalaryBox: React.FunctionComponent<SalaryBoxProps> = ({
+const CeleryBox: React.FunctionComponent<CeleryBoxProps> = ({
     id,
     name,
-    hourlyRate,
-    salary = 0,
+    input: { value, type, mask },
     dispatch,
     ...props
 }) => {
+    const salary = calculateSalary(value);
+
     return (
         <Paper {...props}>
             <Box style={{ padding: '1em' }}>
@@ -52,15 +52,15 @@ const SalaryBox: React.FunctionComponent<SalaryBoxProps> = ({
                             }}
                         />
                         <TextField
-                            name="hourlyRate"
+                            name="value"
                             variant="outlined"
                             autoComplete="off"
-                            value={hourlyRate}
+                            value={value}
                             onChange={(
                                 event: React.ChangeEvent<HTMLInputElement>
                             ) => {
                                 dispatch({
-                                    type: ActionType.SetHourlyRate,
+                                    type: ActionType.SetInputValue,
                                     payload: {
                                         id,
                                         data: event.target.value
@@ -86,18 +86,18 @@ const SalaryBox: React.FunctionComponent<SalaryBoxProps> = ({
                     <Grid item style={{ flex: 1 }}></Grid>
                     <Grid item sm={4} xs={12}>
                         Salary:{' '}
-                        <strong>
+                        <Typography>
                             $
                             {salary
                                 .toFixed(2)
                                 .replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}
-                        </strong>{' '}
+                        </Typography>{' '}
                         / year
                         <Box>
                             <Button
                                 onClick={() =>
                                     dispatch({
-                                        type: ActionType.RemoveSalary,
+                                        type: ActionType.RemoveCelery,
                                         payload: {
                                             id
                                         }
@@ -114,4 +114,4 @@ const SalaryBox: React.FunctionComponent<SalaryBoxProps> = ({
     );
 };
 
-export default React.memo(SalaryBox);
+export default React.memo(CeleryBox);

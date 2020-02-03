@@ -2,9 +2,9 @@ import { useReducer } from 'react';
 import { v4 as generateId } from 'uuid';
 
 export enum ActionType {
-    AddSalary = 'addSalary',
-    RemoveSalary = 'removeSalary',
-    SetHourlyRate = 'setHourlyRate',
+    AddCelery = 'addCelery',
+    RemoveCelery = 'removeCelery',
+    SetInputValue = 'setInputValue',
     SetName = 'setName',
     SetMin = 'setMin',
     SetMax = 'setMax',
@@ -18,18 +18,21 @@ export enum StartingUnit {
     PerYear = '/year'
 }
 
-export interface SalaryState {
+export interface Celery {
     name: string;
-    hourlyRate: string;
-    salary: number;
+    input: {
+        value: number;
+        type: '/hour' | '/day' | '/week' | '/year';
+        mask: string;
+    };
 }
 
 export interface State {
     timestamp: number;
     min: number;
     max: number;
-    salaries: {
-        [x: string]: SalaryState;
+    celeries: {
+        [x: string]: Celery;
     };
 }
 
@@ -41,12 +44,15 @@ export interface Action {
 
 let nameIndex = 1;
 
-const newSalary = () => ({
+const newCelery = () => ({
     [generateId()]: {
         name: `Company${nameIndex}`,
-        hourlyRate: '',
-        salary: 0
-    }
+        input: {
+            value: 0,
+            type: '/year',
+            mask: '0123'
+        }
+    } as Celery
 });
 
 // Grab initialState from persistedStore in localStorage if exists
@@ -55,7 +61,7 @@ const newSalary = () => ({
 const defaultState = {
     min: 0,
     max: 75000, // TODO: Come up with better default, or have UX step to ask
-    salaries: newSalary(),
+    celeries: { ...newCelery() },
     timestamp: +new Date()
 };
 
@@ -71,42 +77,40 @@ const reduceStore = (state: State, action: Action) => {
     const { type, payload } = action;
 
     switch (type) {
-        case ActionType.AddSalary:
+        case ActionType.AddCelery:
             nameIndex++;
 
             return {
                 ...state,
-                salaries: {
-                    ...state.salaries,
-                    ...newSalary()
+                celeries: {
+                    ...state.celeries,
+                    ...newCelery()
                 }
             };
 
-        case ActionType.RemoveSalary:
+        case ActionType.RemoveCelery:
             nameIndex++;
 
-            const { [payload.id]: _, ...salaries } = state.salaries;
+            const { [payload.id]: _, ...celeries } = state.celeries;
 
             return {
                 ...state,
-                salaries
+                celeries
             };
 
-        case ActionType.SetHourlyRate:
+        case ActionType.SetInputValue:
             // Enforce numericality
-            const hourlyRate = payload.data;
-            if (hourlyRate.length && Number.isNaN(Number(hourlyRate))) {
+            const input = payload.data;
+            if (input.length && Number.isNaN(Number(input))) {
                 return state;
             }
 
             return {
                 ...state,
-                salaries: {
-                    ...state.salaries,
+                celeries: {
+                    ...state.celeries,
                     [payload.id]: {
-                        ...state.salaries[payload.id],
-                        hourlyRate,
-                        salary: calculateSalary(Number(hourlyRate))
+                        ...state.celeries[payload.id]
                     }
                 }
             };
@@ -114,10 +118,10 @@ const reduceStore = (state: State, action: Action) => {
         case ActionType.SetName:
             return {
                 ...state,
-                salaries: {
-                    ...state.salaries,
+                celeries: {
+                    ...state.celeries,
                     [payload.id]: {
-                        ...state.salaries[payload.id],
+                        ...state.celeries[payload.id],
                         name: payload.data
                     }
                 }
@@ -150,13 +154,6 @@ const reducer: React.Reducer<State, Action> = (
     }
 
     return state;
-};
-
-export const calculateSalary = (hourlyRate: number) => {
-    if (!hourlyRate) return 0;
-
-    // Every day in the year, minus weekends
-    return hourlyRate * 8 * (365.25 - 52 * 2);
 };
 
 const useStore = () =>

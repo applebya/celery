@@ -13,12 +13,13 @@ import {
     TextField,
     InputAdornment
 } from '@material-ui/core';
-import { AddCircleOutline } from '@material-ui/icons';
+import { AddCircleOutline, Menu } from '@material-ui/icons';
 import { ReactComponent as CeleryIcon } from './CeleryIcon.svg';
 import styled from 'styled-components';
 
-import SalaryBox from './SalaryBox';
+import CeleryBox from './CeleryBox';
 import useStore, { ActionType } from './hooks/useStore';
+import calculateSalary from './calculateSalary';
 
 const Layout = styled.div`
     height: 100vh;
@@ -60,24 +61,22 @@ const App: React.FC = () => {
         <Layout>
             <AppBar position="static">
                 <TopNav>
-                    <div />
-                    <div>
-                        <Typography
-                            variant="h6"
-                            component="h1"
-                            style={{
-                                fontWeight: 'bold'
-                            }}
+                    <Menu />
+                    <Typography
+                        variant="h6"
+                        component="h1"
+                        style={{
+                            fontWeight: 'bold'
+                        }}
+                    >
+                        Celery
+                        <SvgIcon
+                            viewBox="0 0 512 512"
+                            style={{ marginLeft: 10, verticalAlign: 'sub' }}
                         >
-                            Celery
-                            <SvgIcon
-                                viewBox="0 0 512 512"
-                                style={{ marginLeft: 10, verticalAlign: 'sub' }}
-                            >
-                                <CeleryIcon />
-                            </SvgIcon>
-                        </Typography>
-                    </div>
+                            <CeleryIcon />
+                        </SvgIcon>
+                    </Typography>
                 </TopNav>
             </AppBar>
 
@@ -96,14 +95,14 @@ const App: React.FC = () => {
                     spacing={2}
                     style={{ flex: 1 }}
                 >
-                    {Object.entries(state.salaries).map(([id, salary]) => (
+                    {Object.entries(state.celeries).map(([id, celery]) => (
                         <Grid item key={id}>
                             <Grow in>
-                                <SalaryBox
+                                <CeleryBox
                                     key={id}
                                     id={id}
                                     dispatch={dispatch}
-                                    {...salary}
+                                    {...celery}
                                 />
                             </Grow>
                         </Grid>
@@ -114,11 +113,11 @@ const App: React.FC = () => {
                             size="large"
                             color="primary"
                             onClick={() =>
-                                dispatch({ type: ActionType.AddSalary })
+                                dispatch({ type: ActionType.AddCelery })
                             }
                             endIcon={<AddCircleOutline />}
                         >
-                            Add Salary
+                            Add celery
                         </Button>
                     </Grid>
                 </Grid>
@@ -137,8 +136,10 @@ const App: React.FC = () => {
                                 track={false}
                                 min={state.min}
                                 max={state.max}
-                                value={Object.values(state.salaries).map(
-                                    ({ salary }) => salary
+                                value={Object.values(
+                                    state.celeries
+                                ).map(({ input }) =>
+                                    calculateSalary(input.value)
                                 )}
                                 valueLabelFormat={(val: number) => {
                                     // TODO: 1 dec place if exists
@@ -164,7 +165,7 @@ const App: React.FC = () => {
                     <Grid container justify="space-between">
                         <Grid item>
                             <TextField
-                                name="minSalary"
+                                name="mincelery"
                                 onChange={(
                                     e: React.ChangeEvent<HTMLInputElement>
                                 ) => {
@@ -186,7 +187,7 @@ const App: React.FC = () => {
                         </Grid>
                         <Grid item>
                             <TextField
-                                name="maxSalary"
+                                name="maxcelery"
                                 onChange={(
                                     e: React.ChangeEvent<HTMLInputElement>
                                 ) => {
