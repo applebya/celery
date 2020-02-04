@@ -1,5 +1,5 @@
 {
-    "name": "Celery",
+    "name": "celery",
     "version": "0.1.0",
     "homepage": "https://applebya.github.io/celery",
     "private": true,
