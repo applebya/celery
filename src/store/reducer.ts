@@ -66,17 +66,11 @@ const reduceStore = (state: State, action: Action): State => {
                                     ...state.celeries[payload.id].input,
                                     value: payload.data
                                 }
-                                // Type-checking doesn't work here for some reason?
                             }
                         }
                     };
 
                 case ActionType.SetInputType:
-                    console.log(
-                        'state.celeries[payload.id]',
-                        state.celeries[payload.id]
-                    );
-                    console.log('payload.data', payload.data);
                     return {
                         ...state,
                         celeries: {
@@ -87,7 +81,6 @@ const reduceStore = (state: State, action: Action): State => {
                                     ...state.celeries[payload.id].input,
                                     type: payload.data
                                 }
-                                // Type-checking doesn't work here for some reason?
                             }
                         }
                     };
@@ -107,7 +100,6 @@ const reduceStore = (state: State, action: Action): State => {
         } else if (payload.data) {
             switch (type) {
                 case ActionType.SetStore:
-                    console.log('going to set store', payload.data);
                     return payload.data;
 
                 case ActionType.SetMin:
@@ -149,12 +141,12 @@ const reducer = (state: State, action: Action): State => {
         timestamp: +new Date()
     };
 
-    console.log('action', action);
+    console.info('action:', action);
 
     // Reduce state with dispatched action
     state = reduceStore(state, action);
 
-    console.log('reducedState', state);
+    console.info('state', state);
 
     // Persist new state to localStorage
     if ('localStorage' in window) {

@@ -7,11 +7,12 @@ import {
     MenuItem,
     InputAdornment
 } from '@material-ui/core';
+import { Delete } from '@material-ui/icons';
 import React from 'react';
-import calculateSalary from './calculateSalary';
-import NumberField from './components/NumberField';
+import calculateSalary from '../utils/calculateSalary';
+import NumberField from './NumberField';
 import styled from 'styled-components';
-import { Action, ActionType, Celery, InputType } from './store/types';
+import { Action, ActionType, Celery, InputType } from '../store/types';
 
 interface CeleryBoxProps extends Celery {
     id: string;
@@ -124,7 +125,7 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                                 })
                             }
                         >
-                            Remove
+                            <Delete color="error" />
                         </Button>
                     </Box>
                 </Grid>

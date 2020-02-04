@@ -36,11 +36,12 @@ export enum ActionType {
     SetStore = 'setStore'
 }
 
+// Loose typing, to avoid creating a type for every ActionType
 export type Action = {
     type: ActionType;
     payload?: {
         id?: string;
-        data: any | null;
+        data?: any;
     };
-    meta?: object;
+    meta?: any;
 };

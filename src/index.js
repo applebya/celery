@@ -1,14 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import App from './App';
+import App from './components/App';
 import * as serviceWorker from './serviceWorker';
-
 import CssBaseline from '@material-ui/core/CssBaseline';
 import {
-    ThemeProvider,
+    ThemeProvider as MuiThemeProvider,
     createMuiTheme,
     responsiveFontSizes
 } from '@material-ui/core/styles';
+import { ThemeProvider } from 'styled-components';
 
 // A custom theme for this app
 let theme = createMuiTheme({
@@ -48,10 +48,12 @@ let theme = createMuiTheme({
 theme = responsiveFontSizes(theme);
 
 ReactDOM.render(
-    <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <App />
-    </ThemeProvider>,
+    <MuiThemeProvider theme={theme}>
+        <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <App />
+        </ThemeProvider>
+    </MuiThemeProvider>,
     document.getElementById('root')
 );
 

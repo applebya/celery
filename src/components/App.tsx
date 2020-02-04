@@ -30,10 +30,10 @@ import { ReactComponent as CeleryIcon } from './CeleryIcon.svg';
 import styled from 'styled-components';
 
 import CeleryBox from './CeleryBox';
-import reducer, { initialState } from './store/reducer';
-import { ActionType, State } from './store/types';
-import calculateSalary from './calculateSalary';
-import NumberField from './components/NumberField';
+import reducer, { initialState } from '../store/reducer';
+import { ActionType, State } from '../store/types';
+import calculateSalary from '../utils/calculateSalary';
+import NumberField from './NumberField';
 
 const Layout = styled.div`
     height: 100vh;
@@ -59,9 +59,9 @@ const App: React.FC = () => {
     useEffect(() => {
         const restoreLatestLocalStorage = () => {
             // TODO: Add State as type somehow?
-            const persistedStore = JSON.parse(
+            const persistedStore: State = JSON.parse(
                 window.localStorage.getItem('persistedStore') || '{}'
-            ) as State;
+            );
 
             // Override the store with persisted one if it's newer
             if (persistedStore && persistedStore.timestamp > state.timestamp) {
@@ -185,7 +185,7 @@ const App: React.FC = () => {
                                 color="secondary"
                                 track={false}
                                 min={state.min}
-                                max={state.max}
+                                max={Math.max(...salaries)}
                                 value={salaries}
                                 valueLabelFormat={(val: number) => {
                                     // TODO: 1 dec place if exists
