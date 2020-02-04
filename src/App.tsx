@@ -10,16 +10,16 @@ import {
     Grid,
     Grow,
     Slider,
-    TextField,
-    InputAdornment,
     Drawer,
     List,
     ListItem,
     ListItemIcon,
     ListItemText,
     IconButton,
-    Paper
+    Paper,
+    Snackbar
 } from '@material-ui/core';
+import { Alert } from '@material-ui/lab';
 import {
     AddCircleOutline,
     Menu,
@@ -31,8 +31,9 @@ import styled from 'styled-components';
 
 import CeleryBox from './CeleryBox';
 import reducer, { initialState } from './store/reducer';
-import { ActionType } from './store/types';
+import { ActionType, State } from './store/types';
 import calculateSalary from './calculateSalary';
+import NumberField from './components/NumberField';
 
 const Layout = styled.div`
     height: 100vh;
@@ -47,24 +48,29 @@ const TopNav = styled(Toolbar)`
 `;
 
 const StyledDrawer = styled(Drawer)`
-    width: 200px;
+    min-width: 300px;
 `;
 
 const App: React.FC = () => {
     const [state, dispatch] = useReducer(reducer, initialState);
+    const [restored, setRestored] = useState(false);
+    const [drawerIsOpen, setDrawerIsOpen] = useState(false);
 
     useEffect(() => {
         const restoreLatestLocalStorage = () => {
             // TODO: Add State as type somehow?
             const persistedStore = JSON.parse(
                 window.localStorage.getItem('persistedStore') || '{}'
-            );
+            ) as State;
 
             // Override the store with persisted one if it's newer
             if (persistedStore && persistedStore.timestamp > state.timestamp) {
+                setRestored(true);
+
+                // TODO: Migrate the persisted store if schema has changed?
                 dispatch({
                     type: ActionType.SetStore,
-                    payload: persistedStore
+                    payload: { data: persistedStore }
                 });
             }
         };
@@ -78,8 +84,6 @@ const App: React.FC = () => {
     const salaries = Object.values(state.celeries).map(({ input }) =>
         calculateSalary(input.value)
     );
-
-    const [drawerIsOpen, setDrawerIsOpen] = useState(false);
 
     return (
         <Layout>
@@ -163,7 +167,7 @@ const App: React.FC = () => {
                             }
                             endIcon={<AddCircleOutline />}
                         >
-                            Add
+                            Add New
                         </Button>
                     </Grid>
                 </Grid>
@@ -206,7 +210,7 @@ const App: React.FC = () => {
 
                     <Grid container justify="space-between">
                         <Grid item>
-                            <TextField
+                            <NumberField
                                 name="min"
                                 onChange={(
                                     e: React.ChangeEvent<HTMLInputElement>
@@ -214,23 +218,16 @@ const App: React.FC = () => {
                                     dispatch({
                                         type: ActionType.SetMin,
                                         payload: {
-                                            data: Number(e.target.value)
+                                            data: e.target.value
                                         }
                                     });
                                 }}
                                 value={state.min}
                                 placeholder="0.00"
-                                InputProps={{
-                                    startAdornment: (
-                                        <InputAdornment position="start">
-                                            $
-                                        </InputAdornment>
-                                    )
-                                }}
                             />
                         </Grid>
                         <Grid item>
-                            <TextField
+                            <NumberField
                                 name="max"
                                 onChange={(
                                     e: React.ChangeEvent<HTMLInputElement>
@@ -244,18 +241,20 @@ const App: React.FC = () => {
                                 }}
                                 value={state.max}
                                 placeholder="0.00"
-                                InputProps={{
-                                    startAdornment: (
-                                        <InputAdornment position="start">
-                                            $
-                                        </InputAdornment>
-                                    )
-                                }}
                             />
                         </Grid>
                     </Grid>
                 </Grid>
             </Container>
+            <Snackbar
+                open={restored}
+                autoHideDuration={4000}
+                onClose={() => setRestored(false)}
+            >
+                <Alert variant="filled" severity="success">
+                    Restored from Local Storage!
+                </Alert>
+            </Snackbar>
         </Layout>
     );
 };

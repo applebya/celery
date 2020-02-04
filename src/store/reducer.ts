@@ -49,8 +49,10 @@ const reduceStore = (state: State, action: Action): State => {
 
                 case ActionType.SetInputValue:
                     // Enforce numericality
-                    const input = payload.data;
-                    if (input.length && Number.isNaN(Number(input))) {
+                    if (
+                        payload.data.length &&
+                        Number.isNaN(Number(payload.data))
+                    ) {
                         return state;
                     }
 
@@ -60,8 +62,11 @@ const reduceStore = (state: State, action: Action): State => {
                             ...state.celeries,
                             [payload.id]: {
                                 ...state.celeries[payload.id],
-                                input
-                                // Type-checking doesn't work here for some reason
+                                input: {
+                                    ...state.celeries[payload.id].input,
+                                    value: payload.data
+                                }
+                                // Type-checking doesn't work here for some reason?
                             }
                         }
                     };
@@ -78,8 +83,24 @@ const reduceStore = (state: State, action: Action): State => {
                         }
                     };
             }
-        } else if (type === ActionType.SetStore) {
-            return payload.data;
+        } else if (payload.data) {
+            switch (type) {
+                case ActionType.SetStore:
+                    console.log('going to set store', payload.data);
+                    return payload.data;
+
+                case ActionType.SetMin:
+                    return {
+                        ...state,
+                        min: payload.data
+                    };
+
+                case ActionType.SetMax:
+                    return {
+                        ...state,
+                        max: payload.data
+                    };
+            }
         }
     }
 
@@ -107,8 +128,12 @@ const reducer = (state: State, action: Action): State => {
         timestamp: +new Date()
     };
 
+    console.log('action', action);
+
     // Reduce state with dispatched action
     state = reduceStore(state, action);
+
+    console.log('reducedState', state);
 
     // Persist new state to localStorage
     if ('localStorage' in window) {

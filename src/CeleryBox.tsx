@@ -2,19 +2,20 @@ import {
     Box,
     Button,
     Grid,
-    InputAdornment,
     TextField,
-    Typography
+    Typography,
+    InputAdornment
 } from '@material-ui/core';
 import React from 'react';
 import calculateSalary from './calculateSalary';
+import NumberField from './components/NumberField';
 import styled from 'styled-components';
 import { Action, ActionType, Celery } from './store/types';
 
-type CeleryBoxProps = Celery & {
+interface CeleryBoxProps extends Celery {
     id: string;
     dispatch: React.Dispatch<Action>;
-};
+}
 
 const StyledTextField = styled(TextField)`
     input {
@@ -42,6 +43,7 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                         style={{
                             marginBottom: 15
                         }}
+                        fullWidth
                         onChange={(
                             event: React.ChangeEvent<HTMLInputElement>
                         ) => {
@@ -54,7 +56,7 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                             });
                         }}
                     />
-                    <TextField
+                    <NumberField
                         name="value"
                         variant="outlined"
                         autoComplete="off"
@@ -73,11 +75,6 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                         placeholder="0.00"
                         autoFocus
                         InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    $
-                                </InputAdornment>
-                            ),
                             endAdornment: (
                                 <InputAdornment position="end">
                                     per hour
@@ -114,4 +111,4 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
     );
 };
 
-export default React.memo(CeleryBox);
+export default CeleryBox;
