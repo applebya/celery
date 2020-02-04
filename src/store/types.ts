@@ -29,6 +29,7 @@ export enum ActionType {
     AddCelery = 'addCelery',
     RemoveCelery = 'removeCelery',
     SetInputValue = 'setInputValue',
+    SetInputType = 'setInputType',
     SetName = 'setName',
     SetMin = 'setMin',
     SetMax = 'setMax',

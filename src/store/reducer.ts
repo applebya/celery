@@ -71,6 +71,27 @@ const reduceStore = (state: State, action: Action): State => {
                         }
                     };
 
+                case ActionType.SetInputType:
+                    console.log(
+                        'state.celeries[payload.id]',
+                        state.celeries[payload.id]
+                    );
+                    console.log('payload.data', payload.data);
+                    return {
+                        ...state,
+                        celeries: {
+                            ...state.celeries,
+                            [payload.id]: {
+                                ...state.celeries[payload.id],
+                                input: {
+                                    ...state.celeries[payload.id].input,
+                                    type: payload.data
+                                }
+                                // Type-checking doesn't work here for some reason?
+                            }
+                        }
+                    };
+
                 case ActionType.SetName:
                     return {
                         ...state,

@@ -3,14 +3,15 @@ import {
     Button,
     Grid,
     TextField,
-    Typography,
+    Select,
+    MenuItem,
     InputAdornment
 } from '@material-ui/core';
 import React from 'react';
 import calculateSalary from './calculateSalary';
 import NumberField from './components/NumberField';
 import styled from 'styled-components';
-import { Action, ActionType, Celery } from './store/types';
+import { Action, ActionType, Celery, InputType } from './store/types';
 
 interface CeleryBoxProps extends Celery {
     id: string;
@@ -29,7 +30,7 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
     input: { value, type },
     dispatch
 }) => {
-    const salary = calculateSalary(value);
+    const salary = calculateSalary(value, type);
 
     return (
         <Box style={{ padding: '1em' }}>
@@ -77,7 +78,28 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                         InputProps={{
                             endAdornment: (
                                 <InputAdornment position="end">
-                                    per hour
+                                    <Select
+                                        value={type}
+                                        onChange={(
+                                            e: React.ChangeEvent<{
+                                                value: unknown;
+                                            }>
+                                        ) => {
+                                            dispatch({
+                                                type: ActionType.SetInputType,
+                                                payload: {
+                                                    id,
+                                                    data: e.target.value
+                                                }
+                                            });
+                                        }}
+                                    >
+                                        {Object.values(InputType).map(type => (
+                                            <MenuItem key={type} value={type}>
+                                                {type}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
                                 </InputAdornment>
                             )
                         }}
@@ -86,12 +108,12 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                 <Grid item style={{ flex: 1 }}></Grid>
                 <Grid item sm={4} xs={12}>
                     Salary:{' '}
-                    <Typography>
+                    <strong>
                         $
                         {salary
                             .toFixed(2)
                             .replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}
-                    </Typography>{' '}
+                    </strong>{' '}
                     / year
                     <Box>
                         <Button

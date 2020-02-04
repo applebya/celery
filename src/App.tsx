@@ -82,7 +82,7 @@ const App: React.FC = () => {
     }, [state.timestamp, dispatch]);
 
     const salaries = Object.values(state.celeries).map(({ input }) =>
-        calculateSalary(input.value)
+        calculateSalary(input.value, input.type)
     );
 
     return (

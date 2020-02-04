@@ -1,6 +1,19 @@
-export default function(hourlyRate: number) {
-    if (!hourlyRate) return 0;
+import { InputType } from './store/types';
 
-    // Every day in the year, minus weekends
-    return hourlyRate * 8 * (365.25 - 52 * 2);
+export default function(value: number, type: InputType) {
+    if (!value) return 0;
+
+    switch (type) {
+        case InputType.PerHour:
+            return value * 8 * (365.25 - 52);
+
+        case InputType.PerDay:
+            return value * (365.25 - 52);
+
+        case InputType.PerMonth:
+            return (value * (365.25 - 52)) / 12;
+
+        case InputType.PerYear:
+            return value;
+    }
 }
