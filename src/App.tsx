@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useReducer, useState } from 'react';
 import { hot } from 'react-hot-loader/root';
 import {
     Button,
@@ -11,14 +11,27 @@ import {
     Grow,
     Slider,
     TextField,
-    InputAdornment
+    InputAdornment,
+    Drawer,
+    List,
+    ListItem,
+    ListItemIcon,
+    ListItemText,
+    IconButton,
+    Paper
 } from '@material-ui/core';
-import { AddCircleOutline, Menu } from '@material-ui/icons';
+import {
+    AddCircleOutline,
+    Menu,
+    Settings,
+    ChevronLeft
+} from '@material-ui/icons';
 import { ReactComponent as CeleryIcon } from './CeleryIcon.svg';
 import styled from 'styled-components';
 
 import CeleryBox from './CeleryBox';
-import useStore, { ActionType } from './hooks/useStore';
+import reducer, { initialState } from './store/reducer';
+import { ActionType } from './store/types';
 import calculateSalary from './calculateSalary';
 
 const Layout = styled.div`
@@ -33,11 +46,15 @@ const TopNav = styled(Toolbar)`
     justify-content: space-between;
 `;
 
+const StyledDrawer = styled(Drawer)`
+    width: 200px;
+`;
+
 const App: React.FC = () => {
-    const [state, dispatch] = useStore();
+    const [state, dispatch] = useReducer(reducer, initialState);
 
     useEffect(() => {
-        const checkLocalStorage = () => {
+        const restoreLatestLocalStorage = () => {
             // TODO: Add State as type somehow?
             const persistedStore = JSON.parse(
                 window.localStorage.getItem('persistedStore') || '{}'
@@ -52,16 +69,23 @@ const App: React.FC = () => {
             }
         };
 
-        window.addEventListener('focus', checkLocalStorage);
+        window.addEventListener('focus', restoreLatestLocalStorage);
 
-        return () => window.removeEventListener('focus', checkLocalStorage);
+        return () =>
+            window.removeEventListener('focus', restoreLatestLocalStorage);
     }, [state.timestamp, dispatch]);
+
+    const salaries = Object.values(state.celeries).map(({ input }) =>
+        calculateSalary(input.value)
+    );
+
+    const [drawerIsOpen, setDrawerIsOpen] = useState(false);
 
     return (
         <Layout>
             <AppBar position="static">
                 <TopNav>
-                    <Menu />
+                    <Menu onClick={() => setDrawerIsOpen(!drawerIsOpen)} />
                     <Typography
                         variant="h6"
                         component="h1"
@@ -79,6 +103,26 @@ const App: React.FC = () => {
                     </Typography>
                 </TopNav>
             </AppBar>
+
+            <StyledDrawer
+                anchor="left"
+                variant="persistent"
+                open={drawerIsOpen}
+            >
+                <div>
+                    <IconButton onClick={() => setDrawerIsOpen(false)}>
+                        <ChevronLeft />
+                    </IconButton>
+                </div>
+                <List>
+                    <ListItem button>
+                        <ListItemIcon>
+                            <Settings />
+                        </ListItemIcon>
+                        <ListItemText primary="Hello" />
+                    </ListItem>
+                </List>
+            </StyledDrawer>
 
             <Container
                 style={{
@@ -98,12 +142,14 @@ const App: React.FC = () => {
                     {Object.entries(state.celeries).map(([id, celery]) => (
                         <Grid item key={id}>
                             <Grow in>
-                                <CeleryBox
-                                    key={id}
-                                    id={id}
-                                    dispatch={dispatch}
-                                    {...celery}
-                                />
+                                <Paper>
+                                    <CeleryBox
+                                        key={id}
+                                        id={id}
+                                        dispatch={dispatch}
+                                        {...celery}
+                                    />
+                                </Paper>
                             </Grow>
                         </Grid>
                     ))}
@@ -117,7 +163,7 @@ const App: React.FC = () => {
                             }
                             endIcon={<AddCircleOutline />}
                         >
-                            Add celery
+                            Add
                         </Button>
                     </Grid>
                 </Grid>
@@ -136,11 +182,7 @@ const App: React.FC = () => {
                                 track={false}
                                 min={state.min}
                                 max={state.max}
-                                value={Object.values(
-                                    state.celeries
-                                ).map(({ input }) =>
-                                    calculateSalary(input.value)
-                                )}
+                                value={salaries}
                                 valueLabelFormat={(val: number) => {
                                     // TODO: 1 dec place if exists
                                     if (val >= 1000000) {
@@ -165,13 +207,15 @@ const App: React.FC = () => {
                     <Grid container justify="space-between">
                         <Grid item>
                             <TextField
-                                name="mincelery"
+                                name="min"
                                 onChange={(
                                     e: React.ChangeEvent<HTMLInputElement>
                                 ) => {
                                     dispatch({
                                         type: ActionType.SetMin,
-                                        payload: Number(e.target.value)
+                                        payload: {
+                                            data: Number(e.target.value)
+                                        }
                                     });
                                 }}
                                 value={state.min}
@@ -187,13 +231,15 @@ const App: React.FC = () => {
                         </Grid>
                         <Grid item>
                             <TextField
-                                name="maxcelery"
+                                name="max"
                                 onChange={(
                                     e: React.ChangeEvent<HTMLInputElement>
                                 ) => {
                                     dispatch({
                                         type: ActionType.SetMax,
-                                        payload: Number(e.target.value)
+                                        payload: {
+                                            data: Number(e.target.value)
+                                        }
                                     });
                                 }}
                                 value={state.max}

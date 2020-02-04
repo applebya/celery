@@ -46,8 +46,9 @@
         ]
     },
     "devDependencies": {
+        "@types/material-ui": "^0.21.7",
         "@types/styled-components": "^4.4.2",
         "@types/uuid": "^3.4.7",
-        "@types/material-ui": "^0.21.7"
+        "ts-essentials": "^5.0.0"
     }
 }
