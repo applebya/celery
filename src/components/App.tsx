@@ -11,8 +11,7 @@ import {
     Grow,
     Slider,
     Paper,
-    Snackbar,
-    Divider
+    Snackbar
 } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
 import { AddCircleOutline, Menu } from '@material-ui/icons';
