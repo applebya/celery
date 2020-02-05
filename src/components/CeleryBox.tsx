@@ -9,14 +9,18 @@ import {
 } from '@material-ui/core';
 import { Delete } from '@material-ui/icons';
 import React from 'react';
+import CountUp from 'react-countup';
 import calculateSalary from '../utils/calculateSalary';
 import NumberField from './NumberField';
 import styled from 'styled-components';
-import { Action, ActionType, Celery, InputType } from '../store/types';
+import { ActionType, Celery, InputType, Dispatch } from '../store/types';
+
+import { useEffect, useRef } from 'react';
 
 interface CeleryBoxProps extends Celery {
     id: string;
-    dispatch: React.Dispatch<Action>;
+    dispatch: Dispatch;
+    index: number;
 }
 
 const StyledTextField = styled(TextField)`
@@ -25,13 +29,23 @@ const StyledTextField = styled(TextField)`
     }
 `;
 
+const usePrevious = <T extends {}>(value: T) => {
+    const ref = useRef<T>();
+    useEffect(() => {
+        ref.current = value;
+    });
+    return ref.current;
+};
+
 const CeleryBox: React.FC<CeleryBoxProps> = ({
     id,
     name,
+    index,
     input: { value, type },
     dispatch
 }) => {
     const salary = calculateSalary(value, type);
+    const prevSalary = usePrevious(salary);
 
     return (
         <Box style={{ padding: '1em' }}>
@@ -39,13 +53,14 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                 <Grid item sm={4} xs={12}>
                     <StyledTextField
                         name="name"
-                        placeholder="Untitled"
+                        placeholder={`Company ${index + 1}`}
                         color="secondary"
                         value={name}
                         style={{
                             marginBottom: 15
                         }}
                         fullWidth
+                        autoFocus
                         onChange={(
                             event: React.ChangeEvent<HTMLInputElement>
                         ) => {
@@ -75,7 +90,6 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                             });
                         }}
                         placeholder="0.00"
-                        autoFocus
                         InputProps={{
                             endAdornment: (
                                 <InputAdornment position="end">
@@ -110,10 +124,17 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                 <Grid item sm={4} xs={12}>
                     Salary:{' '}
                     <strong>
-                        $
-                        {salary
-                            .toFixed(2)
-                            .replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}
+                        <CountUp
+                            // Don't animate if it's already PerYear
+                            start={
+                                type === InputType.PerYear ? salary : prevSalary
+                            }
+                            end={salary}
+                            prefix="$"
+                            decimals={0}
+                            duration={1}
+                            separator=","
+                        />
                     </strong>{' '}
                     / year
                     <Box>

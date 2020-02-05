@@ -4,7 +4,7 @@ import { DeepReadonly } from 'ts-essentials';
 export type State = DeepReadonly<{
     timestamp: number;
     min: number;
-    max: number;
+    desired: number;
     celeries: {
         [x: string]: Celery;
     };
@@ -32,9 +32,12 @@ export enum ActionType {
     SetInputType = 'setInputType',
     SetName = 'setName',
     SetMin = 'setMin',
-    SetMax = 'setMax',
-    SetStore = 'setStore'
+    SetDesired = 'setDesired',
+    SetStore = 'setStore',
+    ResetStore = 'resetStore'
 }
+
+export type Dispatch = React.Dispatch<Action>;
 
 // Loose typing, to avoid creating a type for every ActionType
 export type Action = {

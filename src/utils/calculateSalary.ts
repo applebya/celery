@@ -1,8 +1,12 @@
 import { InputType } from '../store/types';
 
 /** Returns a yearly salary given the input type */
-export default function(value: number, type: InputType) {
+export default function(value: number | string, type: InputType): number {
     if (!value) return 0;
+
+    if (typeof value === 'string') {
+        value = Number(value);
+    }
 
     // TODO: Get these in as variables
     const workingDays = 365.25 - 52;

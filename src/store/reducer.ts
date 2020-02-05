@@ -1,11 +1,9 @@
 import { v4 as generateId } from 'uuid';
 import { Celery, State, InputType, ActionType, Action } from './types';
 
-let nameIndex = 1;
-
 const newCelery = () => ({
     [generateId()]: {
-        name: `Company${nameIndex}`,
+        name: '',
         input: {
             value: 0,
             type: InputType.PerYear
@@ -15,8 +13,8 @@ const newCelery = () => ({
 
 // Grab initialState from persistedStore in localStorage (if exists)
 const defaultState: State = {
-    min: 0,
-    max: 75000,
+    min: 1,
+    desired: 75000,
     celeries: newCelery(),
     timestamp: +new Date()
 };
@@ -38,8 +36,6 @@ const reduceStore = (state: State, action: Action): State => {
         if (payload.id) {
             switch (type) {
                 case ActionType.RemoveCelery:
-                    nameIndex++;
-
                     const { [payload.id]: _, ...celeries } = state.celeries;
 
                     return {
@@ -48,14 +44,6 @@ const reduceStore = (state: State, action: Action): State => {
                     };
 
                 case ActionType.SetInputValue:
-                    // Enforce numericality
-                    if (
-                        payload.data.length &&
-                        Number.isNaN(Number(payload.data))
-                    ) {
-                        return state;
-                    }
-
                     return {
                         ...state,
                         celeries: {
@@ -108,10 +96,10 @@ const reduceStore = (state: State, action: Action): State => {
                         min: payload.data
                     };
 
-                case ActionType.SetMax:
+                case ActionType.SetDesired:
                     return {
                         ...state,
-                        max: payload.data
+                        desired: payload.data
                     };
             }
         }
@@ -119,8 +107,6 @@ const reduceStore = (state: State, action: Action): State => {
 
     switch (type) {
         case ActionType.AddCelery:
-            nameIndex++;
-
             return {
                 ...state,
                 celeries: {
@@ -129,7 +115,15 @@ const reduceStore = (state: State, action: Action): State => {
                 }
             };
 
+        case ActionType.ResetStore:
+            if ('localStorage' in window) {
+                localStorage.removeItem(PERSISTED_STORE_NAME);
+            }
+
+            return defaultState;
+
         default:
+            console.warn(`Action ${type} did not alter the state`);
             return state;
     }
 };
@@ -141,12 +135,14 @@ const reducer = (state: State, action: Action): State => {
         timestamp: +new Date()
     };
 
+    console.log('-----------');
     console.info('action:', action);
 
     // Reduce state with dispatched action
     state = reduceStore(state, action);
 
     console.info('state', state);
+    console.log('-----------');
 
     // Persist new state to localStorage
     if ('localStorage' in window) {

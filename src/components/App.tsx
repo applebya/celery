@@ -10,22 +10,12 @@ import {
     Grid,
     Grow,
     Slider,
-    Drawer,
-    List,
-    ListItem,
-    ListItemIcon,
-    ListItemText,
-    IconButton,
     Paper,
-    Snackbar
+    Snackbar,
+    Divider
 } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
-import {
-    AddCircleOutline,
-    Menu,
-    Settings,
-    ChevronLeft
-} from '@material-ui/icons';
+import { AddCircleOutline, Menu } from '@material-ui/icons';
 import { ReactComponent as CeleryIcon } from './CeleryIcon.svg';
 import styled from 'styled-components';
 
@@ -34,6 +24,8 @@ import reducer, { initialState } from '../store/reducer';
 import { ActionType, State } from '../store/types';
 import calculateSalary from '../utils/calculateSalary';
 import NumberField from './NumberField';
+import DrawerMenu from './DrawerMenu';
+import formatMoney from '../utils/formatMoney';
 
 const Layout = styled.div`
     height: 100vh;
@@ -47,18 +39,24 @@ const TopNav = styled(Toolbar)`
     justify-content: space-between;
 `;
 
-const StyledDrawer = styled(Drawer)`
-    min-width: 300px;
+const StyledSlider = styled(Slider)`
+    .MuiSlider-thumb {
+        transition: left 0.25s ease;
+    }
+    .MuiSlider-markLabel {
+        text-align: center;
+        max-width: 50px;
+    }
 `;
 
 const App: React.FC = () => {
+    // TODO: Provide state & dispatch to children as context?
     const [state, dispatch] = useReducer(reducer, initialState);
     const [restored, setRestored] = useState(false);
     const [drawerIsOpen, setDrawerIsOpen] = useState(false);
 
     useEffect(() => {
         const restoreLatestLocalStorage = () => {
-            // TODO: Add State as type somehow?
             const persistedStore: State = JSON.parse(
                 window.localStorage.getItem('persistedStore') || '{}'
             );
@@ -81,9 +79,9 @@ const App: React.FC = () => {
             window.removeEventListener('focus', restoreLatestLocalStorage);
     }, [state.timestamp, dispatch]);
 
-    const salaries = Object.values(state.celeries).map(({ input }) =>
-        calculateSalary(input.value, input.type)
-    );
+    const salaries = Object.values(state.celeries)
+        .map(({ input }) => calculateSalary(input.value, input.type))
+        .filter(value => value > 0);
 
     return (
         <Layout>
@@ -108,25 +106,11 @@ const App: React.FC = () => {
                 </TopNav>
             </AppBar>
 
-            <StyledDrawer
-                anchor="left"
-                variant="persistent"
-                open={drawerIsOpen}
-            >
-                <div>
-                    <IconButton onClick={() => setDrawerIsOpen(false)}>
-                        <ChevronLeft />
-                    </IconButton>
-                </div>
-                <List>
-                    <ListItem button>
-                        <ListItemIcon>
-                            <Settings />
-                        </ListItemIcon>
-                        <ListItemText primary="Hello" />
-                    </ListItem>
-                </List>
-            </StyledDrawer>
+            <DrawerMenu
+                dispatch={dispatch}
+                isOpen={drawerIsOpen}
+                setIsOpen={setDrawerIsOpen}
+            />
 
             <Container
                 style={{
@@ -143,20 +127,23 @@ const App: React.FC = () => {
                     spacing={2}
                     style={{ flex: 1 }}
                 >
-                    {Object.entries(state.celeries).map(([id, celery]) => (
-                        <Grid item key={id}>
-                            <Grow in>
-                                <Paper>
-                                    <CeleryBox
-                                        key={id}
-                                        id={id}
-                                        dispatch={dispatch}
-                                        {...celery}
-                                    />
-                                </Paper>
-                            </Grow>
-                        </Grid>
-                    ))}
+                    {Object.entries(state.celeries).map(
+                        ([id, celery], index) => (
+                            <Grid item key={id}>
+                                <Grow in>
+                                    <Paper>
+                                        <CeleryBox
+                                            key={id}
+                                            index={index}
+                                            id={id}
+                                            dispatch={dispatch}
+                                            {...celery}
+                                        />
+                                    </Paper>
+                                </Grow>
+                            </Grid>
+                        )
+                    )}
 
                     <Grid item>
                         <Button
@@ -176,42 +163,50 @@ const App: React.FC = () => {
                     <Grid container spacing={2} style={{ marginTop: '3em' }}>
                         <Grid item>
                             <Typography variant="h6" color="textSecondary">
-                                Min
+                                &nbsp;$&nbsp;
                             </Typography>
                         </Grid>
 
                         <Grid item style={{ flex: 1 }}>
-                            <Slider
+                            <StyledSlider
                                 color="secondary"
                                 track={false}
-                                min={state.min}
-                                max={Math.max(...salaries)}
+                                min={Math.min(state.min, ...salaries)}
+                                max={Math.max(state.desired, ...salaries)}
                                 value={salaries}
-                                valueLabelFormat={(val: number) => {
-                                    // TODO: 1 dec place if exists
-                                    if (val >= 1000000) {
-                                        return `${Math.floor(val / 1000000)}M`;
-                                    } else if (val >= 1000) {
-                                        return `${Math.floor(val / 1000)}K`;
-                                    } else {
-                                        return `$${val}`;
+                                valueLabelFormat={formatMoney}
+                                marks={[
+                                    {
+                                        label: `Min.
+                                        (${formatMoney(state.min)})`,
+                                        value: state.min
+                                    },
+                                    {
+                                        label: `Des.
+                                        (${formatMoney(state.desired)})`,
+                                        value: state.desired
                                     }
-                                }}
+                                ]}
                                 valueLabelDisplay="on"
                             />
                         </Grid>
 
                         <Grid item>
                             <Typography variant="h6" color="textSecondary">
-                                Max
+                                $$$
                             </Typography>
                         </Grid>
                     </Grid>
 
+                    <br />
+                    <br />
+
+                    {/* TODO: Move this stuff elsewhere */}
                     <Grid container justify="space-between">
                         <Grid item>
                             <NumberField
                                 name="min"
+                                label="Minimum Salary"
                                 onChange={(
                                     e: React.ChangeEvent<HTMLInputElement>
                                 ) => {
@@ -224,28 +219,33 @@ const App: React.FC = () => {
                                 }}
                                 value={state.min}
                                 placeholder="0.00"
+                                autoStretch
                             />
                         </Grid>
                         <Grid item>
                             <NumberField
-                                name="max"
+                                name="desired"
+                                label="Desired Salary"
                                 onChange={(
                                     e: React.ChangeEvent<HTMLInputElement>
                                 ) => {
                                     dispatch({
-                                        type: ActionType.SetMax,
+                                        type: ActionType.SetDesired,
                                         payload: {
                                             data: Number(e.target.value)
                                         }
                                     });
                                 }}
-                                value={state.max}
+                                value={state.desired}
                                 placeholder="0.00"
+                                reversed
+                                autoStretch
                             />
                         </Grid>
                     </Grid>
                 </Grid>
             </Container>
+
             <Snackbar
                 open={restored}
                 autoHideDuration={4000}
