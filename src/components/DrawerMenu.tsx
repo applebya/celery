@@ -12,7 +12,7 @@ import {
     DialogActions,
     Button
 } from '@material-ui/core';
-import { Settings, ChevronLeft, DeleteForever } from '@material-ui/icons';
+import { ChevronLeft, DeleteForever } from '@material-ui/icons';
 import { Dispatch, ActionType } from '../store/types';
 import styled from 'styled-components';
 
