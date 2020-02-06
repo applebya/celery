@@ -114,7 +114,10 @@ const App: React.FC = () => {
                 </TopNav>
             </AppBar>
 
-            <StyledBackdrop open={drawerIsOpen} />
+            <StyledBackdrop
+                open={drawerIsOpen}
+                onClick={() => setDrawerIsOpen(false)}
+            />
             <DrawerMenu
                 dispatch={dispatch}
                 isOpen={drawerIsOpen}

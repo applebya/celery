@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
     Drawer,
-    IconButton,
     List,
     ListItem,
     ListItemIcon,
@@ -11,20 +10,24 @@ import {
     DialogContent,
     DialogActions,
     Button,
-    Collapse
+    Collapse,
+    IconButton,
+    InputLabel,
+    FormControl
 } from '@material-ui/core';
 import {
-    ChevronLeft,
     DeleteForever,
     ExpandLess,
     ExpandMore,
-    MonetizationOn
+    MonetizationOn,
+    ChevronLeft
 } from '@material-ui/icons';
 import { Dispatch, ActionType, Currencies } from '../store/types';
 import styled from 'styled-components';
 import { CurrencyType } from '../services/types';
 import FlagImage from './FlagImage';
 import NumberField from './NumberField';
+import CurrencySelect from './CurrencySelect';
 
 interface DrawerMenuProps {
     dispatch: Dispatch;
@@ -53,11 +56,24 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({
 
     return (
         <StyledDrawer anchor="left" variant="persistent" open={isOpen}>
-            <div>
+            <ListItem divider>
                 <IconButton onClick={() => setIsOpen(false)}>
                     <ChevronLeft />
                 </IconButton>
-            </div>
+                <ListItemText />
+                <FormControl>
+                    <InputLabel id="defaultCurrency">Currency</InputLabel>
+                    <CurrencySelect
+                        value={base}
+                        onChange={e => {
+                            dispatch({
+                                type: ActionType.SetBaseCurrency,
+                                payload: { data: e.target.value }
+                            });
+                        }}
+                    />
+                </FormControl>
+            </ListItem>
 
             <ListItem
                 button
@@ -134,7 +150,7 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({
                                     }}
                                     value={min}
                                     placeholder="0.00"
-                                    autoStretch
+                                    autoFocus
                                 />
                             </ListItemText>
                         </ListItem>
@@ -154,8 +170,6 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({
                                 }}
                                 value={desired}
                                 placeholder="0.00"
-                                reversed
-                                autoStretch
                             />
                         </ListItem>
                     </List>
