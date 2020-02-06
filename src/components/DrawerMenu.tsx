@@ -172,9 +172,9 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({
                                     primary={currency}
                                     {...(rates
                                         ? {
-                                              secondary: `$${Number(
+                                              secondary: Number(
                                                   rates[currency]
-                                              ).toFixed(3)}`
+                                              ).toFixed(3)
                                           }
                                         : {})}
                                     secondaryTypographyProps={{
