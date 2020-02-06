@@ -89,7 +89,7 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                         variant="outlined"
                         autoComplete="off"
                         // TODO: Show 'default' option to use base
-                        value={value || baseCurrency}
+                        value={value}
                         onChange={(
                             event: React.ChangeEvent<HTMLInputElement>
                         ) => {
