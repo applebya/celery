@@ -13,14 +13,17 @@ import {
     Collapse,
     IconButton,
     InputLabel,
-    FormControl
+    FormControl,
+    Typography
 } from '@material-ui/core';
 import {
     DeleteForever,
     ExpandLess,
     ExpandMore,
     MonetizationOn,
-    ChevronLeft
+    Close,
+    Settings,
+    AccountBalance
 } from '@material-ui/icons';
 import { Dispatch, ActionType, Currencies } from '../store/types';
 import styled from 'styled-components';
@@ -46,19 +49,19 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({
     dispatch,
     isOpen,
     setIsOpen,
-    currencies: { base, rates },
+    currencies: { base, rates, date },
     min,
     desired
 }) => {
     const [modalIsOpen, setResetModalIsOpen] = useState(false);
     const [currenciesIsOpen, setCurrenciesIsOpen] = useState(false);
-    const [salaryIsOpen, setSalaryIsOpen] = useState(false);
+    const [settingsIsOpen, setSettingsIsOpen] = useState(false);
 
     return (
         <StyledDrawer anchor="left" variant="persistent" open={isOpen}>
             <ListItem divider>
                 <IconButton onClick={() => setIsOpen(false)}>
-                    <ChevronLeft />
+                    <Close />
                 </IconButton>
                 <ListItemText />
                 <FormControl>
@@ -75,30 +78,81 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({
                 </FormControl>
             </ListItem>
 
+            <ListItem>
+                <ListItemText>
+                    <NumberField
+                        name="min"
+                        label="Minimum"
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            dispatch({
+                                type: ActionType.SetMin,
+                                payload: {
+                                    data: e.target.value
+                                }
+                            });
+                        }}
+                        value={min}
+                        placeholder="0.00"
+                        autoFocus
+                    />
+                </ListItemText>
+            </ListItem>
+
+            <ListItem>
+                <NumberField
+                    name="desired"
+                    label="Desired"
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        dispatch({
+                            type: ActionType.SetDesired,
+                            payload: {
+                                data: Number(e.target.value)
+                            }
+                        });
+                    }}
+                    value={desired}
+                    placeholder="0.00"
+                />
+            </ListItem>
+
+            <ListItem button onClick={() => setSettingsIsOpen(!settingsIsOpen)}>
+                <ListItemIcon>
+                    <Settings />
+                </ListItemIcon>
+                <ListItemText primary="Settings" />
+                {settingsIsOpen ? <ExpandLess /> : <ExpandMore />}
+            </ListItem>
+            <Collapse in={settingsIsOpen}>
+                <List>
+                    <ListItem button onClick={() => setResetModalIsOpen(true)}>
+                        <ListItemIcon>
+                            <DeleteForever />
+                        </ListItemIcon>
+                        <ListItemText primary="Reset Data" />
+                    </ListItem>
+                    {/* TODO: More settings */}
+                </List>
+            </Collapse>
+
             <ListItem
                 button
                 onClick={() => setCurrenciesIsOpen(!currenciesIsOpen)}
             >
                 <ListItemIcon>
-                    <FlagImage currencyCode={base} />
+                    <AccountBalance />
                 </ListItemIcon>
-                <ListItemText primary={base} />
+                <ListItemText primary="Exchange" secondary={`(${base})`} />
                 {currenciesIsOpen ? <ExpandLess /> : <ExpandMore />}
             </ListItem>
             <Collapse in={currenciesIsOpen}>
+                <Typography align="center" variant="caption" display="block">
+                    Updated: {date}
+                </Typography>
                 <List>
                     {Object.values(CurrencyType)
                         .filter(currency => currency !== base)
                         .map(currency => (
-                            <ListItem
-                                button
-                                onClick={() => {
-                                    dispatch({
-                                        type: ActionType.SetBaseCurrency,
-                                        payload: { data: currency }
-                                    });
-                                }}
-                            >
+                            <ListItem>
                                 <ListItemIcon>
                                     <FlagImage currencyCode={currency} />
                                 </ListItemIcon>
@@ -122,66 +176,6 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({
                         ))}
                 </List>
             </Collapse>
-
-            <List>
-                <ListItem button onClick={() => setSalaryIsOpen(!salaryIsOpen)}>
-                    <ListItemIcon>
-                        <MonetizationOn />
-                    </ListItemIcon>
-                    <ListItemText primary="Salary" />
-                    {salaryIsOpen ? <ExpandLess /> : <ExpandMore />}
-                </ListItem>
-                <Collapse in={salaryIsOpen}>
-                    <List>
-                        <ListItem>
-                            <ListItemText>
-                                <NumberField
-                                    name="min"
-                                    label="Minimum"
-                                    onChange={(
-                                        e: React.ChangeEvent<HTMLInputElement>
-                                    ) => {
-                                        dispatch({
-                                            type: ActionType.SetMin,
-                                            payload: {
-                                                data: e.target.value
-                                            }
-                                        });
-                                    }}
-                                    value={min}
-                                    placeholder="0.00"
-                                    autoFocus
-                                />
-                            </ListItemText>
-                        </ListItem>
-                        <ListItem>
-                            <NumberField
-                                name="desired"
-                                label="Desired"
-                                onChange={(
-                                    e: React.ChangeEvent<HTMLInputElement>
-                                ) => {
-                                    dispatch({
-                                        type: ActionType.SetDesired,
-                                        payload: {
-                                            data: Number(e.target.value)
-                                        }
-                                    });
-                                }}
-                                value={desired}
-                                placeholder="0.00"
-                            />
-                        </ListItem>
-                    </List>
-                </Collapse>
-
-                <ListItem button onClick={() => setResetModalIsOpen(true)}>
-                    <ListItemIcon>
-                        <DeleteForever />
-                    </ListItemIcon>
-                    <ListItemText primary="Reset Data" />
-                </ListItem>
-            </List>
 
             <Dialog open={modalIsOpen}>
                 <DialogTitle>

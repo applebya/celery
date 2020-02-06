@@ -23,6 +23,7 @@ export type Celery = {
 
 export type Currencies = {
     base: CurrencyType;
+    date?: string;
     rates?: {
         [x: string]: CurrencyType;
     };
