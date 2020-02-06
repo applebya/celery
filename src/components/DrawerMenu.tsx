@@ -20,7 +20,6 @@ import {
     DeleteForever,
     ExpandLess,
     ExpandMore,
-    MonetizationOn,
     Close,
     Settings,
     AccountBalance
@@ -123,7 +122,12 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({
                 {settingsIsOpen ? <ExpandLess /> : <ExpandMore />}
             </ListItem>
             <Collapse in={settingsIsOpen}>
-                <List>
+                <List
+                    style={{
+                        marginLeft: '1em',
+                        paddingBottom: '2px'
+                    }}
+                >
                     <ListItem button onClick={() => setResetModalIsOpen(true)}>
                         <ListItemIcon>
                             <DeleteForever />
@@ -141,9 +145,17 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({
                 <ListItemIcon>
                     <AccountBalance />
                 </ListItemIcon>
-                <ListItemText primary="Exchange" secondary={`(${base})`} />
+                <ListItemText
+                    primary="Exchange"
+                    secondary={`($1 ${base})`}
+                    secondaryTypographyProps={{
+                        variant: 'caption',
+                        display: 'block'
+                    }}
+                />
                 {currenciesIsOpen ? <ExpandLess /> : <ExpandMore />}
             </ListItem>
+
             <Collapse in={currenciesIsOpen}>
                 <Typography align="center" variant="caption" display="block">
                     Updated: {date}
@@ -160,9 +172,9 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({
                                     primary={currency}
                                     {...(rates
                                         ? {
-                                              secondary: Number(
+                                              secondary: `$${Number(
                                                   rates[currency]
-                                              ).toFixed(3)
+                                              ).toFixed(3)}`
                                           }
                                         : {})}
                                     secondaryTypographyProps={{

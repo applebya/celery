@@ -108,7 +108,7 @@ const reduceStore = (state: State, action: Action): State => {
                         }
                     };
             }
-        } else if (payload.data) {
+        } else if (typeof payload.data !== undefined) {
             switch (type) {
                 case ActionType.SetStore:
                     return payload.data;
