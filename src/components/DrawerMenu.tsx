@@ -164,7 +164,7 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({
                     {Object.values(CurrencyType)
                         .filter(currency => currency !== base)
                         .map(currency => (
-                            <ListItem>
+                            <ListItem key={currency}>
                                 <ListItemIcon>
                                     <FlagImage currencyCode={currency} />
                                 </ListItemIcon>

@@ -39,6 +39,12 @@ const usePrevious = <T extends {}>(value: T) => {
     return ref.current;
 };
 
+const StyledInputAdornment = styled(InputAdornment)`
+    display: flex;
+    justify-content: space-between;
+    width: 18em;
+`;
+
 const CeleryBox: React.FC<CeleryBoxProps> = ({
     id,
     name,
@@ -65,6 +71,7 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                         }}
                         fullWidth
                         autoFocus
+                        autoComplete="off"
                         onChange={(
                             event: React.ChangeEvent<HTMLInputElement>
                         ) => {
@@ -97,7 +104,7 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                         placeholder="0.00"
                         InputProps={{
                             endAdornment: (
-                                <InputAdornment position="end">
+                                <StyledInputAdornment position="end">
                                     <Select
                                         value={type}
                                         onChange={(
@@ -119,25 +126,26 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                                                 {type}
                                             </MenuItem>
                                         ))}
-                                    </Select>
-                                </InputAdornment>
+                                    </Select>{' '}
+                                    <CurrencySelect
+                                        value={currency || baseCurrency}
+                                        onChange={(
+                                            e: React.ChangeEvent<{
+                                                value: unknown;
+                                            }>
+                                        ) => {
+                                            dispatch({
+                                                type:
+                                                    ActionType.SetInputCurrency,
+                                                payload: {
+                                                    id,
+                                                    data: e.target.value
+                                                }
+                                            });
+                                        }}
+                                    />
+                                </StyledInputAdornment>
                             )
-                        }}
-                    />
-                    <CurrencySelect
-                        value={currency || baseCurrency}
-                        onChange={(
-                            e: React.ChangeEvent<{
-                                value: unknown;
-                            }>
-                        ) => {
-                            dispatch({
-                                type: ActionType.SetInputCurrency,
-                                payload: {
-                                    id,
-                                    data: e.target.value
-                                }
-                            });
                         }}
                     />
                 </Grid>

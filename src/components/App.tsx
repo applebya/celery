@@ -29,6 +29,7 @@ import { fetchCurrencyRates } from '../services/fetchCurrencyRates';
 
 const Layout = styled.div`
     height: 100vh;
+    max-width: 100vw;
     display: flex;
     flex-direction: column;
 `;
