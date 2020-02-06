@@ -13,7 +13,7 @@ export default function(
     }
 
     if (factor) {
-        value = value * factor;
+        value = value / factor;
     }
 
     // TODO: Get these in as variables
