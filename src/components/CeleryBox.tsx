@@ -1,3 +1,4 @@
+import React, { useEffect, useRef } from 'react';
 import {
     Box,
     Button,
@@ -8,19 +9,20 @@ import {
     InputAdornment
 } from '@material-ui/core';
 import { Delete } from '@material-ui/icons';
-import React from 'react';
 import CountUp from 'react-countup';
 import calculateSalary from '../utils/calculateSalary';
 import NumberField from './NumberField';
 import styled from 'styled-components';
 import { ActionType, Celery, InputType, Dispatch } from '../store/types';
-
-import { useEffect, useRef } from 'react';
+import CurrencySelect from './CurrencySelect';
+import { CurrencyType } from '../services/types';
 
 interface CeleryBoxProps extends Celery {
     id: string;
     dispatch: Dispatch;
     index: number;
+    rateFactor?: number;
+    baseCurrency: CurrencyType;
 }
 
 const StyledTextField = styled(TextField)`
@@ -41,10 +43,12 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
     id,
     name,
     index,
-    input: { value, type },
+    input: { value, type, currency },
+    baseCurrency,
+    rateFactor,
     dispatch
 }) => {
-    const salary = calculateSalary(value, type);
+    const salary = calculateSalary(value, type, rateFactor);
     const prevSalary = usePrevious(salary);
 
     return (
@@ -77,7 +81,8 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                         name="value"
                         variant="outlined"
                         autoComplete="off"
-                        value={value}
+                        // TODO: Show 'default' option to use base
+                        value={value || baseCurrency}
                         onChange={(
                             event: React.ChangeEvent<HTMLInputElement>
                         ) => {
@@ -117,6 +122,22 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                                     </Select>
                                 </InputAdornment>
                             )
+                        }}
+                    />
+                    <CurrencySelect
+                        value={currency || baseCurrency}
+                        onChange={(
+                            e: React.ChangeEvent<{
+                                value: unknown;
+                            }>
+                        ) => {
+                            dispatch({
+                                type: ActionType.SetInputCurrency,
+                                payload: {
+                                    id,
+                                    data: e.target.value
+                                }
+                            });
                         }}
                     />
                 </Grid>

@@ -1,4 +1,5 @@
 import { DeepReadonly } from 'ts-essentials';
+import { CurrencyType } from '../services/types';
 
 // Deeply immutable state
 export type State = DeepReadonly<{
@@ -8,6 +9,7 @@ export type State = DeepReadonly<{
     celeries: {
         [x: string]: Celery;
     };
+    currencies: Currencies;
 }>;
 
 export type Celery = {
@@ -15,6 +17,14 @@ export type Celery = {
     input: {
         value: number;
         type: InputType;
+        currency: CurrencyType | null;
+    };
+};
+
+export type Currencies = {
+    base: CurrencyType;
+    rates?: {
+        [x: string]: CurrencyType;
     };
 };
 
@@ -30,11 +40,14 @@ export enum ActionType {
     RemoveCelery = 'removeCelery',
     SetInputValue = 'setInputValue',
     SetInputType = 'setInputType',
+    SetInputCurrency = 'setInputCurrency',
     SetName = 'setName',
     SetMin = 'setMin',
     SetDesired = 'setDesired',
     SetStore = 'setStore',
-    ResetStore = 'resetStore'
+    ResetStore = 'resetStore',
+    SetCurrencies = 'setCurrencies',
+    SetBaseCurrency = 'setBaseCurrency'
 }
 
 export type Dispatch = React.Dispatch<Action>;

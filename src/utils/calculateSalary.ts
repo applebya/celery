@@ -1,11 +1,19 @@
 import { InputType } from '../store/types';
 
 /** Returns a yearly salary given the input type */
-export default function(value: number | string, type: InputType): number {
+export default function(
+    value: number | string,
+    type: InputType,
+    factor?: number
+): number {
     if (!value) return 0;
 
     if (typeof value === 'string') {
         value = Number(value);
+    }
+
+    if (factor) {
+        value = value * factor;
     }
 
     // TODO: Get these in as variables

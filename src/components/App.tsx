@@ -11,7 +11,8 @@ import {
     Grow,
     Slider,
     Paper,
-    Snackbar
+    Snackbar,
+    Backdrop
 } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
 import { AddCircleOutline, Menu } from '@material-ui/icons';
@@ -22,9 +23,9 @@ import CeleryBox from './CeleryBox';
 import reducer, { initialState } from '../store/reducer';
 import { ActionType, State } from '../store/types';
 import calculateSalary from '../utils/calculateSalary';
-import NumberField from './NumberField';
 import DrawerMenu from './DrawerMenu';
 import formatMoney from '../utils/formatMoney';
+import { fetchCurrencyRates } from '../services/fetchCurrencyRates';
 
 const Layout = styled.div`
     height: 100vh;
@@ -48,11 +49,19 @@ const StyledSlider = styled(Slider)`
     }
 `;
 
+const StyledBackdrop = styled(Backdrop)`
+    z-index: ${({ theme }) => theme.zIndex.drawer - 1};
+`;
+
 const App: React.FC = () => {
     // TODO: Provide state & dispatch to children as context?
     const [state, dispatch] = useReducer(reducer, initialState);
     const [restored, setRestored] = useState(false);
     const [drawerIsOpen, setDrawerIsOpen] = useState(false);
+
+    useEffect(() => {
+        fetchCurrencyRates(state.currencies.base, dispatch);
+    }, [state.currencies.base, dispatch]);
 
     useEffect(() => {
         const restoreLatestLocalStorage = () => {
@@ -105,10 +114,14 @@ const App: React.FC = () => {
                 </TopNav>
             </AppBar>
 
+            <StyledBackdrop open={drawerIsOpen} />
             <DrawerMenu
                 dispatch={dispatch}
                 isOpen={drawerIsOpen}
                 setIsOpen={setDrawerIsOpen}
+                currencies={state.currencies}
+                min={state.min}
+                desired={state.desired}
             />
 
             <Container
@@ -136,6 +149,18 @@ const App: React.FC = () => {
                                             index={index}
                                             id={id}
                                             dispatch={dispatch}
+                                            {...(state.currencies.rates
+                                                ? {
+                                                      rateFactor: (state
+                                                          .currencies.rates[
+                                                          celery.input
+                                                              .currency ||
+                                                              state.currencies
+                                                                  .base
+                                                      ] as unknown) as number
+                                                  }
+                                                : {})}
+                                            baseCurrency={state.currencies.base}
                                             {...celery}
                                         />
                                     </Paper>
@@ -194,52 +219,6 @@ const App: React.FC = () => {
                             <Typography variant="h6" color="textSecondary">
                                 $$$
                             </Typography>
-                        </Grid>
-                    </Grid>
-
-                    <br />
-                    <br />
-
-                    {/* TODO: Move this stuff elsewhere */}
-                    <Grid container justify="space-between">
-                        <Grid item>
-                            <NumberField
-                                name="min"
-                                label="Minimum Salary"
-                                onChange={(
-                                    e: React.ChangeEvent<HTMLInputElement>
-                                ) => {
-                                    dispatch({
-                                        type: ActionType.SetMin,
-                                        payload: {
-                                            data: e.target.value
-                                        }
-                                    });
-                                }}
-                                value={state.min}
-                                placeholder="0.00"
-                                autoStretch
-                            />
-                        </Grid>
-                        <Grid item>
-                            <NumberField
-                                name="desired"
-                                label="Desired Salary"
-                                onChange={(
-                                    e: React.ChangeEvent<HTMLInputElement>
-                                ) => {
-                                    dispatch({
-                                        type: ActionType.SetDesired,
-                                        payload: {
-                                            data: Number(e.target.value)
-                                        }
-                                    });
-                                }}
-                                value={state.desired}
-                                placeholder="0.00"
-                                reversed
-                                autoStretch
-                            />
                         </Grid>
                     </Grid>
                 </Grid>

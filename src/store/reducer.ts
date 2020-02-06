@@ -1,12 +1,17 @@
 import { v4 as generateId } from 'uuid';
 import { Celery, State, InputType, ActionType, Action } from './types';
+import { CurrencyType } from '../services/types';
 
-const newCelery = () => ({
+// TODO: Predict from browser location?
+const defaultCurrency: CurrencyType = CurrencyType.USD;
+
+const newCelery = ({ currency } = { currency: null }) => ({
     [generateId()]: {
         name: '',
         input: {
             value: 0,
-            type: InputType.PerYear
+            type: InputType.PerYear,
+            currency
         }
     } as Celery
 });
@@ -16,7 +21,10 @@ const defaultState: State = {
     min: 1,
     desired: 75000,
     celeries: newCelery(),
-    timestamp: +new Date()
+    timestamp: +new Date(),
+    currencies: {
+        base: defaultCurrency
+    }
 };
 
 const PERSISTED_STORE_NAME = 'persistedStore';
@@ -73,6 +81,21 @@ const reduceStore = (state: State, action: Action): State => {
                         }
                     };
 
+                case ActionType.SetInputCurrency:
+                    return {
+                        ...state,
+                        celeries: {
+                            ...state.celeries,
+                            [payload.id]: {
+                                ...state.celeries[payload.id],
+                                input: {
+                                    ...state.celeries[payload.id].input,
+                                    currency: payload.data
+                                }
+                            }
+                        }
+                    };
+
                 case ActionType.SetName:
                     return {
                         ...state,
@@ -89,6 +112,40 @@ const reduceStore = (state: State, action: Action): State => {
             switch (type) {
                 case ActionType.SetStore:
                     return payload.data;
+
+                case ActionType.SetCurrencies:
+                    return {
+                        ...state,
+                        currencies: payload.data
+                    };
+
+                case ActionType.SetBaseCurrency:
+                    const { rates = {} } = state.currencies;
+
+                    const previousBaseCurrency = (rates[
+                        state.currencies.base
+                    ] as unknown) as number;
+
+                    const newBaseCurrency = (rates[
+                        payload.data
+                    ] as unknown) as number;
+
+                    // Re-proportion currency rates to new
+                    const factor = newBaseCurrency / previousBaseCurrency;
+
+                    const newRates = Object.values(rates).reduce(
+                        (acc, val) => ({ ...acc, [val]: Number(val) * factor }),
+                        {}
+                    );
+
+                    return {
+                        ...state,
+                        currencies: {
+                            ...state.currencies,
+                            base: payload.data,
+                            rates: newRates
+                        }
+                    };
 
                 case ActionType.SetMin:
                     return {
@@ -123,7 +180,9 @@ const reduceStore = (state: State, action: Action): State => {
             return defaultState;
 
         default:
-            console.warn(`Action ${type} did not alter the state`);
+            console.warn(
+                `Action ${type} did not alter the state! Are you missing a reducer, my friend?`
+            );
             return state;
     }
 };
@@ -135,14 +194,18 @@ const reducer = (state: State, action: Action): State => {
         timestamp: +new Date()
     };
 
-    console.log('-----------');
-    console.info('action:', action);
+    if (process.env.NODE_ENV === 'development') {
+        console.log('-----------');
+        console.info('action:', action);
+    }
 
     // Reduce state with dispatched action
     state = reduceStore(state, action);
 
-    console.info('state', state);
-    console.log('-----------');
+    if (process.env.NODE_ENV === 'development') {
+        console.info('state', state);
+        console.log('-----------');
+    }
 
     // Persist new state to localStorage
     if ('localStorage' in window) {
