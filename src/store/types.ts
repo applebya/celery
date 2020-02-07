@@ -14,6 +14,9 @@ export type State = DeepReadonly<{
         fullTime: Commitment;
         partTime: Commitment;
     };
+    ratingTypes: {
+        [x: string]: string;
+    };
 }>;
 
 export type Celery = {
@@ -30,6 +33,9 @@ export type Celery = {
         daysInWeek: number | null;
         vacationDays: number | null;
         holidayDays: number | null;
+    };
+    ratings: {
+        [x: string]: number;
     };
 };
 
@@ -55,6 +61,7 @@ export enum InputType {
     PerYear = '/year'
 }
 
+// TODO: Change to A_B case
 export enum ActionType {
     AddCelery = 'addCelery',
     RemoveCelery = 'removeCelery',
@@ -62,6 +69,8 @@ export enum ActionType {
     SetInputType = 'setInputType',
     SetInputCurrency = 'setInputCurrency',
     SetCommitmentValue = 'setCommitmentValue',
+    SetRating = 'setRating',
+    SetRatingTypeName = 'setRatingTypeName',
     SetName = 'setName',
     SetMin = 'setMin',
     SetDesired = 'setDesired',
@@ -79,7 +88,7 @@ export type Action = {
     type: ActionType;
     payload?: {
         id?: string;
-        fieldName?: string;
+        subID?: string;
         data?: any;
     };
     meta?: any;

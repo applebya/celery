@@ -18,11 +18,10 @@ import { Alert } from '@material-ui/lab';
 import { AddCircleOutline, Menu } from '@material-ui/icons';
 import { ReactComponent as CeleryIcon } from './CeleryIcon.svg';
 import styled from 'styled-components';
-import merge from 'lodash.merge';
 
 import CeleryBox from './CeleryBox';
-import reducer, { initialState, defaultState } from '../store/reducer';
-import { ActionType, State } from '../store/types';
+import reducer, { initialState } from '../store/reducer';
+import { ActionType } from '../store/types';
 import calculateSalary from '../utils/calculateSalary';
 import DrawerMenu from './DrawerMenu';
 import formatMoney from '../utils/formatMoney';
@@ -67,19 +66,19 @@ const App: React.FC = () => {
 
     useEffect(() => {
         const restoreLatestLocalStorage = () => {
+            // TODO: Deep-merge persistedStore into defaultState
             const persistedStore = JSON.parse(
                 window.localStorage.getItem('persistedStore') || '{}'
             );
-            const mergedStore: State = merge({}, defaultState, persistedStore);
 
             // Override the store with persisted one if it's newer
-            if (mergedStore && mergedStore.timestamp > state.timestamp) {
+            if (persistedStore && persistedStore.timestamp > state.timestamp) {
                 setRestored(true);
 
                 // TODO: Migrate the persisted store if schema has changed?
                 dispatch({
                     type: ActionType.SetStore,
-                    payload: { data: mergedStore }
+                    payload: { data: persistedStore }
                 });
             }
         };
@@ -128,6 +127,7 @@ const App: React.FC = () => {
                 currencies={state.currencies}
                 min={state.min}
                 desired={state.desired}
+                ratingTypes={state.ratingTypes}
             />
 
             <Container
@@ -168,6 +168,7 @@ const App: React.FC = () => {
                                                 : {})}
                                             baseCurrency={state.currencies.base}
                                             defaults={state.defaults}
+                                            ratingTypes={state.ratingTypes}
                                             {...celery}
                                         />
                                     </Paper>

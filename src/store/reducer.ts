@@ -1,7 +1,6 @@
-import { v4 as generateId } from 'uuid';
+import uuid, { v4 as generateId } from 'uuid';
 import { Celery, State, InputType, ActionType, Action } from './types';
 import { CurrencyType } from '../services/types';
-import merge from 'lodash.merge';
 
 // TODO: Predict from browser location?
 const defaultCurrency: CurrencyType = CurrencyType.USD;
@@ -20,7 +19,8 @@ const newCelery = ({ currency } = { currency: null }) => ({
             daysInWeek: null,
             vacationDays: null,
             holidayDays: null
-        }
+        },
+        ratings: {}
     } as Celery
 });
 
@@ -46,6 +46,12 @@ export const defaultState: State = {
             vacationDays: 0,
             holidayDays: 0
         }
+    },
+    ratingTypes: {
+        [uuid()]: 'Culture',
+        [uuid()]: 'Work Life',
+        [uuid()]: 'Benefits',
+        [uuid()]: 'Likeability'
     }
 };
 
@@ -54,8 +60,9 @@ const PERSISTED_STORE_NAME = 'persistedStore';
 const persistedStore = window.localStorage.getItem(PERSISTED_STORE_NAME);
 
 // TODO: Move this out, consolidate with useEffect in App.tsx
+// TODO: Deep-merge persistedStore into defaultState
 export const initialState: State = persistedStore
-    ? JSON.parse(merge({}, defaultState, persistedStore))
+    ? JSON.parse(persistedStore)
     : defaultState;
 
 const reduceStore = (state: State, action: Action): State => {
@@ -132,10 +139,8 @@ const reduceStore = (state: State, action: Action): State => {
                     };
 
                 case ActionType.SetCommitmentValue:
-                    if (!payload.fieldName) {
-                        console.warn(
-                            `Missing fieldName (is: ${payload.fieldName})`
-                        );
+                    if (!payload.subID) {
+                        console.warn(`Missing subID (is: ${payload.subID})`);
                         return state;
                     }
 
@@ -147,9 +152,38 @@ const reduceStore = (state: State, action: Action): State => {
                                 ...state.celeries[payload.id],
                                 commitment: {
                                     ...state.celeries[payload.id].commitment,
-                                    [payload.fieldName]: payload.data
+                                    [payload.subID]: payload.data
                                 }
                             }
+                        }
+                    };
+
+                case ActionType.SetRating:
+                    if (!payload.subID) {
+                        console.warn(`Missing subID (is: ${payload.subID})`);
+                        return state;
+                    }
+
+                    return {
+                        ...state,
+                        celeries: {
+                            ...state.celeries,
+                            [payload.id]: {
+                                ...state.celeries[payload.id],
+                                ratings: {
+                                    ...state.celeries[payload.id].ratings,
+                                    [payload.subID]: payload.data
+                                }
+                            }
+                        }
+                    };
+
+                case ActionType.SetRatingTypeName:
+                    return {
+                        ...state,
+                        ratingTypes: {
+                            ...state.ratingTypes,
+                            [payload.id]: payload.data
                         }
                     };
             }

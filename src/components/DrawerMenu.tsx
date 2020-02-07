@@ -15,7 +15,8 @@ import {
     InputLabel,
     FormControl,
     Typography,
-    InputAdornment
+    InputAdornment,
+    TextField
 } from '@material-ui/core';
 import {
     DeleteForever,
@@ -23,7 +24,8 @@ import {
     ExpandMore,
     Close,
     Settings,
-    AccountBalance
+    AccountBalance,
+    Star
 } from '@material-ui/icons';
 import { Dispatch, ActionType, Currencies } from '../store/types';
 import styled from 'styled-components';
@@ -39,6 +41,9 @@ interface DrawerMenuProps {
     currencies: Currencies;
     min: number;
     desired: number;
+    ratingTypes: {
+        [x: string]: string;
+    };
 }
 
 const StyledDrawer = styled(Drawer)`
@@ -51,11 +56,13 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({
     setIsOpen,
     currencies: { base, rates, date },
     min,
-    desired
+    desired,
+    ratingTypes
 }) => {
     const [modalIsOpen, setResetModalIsOpen] = useState(false);
     const [currenciesIsOpen, setCurrenciesIsOpen] = useState(false);
     const [settingsIsOpen, setSettingsIsOpen] = useState(false);
+    const [ratingsIsOpen, setRatingsIsOpen] = useState(false);
 
     return (
         <StyledDrawer anchor="left" variant="persistent" open={isOpen}>
@@ -147,6 +154,43 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({
                         </ListItemIcon>
                         <ListItemText primary="Reset Data" />
                     </ListItem>
+                    {/* TODO: More settings */}
+                </List>
+            </Collapse>
+
+            <ListItem button onClick={() => setRatingsIsOpen(!ratingsIsOpen)}>
+                <ListItemIcon>
+                    <Star />
+                </ListItemIcon>
+                <ListItemText primary="Ratings" />
+                {ratingsIsOpen ? <ExpandLess /> : <ExpandMore />}
+            </ListItem>
+            <Collapse in={ratingsIsOpen}>
+                <List
+                    style={{
+                        marginLeft: '1em',
+                        paddingBottom: '2px'
+                    }}
+                >
+                    {Object.entries(ratingTypes).map(
+                        ([ratingID, name], index) => (
+                            <ListItem key={ratingID}>
+                                <TextField
+                                    label={`Rating ${index + 1}`}
+                                    value={name}
+                                    onChange={e => {
+                                        dispatch({
+                                            type: ActionType.SetRatingTypeName,
+                                            payload: {
+                                                id: ratingID,
+                                                data: e.target.value
+                                            }
+                                        });
+                                    }}
+                                />
+                            </ListItem>
+                        )
+                    )}
                     {/* TODO: More settings */}
                 </List>
             </Collapse>

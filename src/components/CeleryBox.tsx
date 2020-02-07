@@ -37,6 +37,8 @@ interface CeleryBoxProps extends Celery {
         fullTime: Commitment;
         partTime: Commitment;
     };
+    ratings: { [x: string]: number };
+    ratingTypes: { [x: string]: string };
 }
 
 const StyledTextField = styled(TextField)`
@@ -70,8 +72,11 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
     id,
     name,
     index,
+    // TODO: Pass entire state, or use context/hooks
     input: { value, type, currency },
     commitment: { fullTime, hoursInDay, daysInWeek, vacationDays, holidayDays },
+    ratings,
+    ratingTypes,
     defaults,
     baseCurrency,
     rateFactor,
@@ -128,8 +133,7 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                                                             ActionType.SetCommitmentValue,
                                                         payload: {
                                                             id,
-                                                            fieldName:
-                                                                'fullTime',
+                                                            subID: 'fullTime',
                                                             data:
                                                                 e.target.checked
                                                         }
@@ -214,30 +218,34 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                 </Grid>
                 <Grid item sm={3} xs={12}>
                     <Grid container>
-                        <Grid item md={6} sm={12}>
-                            <Typography component="legend" variant="caption">
-                                Rating Type 1:
-                            </Typography>
-                            <Rating size="small" precision={0.5} />
-                        </Grid>
-                        <Grid item md={6} sm={12}>
-                            <Typography component="legend" variant="caption">
-                                Rating Type 2:
-                            </Typography>
-                            <Rating size="small" precision={0.5} />
-                        </Grid>
-                        <Grid item md={6} sm={12}>
-                            <Typography component="legend" variant="caption">
-                                Rating Type 3:
-                            </Typography>
-                            <Rating size="small" precision={0.5} />
-                        </Grid>
-                        <Grid item md={6} sm={12}>
-                            <Typography component="legend" variant="caption">
-                                Rating Type 4:
-                            </Typography>
-                            <Rating size="small" precision={0.5} />
-                        </Grid>
+                        {Object.entries(ratingTypes).map(([ratingID, name]) => (
+                            <Grid item md={6} sm={12} key={ratingID}>
+                                <Typography
+                                    component="legend"
+                                    variant="caption"
+                                >
+                                    {name}
+                                </Typography>
+                                <Rating
+                                    size="small"
+                                    value={ratings[ratingID] || 0}
+                                    precision={0.5}
+                                    onChange={(
+                                        e: React.ChangeEvent<{}>,
+                                        value: number | null
+                                    ) => {
+                                        dispatch({
+                                            type: ActionType.SetRating,
+                                            payload: {
+                                                id,
+                                                subID: ratingID,
+                                                data: value || 0
+                                            }
+                                        });
+                                    }}
+                                />
+                            </Grid>
+                        ))}
                     </Grid>
                 </Grid>
                 <Grid item sm={3} xs={12}>
@@ -271,7 +279,7 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                                             type: ActionType.SetCommitmentValue,
                                             payload: {
                                                 id,
-                                                fieldName: 'hoursInDay',
+                                                subID: 'hoursInDay',
                                                 data: e.target.value
                                             }
                                         });
@@ -305,7 +313,7 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                                             type: ActionType.SetCommitmentValue,
                                             payload: {
                                                 id,
-                                                fieldName: 'daysInWeek',
+                                                subID: 'daysInWeek',
                                                 data: e.target.value
                                             }
                                         });
@@ -346,7 +354,7 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                                                     ActionType.SetCommitmentValue,
                                                 payload: {
                                                     id,
-                                                    fieldName: 'vacationDays',
+                                                    subID: 'vacationDays',
                                                     data: e.target.value
                                                 }
                                             });
@@ -383,7 +391,7 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                                                     ActionType.SetCommitmentValue,
                                                 payload: {
                                                     id,
-                                                    fieldName: 'holidayDays',
+                                                    subID: 'holidayDays',
                                                     data: e.target.value
                                                 }
                                             });
