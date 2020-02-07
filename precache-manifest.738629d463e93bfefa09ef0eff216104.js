@@ -1,19 +1,19 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "d55fce6de1076e50ae3c0a390a1be75f",
+    "revision": "a5fa06c9452b9e431ae81fd64eaee532",
     "url": "/celery/index.html"
   },
   {
-    "revision": "af62449328870de4d5a3",
-    "url": "/celery/static/js/2.01d98c7b.chunk.js"
+    "revision": "fd77f33c0aa89621eaaf",
+    "url": "/celery/static/js/2.fa075b8d.chunk.js"
   },
   {
     "revision": "b51e62edbcf7a9c4f4ad13f506021d3e",
-    "url": "/celery/static/js/2.01d98c7b.chunk.js.LICENSE"
+    "url": "/celery/static/js/2.fa075b8d.chunk.js.LICENSE"
   },
   {
-    "revision": "60d0ed39c4fb549c07a4",
-    "url": "/celery/static/js/main.def5ef97.chunk.js"
+    "revision": "5dd8999ae17226f2f890",
+    "url": "/celery/static/js/main.2f7af517.chunk.js"
   },
   {
     "revision": "fcb5a295c24a7ad6e6e7",
