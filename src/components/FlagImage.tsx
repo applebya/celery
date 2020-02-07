@@ -13,7 +13,7 @@ const FlagImage = styled(({ currencyCode = '', ...rest }) => (
         {...rest}
     />
 ))<Props>`
-    height: 16px;
+    height: 12px;
     margin-right: 8px;
 `;
 

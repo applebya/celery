@@ -6,16 +6,26 @@ import {
     TextField,
     Select,
     MenuItem,
-    InputAdornment
+    InputAdornment,
+    FormControlLabel,
+    Switch,
+    Typography
 } from '@material-ui/core';
 import { Delete } from '@material-ui/icons';
 import CountUp from 'react-countup';
 import calculateSalary from '../utils/calculateSalary';
 import NumberField from './NumberField';
 import styled from 'styled-components';
-import { ActionType, Celery, InputType, Dispatch } from '../store/types';
+import {
+    ActionType,
+    Celery,
+    InputType,
+    Dispatch,
+    Commitment
+} from '../store/types';
 import CurrencySelect from './CurrencySelect';
 import { CurrencyType } from '../services/types';
+import { Rating } from '@material-ui/lab';
 
 interface CeleryBoxProps extends Celery {
     id: string;
@@ -23,6 +33,10 @@ interface CeleryBoxProps extends Celery {
     index: number;
     rateFactor?: number;
     baseCurrency: CurrencyType;
+    defaults: {
+        fullTime: Commitment;
+        partTime: Commitment;
+    };
 }
 
 const StyledTextField = styled(TextField)`
@@ -39,10 +53,17 @@ const usePrevious = <T extends {}>(value: T) => {
     return ref.current;
 };
 
-const StyledInputAdornment = styled(InputAdornment)`
-    display: flex;
-    justify-content: space-between;
-    width: 18em;
+const StyledSwitch = styled(Switch)`
+    ${({ checked }) =>
+        !checked &&
+        `
+            .MuiIconButton-label {
+                color: #00a0ff;
+            }
+            .MuiSwitch-track {
+                background: #00a0ff;
+            }
+    `}
 `;
 
 const CeleryBox: React.FC<CeleryBoxProps> = ({
@@ -50,17 +71,20 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
     name,
     index,
     input: { value, type, currency },
+    commitment: { fullTime, hoursInDay, daysInWeek, vacationDays, holidayDays },
+    defaults,
     baseCurrency,
     rateFactor,
     dispatch
 }) => {
     const salary = calculateSalary(value, type, rateFactor);
     const prevSalary = usePrevious(salary);
+    const defaultValues = defaults[fullTime ? 'fullTime' : 'partTime'];
 
     return (
         <Box style={{ padding: '1em' }}>
-            <Grid container spacing={2}>
-                <Grid item sm={4} xs={12}>
+            <Grid container spacing={3}>
+                <Grid item sm={3} xs={12}>
                     <StyledTextField
                         name="name"
                         placeholder={`Company ${index + 1}`}
@@ -83,6 +107,40 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                                 }
                             });
                         }}
+                        InputProps={{
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <FormControlLabel
+                                        label={
+                                            fullTime ? 'Full-Time' : 'Part-Time'
+                                        }
+                                        control={
+                                            <StyledSwitch
+                                                size="small"
+                                                checked={fullTime}
+                                                onChange={(
+                                                    e: React.ChangeEvent<
+                                                        HTMLInputElement
+                                                    >
+                                                ) => {
+                                                    dispatch({
+                                                        type:
+                                                            ActionType.SetCommitmentValue,
+                                                        payload: {
+                                                            id,
+                                                            fieldName:
+                                                                'fullTime',
+                                                            data:
+                                                                e.target.checked
+                                                        }
+                                                    });
+                                                }}
+                                            />
+                                        }
+                                    />
+                                </InputAdornment>
+                            )
+                        }}
                     />
                     <NumberField
                         name="value"
@@ -103,8 +161,13 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                         }}
                         placeholder="0.00"
                         InputProps={{
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    $
+                                </InputAdornment>
+                            ),
                             endAdornment: (
-                                <StyledInputAdornment position="end">
+                                <InputAdornment position="end">
                                     <Select
                                         value={type}
                                         onChange={(
@@ -126,7 +189,7 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                                                 {type}
                                             </MenuItem>
                                         ))}
-                                    </Select>{' '}
+                                    </Select>
                                     <CurrencySelect
                                         value={currency || baseCurrency}
                                         onChange={(
@@ -144,13 +207,194 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                                             });
                                         }}
                                     />
-                                </StyledInputAdornment>
+                                </InputAdornment>
                             )
                         }}
                     />
                 </Grid>
-                <Grid item style={{ flex: 1 }}></Grid>
-                <Grid item sm={4} xs={12}>
+                <Grid item sm={3} xs={12}>
+                    <Grid container>
+                        <Grid item md={6} sm={12}>
+                            <Typography component="legend" variant="caption">
+                                Rating Type 1:
+                            </Typography>
+                            <Rating size="small" precision={0.5} />
+                        </Grid>
+                        <Grid item md={6} sm={12}>
+                            <Typography component="legend" variant="caption">
+                                Rating Type 2:
+                            </Typography>
+                            <Rating size="small" precision={0.5} />
+                        </Grid>
+                        <Grid item md={6} sm={12}>
+                            <Typography component="legend" variant="caption">
+                                Rating Type 3:
+                            </Typography>
+                            <Rating size="small" precision={0.5} />
+                        </Grid>
+                        <Grid item md={6} sm={12}>
+                            <Typography component="legend" variant="caption">
+                                Rating Type 4:
+                            </Typography>
+                            <Rating size="small" precision={0.5} />
+                        </Grid>
+                    </Grid>
+                </Grid>
+                <Grid item sm={3} xs={12}>
+                    <Box>
+                        <Grid container>
+                            <Grid item sm={12} md={6}>
+                                <NumberField
+                                    label="I work:"
+                                    style={{ maxWidth: 110 }}
+                                    value={
+                                        hoursInDay !== null
+                                            ? hoursInDay
+                                            : defaultValues.hoursInDay
+                                    }
+                                    InputProps={{
+                                        endAdornment: (
+                                            <InputAdornment position="end">
+                                                {hoursInDay === 1
+                                                    ? 'hour'
+                                                    : 'hours'}
+                                                /day
+                                            </InputAdornment>
+                                        )
+                                    }}
+                                    onChange={(
+                                        e: React.ChangeEvent<HTMLInputElement>
+                                    ) => {
+                                        if (Number(e.target.value) > 24) return;
+
+                                        dispatch({
+                                            type: ActionType.SetCommitmentValue,
+                                            payload: {
+                                                id,
+                                                fieldName: 'hoursInDay',
+                                                data: e.target.value
+                                            }
+                                        });
+                                    }}
+                                />
+                            </Grid>
+                            <Grid item sm={12} md={6}>
+                                <NumberField
+                                    label="Within:"
+                                    style={{ maxWidth: 110 }}
+                                    value={
+                                        daysInWeek !== null
+                                            ? daysInWeek
+                                            : defaultValues.daysInWeek
+                                    }
+                                    InputProps={{
+                                        max: 7,
+                                        endAdornment: (
+                                            <InputAdornment position="end">
+                                                {daysInWeek === 1
+                                                    ? 'day'
+                                                    : 'days'}
+                                                /week
+                                            </InputAdornment>
+                                        )
+                                    }}
+                                    onChange={(
+                                        e: React.ChangeEvent<HTMLInputElement>
+                                    ) => {
+                                        dispatch({
+                                            type: ActionType.SetCommitmentValue,
+                                            payload: {
+                                                id,
+                                                fieldName: 'daysInWeek',
+                                                data: e.target.value
+                                            }
+                                        });
+                                    }}
+                                />
+                            </Grid>
+                        </Grid>
+
+                        {fullTime && (
+                            <Grid container>
+                                <Grid item sm={12} md={6}>
+                                    <NumberField
+                                        label="Vacation"
+                                        style={{ maxWidth: 110 }}
+                                        value={
+                                            vacationDays !== null
+                                                ? vacationDays
+                                                : defaultValues.vacationDays
+                                        }
+                                        InputProps={{
+                                            max: 365, // TODO: Calculate remaining
+                                            endAdornment: (
+                                                <InputAdornment position="end">
+                                                    {vacationDays === 1
+                                                        ? 'day'
+                                                        : 'days'}
+                                                    /year
+                                                </InputAdornment>
+                                            )
+                                        }}
+                                        onChange={(
+                                            e: React.ChangeEvent<
+                                                HTMLInputElement
+                                            >
+                                        ) => {
+                                            dispatch({
+                                                type:
+                                                    ActionType.SetCommitmentValue,
+                                                payload: {
+                                                    id,
+                                                    fieldName: 'vacationDays',
+                                                    data: e.target.value
+                                                }
+                                            });
+                                        }}
+                                    />
+                                </Grid>
+                                <Grid item sm={12} md={6}>
+                                    <NumberField
+                                        label="Holiday"
+                                        value={
+                                            holidayDays !== null
+                                                ? holidayDays
+                                                : defaultValues.holidayDays
+                                        }
+                                        style={{ maxWidth: 110 }}
+                                        InputProps={{
+                                            max: 365, // TODO: Calculate remaining
+                                            endAdornment: (
+                                                <InputAdornment position="end">
+                                                    {holidayDays === 1
+                                                        ? 'day'
+                                                        : 'days'}
+                                                    /year
+                                                </InputAdornment>
+                                            )
+                                        }}
+                                        onChange={(
+                                            e: React.ChangeEvent<
+                                                HTMLInputElement
+                                            >
+                                        ) => {
+                                            dispatch({
+                                                type:
+                                                    ActionType.SetCommitmentValue,
+                                                payload: {
+                                                    id,
+                                                    fieldName: 'holidayDays',
+                                                    data: e.target.value
+                                                }
+                                            });
+                                        }}
+                                    />
+                                </Grid>
+                            </Grid>
+                        )}
+                    </Box>
+                </Grid>
+                <Grid item sm={3} xs={12}>
                     Salary:{' '}
                     <strong>
                         <CountUp

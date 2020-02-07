@@ -1,6 +1,6 @@
 import React from 'react';
 import NumberFormat from 'react-number-format';
-import { TextField, TextFieldProps, InputAdornment } from '@material-ui/core';
+import { TextField, TextFieldProps } from '@material-ui/core';
 import styled, { css } from 'styled-components';
 
 interface NumberFormatCustomProps {
@@ -12,10 +12,9 @@ interface NumberFormatCustomProps {
 const NumberFormatCustom: React.FC<NumberFormatCustomProps> = ({
     inputRef,
     onChange,
-    ...other
+    ...rest
 }) => (
     <NumberFormat
-        {...other}
         getInputRef={inputRef}
         onValueChange={values => {
             onChange({
@@ -26,6 +25,7 @@ const NumberFormatCustom: React.FC<NumberFormatCustomProps> = ({
         }}
         thousandSeparator
         isNumericString
+        {...rest}
     />
 );
 
@@ -39,9 +39,6 @@ const NumberField = styled(
     ({ reversed, autoStretch, InputProps, ...props }) => (
         <TextField
             InputProps={{
-                [!props.reversed ? 'startAdornment' : 'endAdornment']: (
-                    <InputAdornment position="start">$</InputAdornment>
-                ),
                 inputComponent: NumberFormatCustom as any,
                 ...InputProps
             }}

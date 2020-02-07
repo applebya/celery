@@ -14,7 +14,8 @@ import {
     IconButton,
     InputLabel,
     FormControl,
-    Typography
+    Typography,
+    InputAdornment
 } from '@material-ui/core';
 import {
     DeleteForever,
@@ -90,6 +91,13 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({
                                 }
                             });
                         }}
+                        InputProps={{
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    $
+                                </InputAdornment>
+                            )
+                        }}
                         value={min}
                         placeholder="0.00"
                         autoFocus
@@ -108,6 +116,11 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({
                                 data: Number(e.target.value)
                             }
                         });
+                    }}
+                    InputProps={{
+                        startAdornment: (
+                            <InputAdornment position="start">$</InputAdornment>
+                        )
                     }}
                     value={desired}
                     placeholder="0.00"

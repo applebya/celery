@@ -1,6 +1,7 @@
 import { v4 as generateId } from 'uuid';
 import { Celery, State, InputType, ActionType, Action } from './types';
 import { CurrencyType } from '../services/types';
+import merge from 'lodash.merge';
 
 // TODO: Predict from browser location?
 const defaultCurrency: CurrencyType = CurrencyType.USD;
@@ -12,18 +13,39 @@ const newCelery = ({ currency } = { currency: null }) => ({
             value: 0,
             type: InputType.PerYear,
             currency
+        },
+        commitment: {
+            fullTime: true,
+            hoursInDay: null,
+            daysInWeek: null,
+            vacationDays: null,
+            holidayDays: null
         }
     } as Celery
 });
 
 // Grab initialState from persistedStore in localStorage (if exists)
-const defaultState: State = {
+export const defaultState: State = {
     min: 1,
     desired: 75000,
     celeries: newCelery(),
     timestamp: +new Date(),
     currencies: {
         base: defaultCurrency
+    },
+    defaults: {
+        fullTime: {
+            hoursInDay: 8,
+            daysInWeek: 5,
+            vacationDays: 0,
+            holidayDays: 0
+        },
+        partTime: {
+            hoursInDay: 3,
+            daysInWeek: 2,
+            vacationDays: 0,
+            holidayDays: 0
+        }
     }
 };
 
@@ -31,8 +53,9 @@ const PERSISTED_STORE_NAME = 'persistedStore';
 
 const persistedStore = window.localStorage.getItem(PERSISTED_STORE_NAME);
 
+// TODO: Move this out, consolidate with useEffect in App.tsx
 export const initialState: State = persistedStore
-    ? JSON.parse(persistedStore || '{}')
+    ? JSON.parse(merge({}, defaultState, persistedStore))
     : defaultState;
 
 const reduceStore = (state: State, action: Action): State => {
@@ -104,6 +127,28 @@ const reduceStore = (state: State, action: Action): State => {
                             [payload.id]: {
                                 ...state.celeries[payload.id],
                                 name: payload.data
+                            }
+                        }
+                    };
+
+                case ActionType.SetCommitmentValue:
+                    if (!payload.fieldName) {
+                        console.warn(
+                            `Missing fieldName (is: ${payload.fieldName})`
+                        );
+                        return state;
+                    }
+
+                    return {
+                        ...state,
+                        celeries: {
+                            ...state.celeries,
+                            [payload.id]: {
+                                ...state.celeries[payload.id],
+                                commitment: {
+                                    ...state.celeries[payload.id].commitment,
+                                    [payload.fieldName]: payload.data
+                                }
                             }
                         }
                     };

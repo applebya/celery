@@ -18,9 +18,10 @@ import { Alert } from '@material-ui/lab';
 import { AddCircleOutline, Menu } from '@material-ui/icons';
 import { ReactComponent as CeleryIcon } from './CeleryIcon.svg';
 import styled from 'styled-components';
+import merge from 'lodash.merge';
 
 import CeleryBox from './CeleryBox';
-import reducer, { initialState } from '../store/reducer';
+import reducer, { initialState, defaultState } from '../store/reducer';
 import { ActionType, State } from '../store/types';
 import calculateSalary from '../utils/calculateSalary';
 import DrawerMenu from './DrawerMenu';
@@ -66,18 +67,19 @@ const App: React.FC = () => {
 
     useEffect(() => {
         const restoreLatestLocalStorage = () => {
-            const persistedStore: State = JSON.parse(
+            const persistedStore = JSON.parse(
                 window.localStorage.getItem('persistedStore') || '{}'
             );
+            const mergedStore: State = merge({}, defaultState, persistedStore);
 
             // Override the store with persisted one if it's newer
-            if (persistedStore && persistedStore.timestamp > state.timestamp) {
+            if (mergedStore && mergedStore.timestamp > state.timestamp) {
                 setRestored(true);
 
                 // TODO: Migrate the persisted store if schema has changed?
                 dispatch({
                     type: ActionType.SetStore,
-                    payload: { data: persistedStore }
+                    payload: { data: mergedStore }
                 });
             }
         };
@@ -165,6 +167,7 @@ const App: React.FC = () => {
                                                   }
                                                 : {})}
                                             baseCurrency={state.currencies.base}
+                                            defaults={state.defaults}
                                             {...celery}
                                         />
                                     </Paper>
@@ -234,7 +237,7 @@ const App: React.FC = () => {
                 onClose={() => setRestored(false)}
             >
                 <Alert variant="filled" severity="success">
-                    Restored from Local Storage!
+                    Restored from your Local Storage!
                 </Alert>
             </Snackbar>
         </Layout>

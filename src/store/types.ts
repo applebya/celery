@@ -10,6 +10,10 @@ export type State = DeepReadonly<{
         [x: string]: Celery;
     };
     currencies: Currencies;
+    defaults: {
+        fullTime: Commitment;
+        partTime: Commitment;
+    };
 }>;
 
 export type Celery = {
@@ -19,6 +23,14 @@ export type Celery = {
         type: InputType;
         currency: CurrencyType | null;
     };
+    // TODO: Consolidate with Commitment type
+    commitment: {
+        fullTime: boolean;
+        hoursInDay: number | null;
+        daysInWeek: number | null;
+        vacationDays: number | null;
+        holidayDays: number | null;
+    };
 };
 
 export type Currencies = {
@@ -27,6 +39,13 @@ export type Currencies = {
     rates?: {
         [x: string]: CurrencyType;
     };
+};
+
+export type Commitment = {
+    hoursInDay: number;
+    daysInWeek: number;
+    vacationDays: number;
+    holidayDays: number;
 };
 
 export enum InputType {
@@ -42,6 +61,7 @@ export enum ActionType {
     SetInputValue = 'setInputValue',
     SetInputType = 'setInputType',
     SetInputCurrency = 'setInputCurrency',
+    SetCommitmentValue = 'setCommitmentValue',
     SetName = 'setName',
     SetMin = 'setMin',
     SetDesired = 'setDesired',
@@ -54,10 +74,12 @@ export enum ActionType {
 export type Dispatch = React.Dispatch<Action>;
 
 // Loose typing, to avoid creating a type for every ActionType
+// TODO: Maybe a type for every ActionType... IS better?
 export type Action = {
     type: ActionType;
     payload?: {
         id?: string;
+        fieldName?: string;
         data?: any;
     };
     meta?: any;
