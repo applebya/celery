@@ -17,6 +17,11 @@ export type State = DeepReadonly<{
     ratingTypes: {
         [x: string]: string;
     };
+    // TODO:
+    // settings: {
+    //     commitmentType: CommitmentType,
+    //     multipleCurrencies: boolean;
+    // };
 }>;
 
 export type Celery = {

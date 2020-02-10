@@ -267,34 +267,36 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                     }}
                 >
                     <Grid container spacing={2}>
-                        {Object.entries(ratingTypes).map(([ratingID, name]) => (
-                            <Grid item md={6} sm={12} key={ratingID}>
-                                <Typography
-                                    component="legend"
-                                    variant="caption"
-                                >
-                                    {name}
-                                </Typography>
-                                <Rating
-                                    size="small"
-                                    value={ratings[ratingID] || 0}
-                                    precision={0.5}
-                                    onChange={(
-                                        e: React.ChangeEvent<{}>,
-                                        value: number | null
-                                    ) => {
-                                        dispatch({
-                                            type: ActionType.SetRating,
-                                            payload: {
-                                                id,
-                                                subID: ratingID,
-                                                data: value || 0
-                                            }
-                                        });
-                                    }}
-                                />
-                            </Grid>
-                        ))}
+                        {Object.entries(ratingTypes)
+                            .filter(([ratingID, name]) => name.length)
+                            .map(([ratingID, name]) => (
+                                <Grid item md={6} sm={12} key={ratingID}>
+                                    <Typography
+                                        component="legend"
+                                        variant="caption"
+                                    >
+                                        {name}
+                                    </Typography>
+                                    <Rating
+                                        size="small"
+                                        value={ratings[ratingID] || 0}
+                                        precision={0.5}
+                                        onChange={(
+                                            e: React.ChangeEvent<{}>,
+                                            value: number | null
+                                        ) => {
+                                            dispatch({
+                                                type: ActionType.SetRating,
+                                                payload: {
+                                                    id,
+                                                    subID: ratingID,
+                                                    data: value || 0
+                                                }
+                                            });
+                                        }}
+                                    />
+                                </Grid>
+                            ))}
                     </Grid>
                 </Grid>
                 <Grid
@@ -330,7 +332,7 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                                 onChange={(
                                     e: React.ChangeEvent<HTMLInputElement>
                                 ) => {
-                                    if (Number(e.target.value) > 24) return;
+                                    // if (Number(e.target.value) > 24) return;
 
                                     dispatch({
                                         type: ActionType.SetCommitmentValue,

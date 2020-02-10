@@ -24,6 +24,7 @@ import reducer, { initialState } from '../store/reducer';
 import { ActionType } from '../store/types';
 import calculateSalary from '../utils/calculateSalary';
 import DrawerMenu from './DrawerMenu';
+import WizardDialog from './WizardDialog';
 import formatMoney from '../utils/formatMoney';
 import { fetchCurrencyRates } from '../services/fetchCurrencyRates';
 
@@ -55,7 +56,6 @@ const StyledBackdrop = styled(Backdrop)`
 `;
 
 const App: React.FC = () => {
-    // TODO: Provide state & dispatch to children as context?
     const [state, dispatch] = useReducer(reducer, initialState);
     const [restored, setRestored] = useState(false);
     const [drawerIsOpen, setDrawerIsOpen] = useState(false);
@@ -276,6 +276,8 @@ const App: React.FC = () => {
                     Restored from your Local Storage!
                 </Alert>
             </Snackbar>
+
+            <WizardDialog {...state} dispatch={dispatch} />
         </Layout>
     );
 };

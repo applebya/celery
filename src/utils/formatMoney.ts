@@ -10,7 +10,9 @@ export default function calculateSalary(value: number): string {
 }
 
 /** Limit to 1 decimal place, or 3 total digits */
-function format(value: number) {
+function format(value?: number) {
+    if (!value) return 0;
+
     let stringValue: string = value.toFixed(1);
 
     if (Number(stringValue[stringValue.length - 1]) === 0) {

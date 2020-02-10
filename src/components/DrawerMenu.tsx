@@ -23,7 +23,7 @@ import {
     ExpandLess,
     ExpandMore,
     Close,
-    Settings,
+    // Settings,
     AccountBalance,
     Star
 } from '@material-ui/icons';
@@ -61,7 +61,7 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({
 }) => {
     const [modalIsOpen, setResetModalIsOpen] = useState(false);
     const [currenciesIsOpen, setCurrenciesIsOpen] = useState(false);
-    const [settingsIsOpen, setSettingsIsOpen] = useState(false);
+    // const [settingsIsOpen, setSettingsIsOpen] = useState(false);
     const [ratingsIsOpen, setRatingsIsOpen] = useState(false);
 
     return (
@@ -106,7 +106,6 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({
                             )
                         }}
                         value={min}
-                        placeholder="0.00"
                         autoFocus
                     />
                 </ListItemText>
@@ -130,11 +129,10 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({
                         )
                     }}
                     value={desired}
-                    placeholder="0.00"
                 />
             </ListItem>
 
-            <ListItem button onClick={() => setSettingsIsOpen(!settingsIsOpen)}>
+            {/* <ListItem button onClick={() => setSettingsIsOpen(!settingsIsOpen)}>
                 <ListItemIcon>
                     <Settings />
                 </ListItemIcon>
@@ -148,15 +146,8 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({
                         paddingBottom: '2px'
                     }}
                 >
-                    <ListItem button onClick={() => setResetModalIsOpen(true)}>
-                        <ListItemIcon>
-                            <DeleteForever />
-                        </ListItemIcon>
-                        <ListItemText primary="Reset Data" />
-                    </ListItem>
-                    {/* TODO: More settings */}
                 </List>
-            </Collapse>
+            </Collapse> */}
 
             <ListItem button onClick={() => setRatingsIsOpen(!ratingsIsOpen)}>
                 <ListItemIcon>
@@ -177,6 +168,7 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({
                             <ListItem key={ratingID}>
                                 <TextField
                                     label={`Rating ${index + 1}`}
+                                    placeholder="Enter a Rating"
                                     value={name}
                                     onChange={e => {
                                         dispatch({
@@ -203,19 +195,14 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({
                 </ListItemIcon>
                 <ListItemText
                     primary="Exchange"
-                    secondary={`($1 ${base})`}
-                    {...(currenciesIsOpen
-                        ? {
-                              secondaryTypographyProps: {
-                                  variant: 'caption',
-                                  display: 'block'
-                              }
-                          }
-                        : {})}
+                    secondary={currenciesIsOpen ? `($1 ${base})` : undefined}
+                    secondaryTypographyProps={{
+                        variant: 'caption',
+                        display: 'block'
+                    }}
                 />
                 {currenciesIsOpen ? <ExpandLess /> : <ExpandMore />}
             </ListItem>
-
             <Collapse in={currenciesIsOpen}>
                 <Typography align="center" variant="caption" display="block">
                     Updated: {date}
@@ -248,6 +235,13 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({
                         ))}
                 </List>
             </Collapse>
+
+            <ListItem button onClick={() => setResetModalIsOpen(true)}>
+                <ListItemIcon>
+                    <DeleteForever />
+                </ListItemIcon>
+                <ListItemText primary="Reset Data" />
+            </ListItem>
 
             <Dialog open={modalIsOpen}>
                 <DialogTitle>

@@ -25,6 +25,7 @@ const NumberFormatCustom: React.FC<Props> = ({
         }}
         thousandSeparator
         isNumericString
+        placeholder="0"
         {...rest}
     />
 );

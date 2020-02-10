@@ -24,12 +24,14 @@ const newCelery = ({ currency } = { currency: null }) => ({
     } as Celery
 });
 
+export const initTimestamp = 0;
+
 // Grab initialState from persistedStore in localStorage (if exists)
 export const defaultState: State = {
     min: 1,
     desired: 75000,
-    celeries: newCelery(),
-    timestamp: +new Date(),
+    celeries: {},
+    timestamp: initTimestamp,
     currencies: {
         base: defaultCurrency
     },
@@ -53,6 +55,11 @@ export const defaultState: State = {
         [uuid()]: 'Benefits',
         [uuid()]: 'Likeability'
     }
+    // TODO
+    // settings: {
+    //     commitmentType: CommitmentType.Both,
+    //     isInternational: false,
+    // }
 };
 
 const PERSISTED_STORE_NAME = 'persistedStore';
