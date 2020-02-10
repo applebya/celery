@@ -1,28 +1,25 @@
 import React from 'react';
 import NumberFormat from 'react-number-format';
 import { TextField, TextFieldProps } from '@material-ui/core';
-import styled, { css } from 'styled-components';
+import styled from 'styled-components';
 
-interface NumberFormatCustomProps {
+interface Props {
     inputRef: (instance: NumberFormat | null) => void;
-    onChange: (event: { target: { value: number } }) => void;
+    onChange: (event: { target: { value: number | null } }) => void;
     reversed?: boolean;
 }
 
-const NumberFormatCustom: React.FC<NumberFormatCustomProps> = ({
+const NumberFormatCustom: React.FC<Props> = ({
     inputRef,
     onChange,
     ...rest
 }) => (
     <NumberFormat
         getInputRef={inputRef}
-        onValueChange={value => {
-            console.log(value);
-            if (value.floatValue === 0) return;
-
+        onValueChange={val => {
             onChange({
                 target: {
-                    value: value.floatValue
+                    value: val.floatValue || null
                 }
             });
         }}
@@ -48,21 +45,6 @@ const NumberField = styled(
             {...props}
         />
     )
-)`
-    ${({ autoStretch, value }) =>
-        autoStretch &&
-        css`
-            width: ${100 + Number(value.length) * 5}px;
-            max-width: ${100 + Number(value.length) * 5}px;
-        `}
-
-    ${({ reversed }) =>
-        reversed &&
-        css`
-            input: {
-                text-align: right;
-            }
-        `}
-`;
+)``;
 
 export default NumberField;

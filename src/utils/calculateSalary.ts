@@ -1,8 +1,7 @@
 import { MeasurementType } from '../store/types';
 
-// TODO: Test this util
 interface CalculateSalaryProps {
-    value: number | string; // TODO: Fix to number only
+    value: number | null;
     valueType: MeasurementType;
     factor?: number;
     hoursInDay: number;
@@ -12,6 +11,8 @@ interface CalculateSalaryProps {
     fullTime: boolean;
     outputType?: MeasurementType;
 }
+
+// TODO: Test this util
 
 /** Returns a yearly salary given the input type */
 export default function({

@@ -22,7 +22,7 @@ export type State = DeepReadonly<{
 export type Celery = {
     name: string;
     input: {
-        value: number;
+        value: number | null;
         type: MeasurementType;
         currency: CurrencyType | null;
     };
