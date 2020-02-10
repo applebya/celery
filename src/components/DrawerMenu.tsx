@@ -204,10 +204,14 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({
                 <ListItemText
                     primary="Exchange"
                     secondary={`($1 ${base})`}
-                    secondaryTypographyProps={{
-                        variant: 'caption',
-                        display: 'block'
-                    }}
+                    {...(currenciesIsOpen
+                        ? {
+                              secondaryTypographyProps: {
+                                  variant: 'caption',
+                                  display: 'block'
+                              }
+                          }
+                        : {})}
                 />
                 {currenciesIsOpen ? <ExpandLess /> : <ExpandMore />}
             </ListItem>
