@@ -16,16 +16,16 @@ const NumberFormatCustom: React.FC<NumberFormatCustomProps> = ({
 }) => (
     <NumberFormat
         getInputRef={inputRef}
-        onValueChange={({ floatValue }) => {
-            if (floatValue === 0) return;
+        onValueChange={value => {
+            console.log(value);
+            if (value.floatValue === 0) return;
 
             onChange({
                 target: {
-                    value: floatValue
+                    value: value.floatValue
                 }
             });
         }}
-        onKeyPressCapture={val => console.log(val)}
         thousandSeparator
         isNumericString
         {...rest}

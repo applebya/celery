@@ -23,7 +23,7 @@ export type Celery = {
     name: string;
     input: {
         value: number;
-        type: InputType;
+        type: MeasurementType;
         currency: CurrencyType | null;
     };
     // TODO: Consolidate with Commitment type
@@ -54,7 +54,7 @@ export type Commitment = {
     holidayDays: number;
 };
 
-export enum InputType {
+export enum MeasurementType {
     PerHour = '/hour',
     PerDay = '/day',
     PerMonth = '/month',
@@ -66,7 +66,7 @@ export enum ActionType {
     AddCelery = 'addCelery',
     RemoveCelery = 'removeCelery',
     SetInputValue = 'setInputValue',
-    SetInputType = 'setInputType',
+    SetInputMeasurement = 'setInputMeasurement',
     SetInputCurrency = 'setInputCurrency',
     SetCommitmentValue = 'setCommitmentValue',
     SetRating = 'setRating',

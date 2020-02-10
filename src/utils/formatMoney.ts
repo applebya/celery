@@ -23,5 +23,3 @@ function format(value: number) {
 
     return value;
 }
-
-console.log(calculateSalary(123433));

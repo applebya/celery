@@ -1,5 +1,5 @@
 import uuid, { v4 as generateId } from 'uuid';
-import { Celery, State, InputType, ActionType, Action } from './types';
+import { Celery, State, MeasurementType, ActionType, Action } from './types';
 import { CurrencyType } from '../services/types';
 
 // TODO: Predict from browser location?
@@ -10,7 +10,7 @@ const newCelery = ({ currency } = { currency: null }) => ({
         name: '',
         input: {
             value: 0,
-            type: InputType.PerYear,
+            type: MeasurementType.PerYear,
             currency
         },
         commitment: {
@@ -96,7 +96,7 @@ const reduceStore = (state: State, action: Action): State => {
                         }
                     };
 
-                case ActionType.SetInputType:
+                case ActionType.SetInputMeasurement:
                     return {
                         ...state,
                         celeries: {

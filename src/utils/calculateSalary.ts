@@ -1,30 +1,33 @@
-import { InputType } from '../store/types';
+import { MeasurementType } from '../store/types';
 
 // TODO: Test this util
 interface CalculateSalaryProps {
-    value: number | string;
-    type: InputType;
+    value: number | string; // TODO: Fix to number only
+    valueType: MeasurementType;
     factor?: number;
     hoursInDay: number;
     daysInWeek: number;
     vacationDays: number;
     holidayDays: number;
     fullTime: boolean;
+    outputType?: MeasurementType;
 }
 
 /** Returns a yearly salary given the input type */
 export default function({
     value,
-    type,
+    valueType,
     factor,
     hoursInDay,
     daysInWeek,
     vacationDays,
     holidayDays,
-    fullTime
+    fullTime,
+    outputType = MeasurementType.PerYear
 }: CalculateSalaryProps): number {
     if (!value) return 0;
 
+    // TODO: Fix to number only
     if (typeof value === 'string') {
         value = Number(value);
     }
@@ -33,23 +36,82 @@ export default function({
         value = value / factor;
     }
 
-    let workingDays = 52 * daysInWeek;
+    let workingDaysInYear = 52 * daysInWeek;
 
     if (fullTime) {
-        workingDays = workingDays - vacationDays - holidayDays;
+        // You get paid days off!
+        workingDaysInYear = Math.max(
+            workingDaysInYear - vacationDays - holidayDays,
+            0
+        );
     }
 
-    switch (type) {
-        case InputType.PerHour:
-            return value * hoursInDay * workingDays;
+    const workingDaysInMonth = workingDaysInYear / 12;
 
-        case InputType.PerDay:
-            return value * hoursInDay;
+    switch (valueType) {
+        case MeasurementType.PerHour:
+            switch (outputType) {
+                case MeasurementType.PerDay:
+                    return value * hoursInDay;
 
-        case InputType.PerMonth:
-            return (value * workingDays) / 12;
+                case MeasurementType.PerMonth:
+                    return value * hoursInDay * workingDaysInMonth;
 
-        case InputType.PerYear:
+                case MeasurementType.PerYear:
+                    return value * hoursInDay * workingDaysInMonth * 12;
+
+                default:
+                    return value;
+            }
+
+        case MeasurementType.PerDay:
+            switch (outputType) {
+                case MeasurementType.PerHour:
+                    return value / hoursInDay;
+
+                case MeasurementType.PerMonth:
+                    return value * workingDaysInMonth;
+
+                case MeasurementType.PerYear:
+                    return value * workingDaysInMonth * 12;
+
+                default:
+                    return value;
+            }
+
+        case MeasurementType.PerMonth:
+            switch (outputType) {
+                case MeasurementType.PerHour:
+                    return value / workingDaysInMonth / hoursInDay;
+
+                case MeasurementType.PerDay:
+                    return value / workingDaysInMonth;
+
+                case MeasurementType.PerYear:
+                    return value * 12;
+
+                default:
+                    return value;
+            }
+
+        case MeasurementType.PerYear:
+            switch (outputType) {
+                case MeasurementType.PerHour:
+                    return value / 12 / workingDaysInMonth / hoursInDay;
+
+                case MeasurementType.PerDay:
+                    return value / 12 / workingDaysInMonth;
+
+                case MeasurementType.PerMonth:
+                    return value / 12;
+
+                default:
+                    return value;
+            }
+
+        default:
             return value;
     }
+
+    // return value;
 }

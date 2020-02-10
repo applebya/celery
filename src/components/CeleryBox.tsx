@@ -19,7 +19,7 @@ import styled from 'styled-components';
 import {
     ActionType,
     Celery,
-    InputType,
+    MeasurementType,
     Dispatch,
     Commitment
 } from '../store/types';
@@ -84,17 +84,41 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
 }) => {
     const defaultValues = defaults[fullTime ? 'fullTime' : 'partTime'];
 
-    const salary = calculateSalary({
+    const settings = {
         value,
-        type,
+        valueType: type,
         factor: rateFactor,
         fullTime,
         hoursInDay: hoursInDay || defaultValues.hoursInDay,
         daysInWeek: daysInWeek || defaultValues.daysInWeek,
         vacationDays: vacationDays || defaultValues.vacationDays,
         holidayDays: holidayDays || defaultValues.holidayDays
+    };
+
+    // TODO: Move into memoized component
+    const salary = calculateSalary({
+        ...settings,
+        outputType: MeasurementType.PerYear
     });
     const prevSalary = usePrevious(salary);
+
+    const monthly = calculateSalary({
+        ...settings,
+        outputType: MeasurementType.PerMonth
+    });
+    const prevMonthly = usePrevious(monthly);
+
+    const daily = calculateSalary({
+        ...settings,
+        outputType: MeasurementType.PerDay
+    });
+    const prevDaily = usePrevious(daily);
+
+    const hourly = calculateSalary({
+        ...settings,
+        outputType: MeasurementType.PerHour
+    });
+    const prevHourly = usePrevious(hourly);
 
     return (
         <Box style={{ padding: '1em' }}>
@@ -190,7 +214,8 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                                             }>
                                         ) => {
                                             dispatch({
-                                                type: ActionType.SetInputType,
+                                                type:
+                                                    ActionType.SetInputMeasurement,
                                                 payload: {
                                                     id,
                                                     data: e.target.value
@@ -198,11 +223,16 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                                             });
                                         }}
                                     >
-                                        {Object.values(InputType).map(type => (
-                                            <MenuItem key={type} value={type}>
-                                                {type}
-                                            </MenuItem>
-                                        ))}
+                                        {Object.values(MeasurementType).map(
+                                            type => (
+                                                <MenuItem
+                                                    key={type}
+                                                    value={type}
+                                                >
+                                                    {type}
+                                                </MenuItem>
+                                            )
+                                        )}
                                     </Select>
                                     <CurrencySelect
                                         value={currency || baseCurrency}
@@ -315,7 +345,7 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                         </Grid>
                         <Grid item sm={12} md={6}>
                             <NumberField
-                                label="over:"
+                                label="Within:"
                                 style={{ maxWidth: 110 }}
                                 value={
                                     daysInWeek !== null
@@ -432,21 +462,63 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                     </Grid>
                 </Grid>
                 <Grid item sm={3} xs={12}>
-                    Salary:{' '}
-                    <strong>
-                        <CountUp
-                            // Don't animate if it's already PerYear
-                            start={
-                                type === InputType.PerYear ? salary : prevSalary
-                            }
-                            end={salary}
-                            prefix="$"
-                            decimals={0}
-                            duration={1}
-                            separator=","
-                        />
-                    </strong>{' '}
-                    / year
+                    <Box>
+                        <strong>
+                            <CountUp
+                                start={prevSalary}
+                                end={salary}
+                                prefix="$"
+                                decimals={0}
+                                duration={0.5}
+                                separator=","
+                            />
+                        </strong>{' '}
+                        / year
+                    </Box>
+
+                    <Box>
+                        <strong>
+                            <CountUp
+                                start={prevMonthly}
+                                end={monthly}
+                                prefix="$"
+                                decimals={0}
+                                duration={0.6}
+                                separator=","
+                            />
+                        </strong>{' '}
+                        / month
+                    </Box>
+
+                    <Box>
+                        <strong>
+                            <CountUp
+                                start={prevDaily}
+                                end={daily}
+                                prefix="$"
+                                decimals={2}
+                                duration={0.7}
+                                separator=","
+                            />
+                        </strong>{' '}
+                        / day
+                    </Box>
+
+                    <Box>
+                        <strong>
+                            <CountUp
+                                start={prevHourly}
+                                end={hourly}
+                                prefix="$"
+                                decimals={2}
+                                duration={0.8}
+                                separator=","
+                            />
+                        </strong>{' '}
+                        / hour
+                    </Box>
+                    {/* )} */}
+
                     <Box>
                         <Button
                             onClick={() =>

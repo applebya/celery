@@ -107,7 +107,7 @@ const App: React.FC = () => {
 
                 return calculateSalary({
                     value,
-                    type,
+                    valueType: type,
                     fullTime,
                     hoursInDay: hoursInDay || defaultValues.hoursInDay,
                     daysInWeek: daysInWeek || defaultValues.daysInWeek,
