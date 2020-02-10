@@ -113,6 +113,4 @@ export default function({
         default:
             return value;
     }
-
-    // return value;
 }
