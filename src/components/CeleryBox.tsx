@@ -82,9 +82,19 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
     rateFactor,
     dispatch
 }) => {
-    const salary = calculateSalary(value, type, rateFactor);
-    const prevSalary = usePrevious(salary);
     const defaultValues = defaults[fullTime ? 'fullTime' : 'partTime'];
+
+    const salary = calculateSalary({
+        value,
+        type,
+        factor: rateFactor,
+        fullTime,
+        hoursInDay: hoursInDay || defaultValues.hoursInDay,
+        daysInWeek: daysInWeek || defaultValues.daysInWeek,
+        vacationDays: vacationDays || defaultValues.vacationDays,
+        holidayDays: holidayDays || defaultValues.holidayDays
+    });
+    const prevSalary = usePrevious(salary);
 
     return (
         <Box style={{ padding: '1em' }}>
@@ -216,8 +226,17 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                         }}
                     />
                 </Grid>
-                <Grid item sm={3} xs={12}>
-                    <Grid container>
+                <Grid
+                    item
+                    sm={3}
+                    xs={12}
+                    style={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: ''
+                    }}
+                >
+                    <Grid container spacing={2}>
                         {Object.entries(ratingTypes).map(([ratingID, name]) => (
                             <Grid item md={6} sm={12} key={ratingID}>
                                 <Typography
@@ -248,85 +267,90 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                         ))}
                     </Grid>
                 </Grid>
-                <Grid item sm={3} xs={12}>
-                    <Box>
-                        <Grid container>
-                            <Grid item sm={12} md={6}>
-                                <NumberField
-                                    label="I work:"
-                                    style={{ maxWidth: 110 }}
-                                    value={
-                                        hoursInDay !== null
-                                            ? hoursInDay
-                                            : defaultValues.hoursInDay
-                                    }
-                                    InputProps={{
-                                        endAdornment: (
-                                            <InputAdornment position="end">
-                                                {hoursInDay === 1
-                                                    ? 'hour'
-                                                    : 'hours'}
-                                                /day
-                                            </InputAdornment>
-                                        )
-                                    }}
-                                    onChange={(
-                                        e: React.ChangeEvent<HTMLInputElement>
-                                    ) => {
-                                        if (Number(e.target.value) > 24) return;
+                <Grid
+                    item
+                    sm={3}
+                    xs={12}
+                    style={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: ''
+                    }}
+                >
+                    <Grid container spacing={2}>
+                        <Grid item sm={12} md={6}>
+                            <NumberField
+                                label="I work:"
+                                style={{ maxWidth: 110 }}
+                                value={
+                                    hoursInDay !== null
+                                        ? hoursInDay
+                                        : defaultValues.hoursInDay
+                                }
+                                InputProps={{
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            {hoursInDay === 1
+                                                ? 'hour'
+                                                : 'hours'}
+                                            /day
+                                        </InputAdornment>
+                                    )
+                                }}
+                                onChange={(
+                                    e: React.ChangeEvent<HTMLInputElement>
+                                ) => {
+                                    if (Number(e.target.value) > 24) return;
 
-                                        dispatch({
-                                            type: ActionType.SetCommitmentValue,
-                                            payload: {
-                                                id,
-                                                subID: 'hoursInDay',
-                                                data: e.target.value
-                                            }
-                                        });
-                                    }}
-                                />
-                            </Grid>
-                            <Grid item sm={12} md={6}>
-                                <NumberField
-                                    label="Within:"
-                                    style={{ maxWidth: 110 }}
-                                    value={
-                                        daysInWeek !== null
-                                            ? daysInWeek
-                                            : defaultValues.daysInWeek
-                                    }
-                                    InputProps={{
-                                        max: 7,
-                                        endAdornment: (
-                                            <InputAdornment position="end">
-                                                {daysInWeek === 1
-                                                    ? 'day'
-                                                    : 'days'}
-                                                /week
-                                            </InputAdornment>
-                                        )
-                                    }}
-                                    onChange={(
-                                        e: React.ChangeEvent<HTMLInputElement>
-                                    ) => {
-                                        dispatch({
-                                            type: ActionType.SetCommitmentValue,
-                                            payload: {
-                                                id,
-                                                subID: 'daysInWeek',
-                                                data: e.target.value
-                                            }
-                                        });
-                                    }}
-                                />
-                            </Grid>
+                                    dispatch({
+                                        type: ActionType.SetCommitmentValue,
+                                        payload: {
+                                            id,
+                                            subID: 'hoursInDay',
+                                            data: e.target.value
+                                        }
+                                    });
+                                }}
+                            />
+                        </Grid>
+                        <Grid item sm={12} md={6}>
+                            <NumberField
+                                label="over:"
+                                style={{ maxWidth: 110 }}
+                                value={
+                                    daysInWeek !== null
+                                        ? daysInWeek
+                                        : defaultValues.daysInWeek
+                                }
+                                InputProps={{
+                                    max: 7,
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            {daysInWeek === 1 ? 'day' : 'days'}
+                                            /week
+                                        </InputAdornment>
+                                    )
+                                }}
+                                onChange={(
+                                    e: React.ChangeEvent<HTMLInputElement>
+                                ) => {
+                                    dispatch({
+                                        type: ActionType.SetCommitmentValue,
+                                        payload: {
+                                            id,
+                                            subID: 'daysInWeek',
+                                            data: e.target.value
+                                        }
+                                    });
+                                }}
+                            />
                         </Grid>
 
                         {fullTime && (
-                            <Grid container>
+                            <>
                                 <Grid item sm={12} md={6}>
                                     <NumberField
-                                        label="Vacation"
+                                        label="Paid Vacation"
                                         style={{ maxWidth: 110 }}
                                         value={
                                             vacationDays !== null
@@ -363,7 +387,12 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                                 </Grid>
                                 <Grid item sm={12} md={6}>
                                     <NumberField
-                                        label="Holiday"
+                                        label={`Stat. Holiday${
+                                            (holidayDays ||
+                                                defaultValues.holidayDays) !== 1
+                                                ? 's'
+                                                : ''
+                                        }`}
                                         value={
                                             holidayDays !== null
                                                 ? holidayDays
@@ -398,9 +427,9 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                                         }}
                                     />
                                 </Grid>
-                            </Grid>
+                            </>
                         )}
-                    </Box>
+                    </Grid>
                 </Grid>
                 <Grid item sm={3} xs={12}>
                     Salary:{' '}

@@ -89,8 +89,40 @@ const App: React.FC = () => {
             window.removeEventListener('focus', restoreLatestLocalStorage);
     }, [state.timestamp, dispatch]);
 
+    // TODO: Move to selector
     const salaries = Object.values(state.celeries)
-        .map(({ input }) => calculateSalary(input.value, input.type))
+        .map(
+            ({
+                input: { value, type, currency },
+                commitment: {
+                    fullTime,
+                    hoursInDay,
+                    daysInWeek,
+                    vacationDays,
+                    holidayDays
+                }
+            }) => {
+                const defaultValues =
+                    state.defaults[fullTime ? 'fullTime' : 'partTime'];
+
+                return calculateSalary({
+                    value,
+                    type,
+                    fullTime,
+                    hoursInDay: hoursInDay || defaultValues.hoursInDay,
+                    daysInWeek: daysInWeek || defaultValues.daysInWeek,
+                    vacationDays: vacationDays || defaultValues.vacationDays,
+                    holidayDays: holidayDays || defaultValues.holidayDays,
+                    ...(state.currencies.rates
+                        ? {
+                              factor: (state.currencies.rates[
+                                  currency || state.currencies.base
+                              ] as unknown) as number
+                          }
+                        : {})
+                });
+            }
+        )
         .filter(value => value > 0);
 
     return (
@@ -155,6 +187,7 @@ const App: React.FC = () => {
                                             index={index}
                                             id={id}
                                             dispatch={dispatch}
+                                            // TODO: Refactor
                                             {...(state.currencies.rates
                                                 ? {
                                                       rateFactor: (state
@@ -209,13 +242,15 @@ const App: React.FC = () => {
                                 valueLabelFormat={formatMoney}
                                 marks={[
                                     {
-                                        label: `Min.
-                                        (${formatMoney(state.min)})`,
+                                        label: `Min (${formatMoney(
+                                            state.min
+                                        )})`,
                                         value: state.min
                                     },
                                     {
-                                        label: `Des.
-                                        (${formatMoney(state.desired)})`,
+                                        label: `Des (${formatMoney(
+                                            state.desired
+                                        )})`,
                                         value: state.desired
                                     }
                                 ]}

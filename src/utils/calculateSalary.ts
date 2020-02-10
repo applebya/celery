@@ -1,11 +1,28 @@
 import { InputType } from '../store/types';
 
+// TODO: Test this util
+interface CalculateSalaryProps {
+    value: number | string;
+    type: InputType;
+    factor?: number;
+    hoursInDay: number;
+    daysInWeek: number;
+    vacationDays: number;
+    holidayDays: number;
+    fullTime: boolean;
+}
+
 /** Returns a yearly salary given the input type */
-export default function(
-    value: number | string,
-    type: InputType,
-    factor?: number
-): number {
+export default function({
+    value,
+    type,
+    factor,
+    hoursInDay,
+    daysInWeek,
+    vacationDays,
+    holidayDays,
+    fullTime
+}: CalculateSalaryProps): number {
     if (!value) return 0;
 
     if (typeof value === 'string') {
@@ -16,9 +33,11 @@ export default function(
         value = value / factor;
     }
 
-    // TODO: Get these in as variables
-    const workingDays = 365.25 - 52;
-    const hoursInDay = 8;
+    let workingDays = 52 * daysInWeek;
+
+    if (fullTime) {
+        workingDays = workingDays - vacationDays - holidayDays;
+    }
 
     switch (type) {
         case InputType.PerHour:

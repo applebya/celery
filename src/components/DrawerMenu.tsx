@@ -191,7 +191,6 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({
                             </ListItem>
                         )
                     )}
-                    {/* TODO: More settings */}
                 </List>
             </Collapse>
 
