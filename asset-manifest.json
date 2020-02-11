@@ -1,20 +1,20 @@
 {
   "files": {
-    "main.js": "/celery/static/js/main.2f7af517.chunk.js",
-    "main.js.map": "/celery/static/js/main.2f7af517.chunk.js.map",
+    "main.js": "/celery/static/js/main.a8aec9cc.chunk.js",
+    "main.js.map": "/celery/static/js/main.a8aec9cc.chunk.js.map",
     "runtime-main.js": "/celery/static/js/runtime-main.588135d2.js",
     "runtime-main.js.map": "/celery/static/js/runtime-main.588135d2.js.map",
-    "static/js/2.fa075b8d.chunk.js": "/celery/static/js/2.fa075b8d.chunk.js",
-    "static/js/2.fa075b8d.chunk.js.map": "/celery/static/js/2.fa075b8d.chunk.js.map",
+    "static/js/2.9fd57c2a.chunk.js": "/celery/static/js/2.9fd57c2a.chunk.js",
+    "static/js/2.9fd57c2a.chunk.js.map": "/celery/static/js/2.9fd57c2a.chunk.js.map",
     "index.html": "/celery/index.html",
-    "precache-manifest.738629d463e93bfefa09ef0eff216104.js": "/celery/precache-manifest.738629d463e93bfefa09ef0eff216104.js",
+    "precache-manifest.87598ee137045c8d3147b18e949e4481.js": "/celery/precache-manifest.87598ee137045c8d3147b18e949e4481.js",
     "service-worker.js": "/celery/service-worker.js",
-    "static/js/2.fa075b8d.chunk.js.LICENSE": "/celery/static/js/2.fa075b8d.chunk.js.LICENSE",
+    "static/js/2.9fd57c2a.chunk.js.LICENSE": "/celery/static/js/2.9fd57c2a.chunk.js.LICENSE",
     "static/media/CeleryIcon.8ccebf47.svg": "/celery/static/media/CeleryIcon.8ccebf47.svg"
   },
   "entrypoints": [
     "static/js/runtime-main.588135d2.js",
-    "static/js/2.fa075b8d.chunk.js",
-    "static/js/main.2f7af517.chunk.js"
+    "static/js/2.9fd57c2a.chunk.js",
+    "static/js/main.a8aec9cc.chunk.js"
   ]
 }
