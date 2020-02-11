@@ -66,7 +66,7 @@ export enum MeasurementType {
     PerYear = '/year'
 }
 
-// TODO: Change to A_B case
+// TODO: Change to standard UPPER_CASE
 export enum ActionType {
     AddCelery = 'addCelery',
     RemoveCelery = 'removeCelery',
@@ -76,6 +76,8 @@ export enum ActionType {
     SetCommitmentValue = 'setCommitmentValue',
     SetRating = 'setRating',
     SetRatingTypeName = 'setRatingTypeName',
+    AddRatingType = 'addRatingType',
+    DeleteRatingType = 'deleteRatingType',
     SetName = 'setName',
     SetMin = 'setMin',
     SetDesired = 'setDesired',

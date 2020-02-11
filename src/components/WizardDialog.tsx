@@ -18,6 +18,7 @@ import {
     Chip,
     Box
 } from '@material-ui/core';
+import uuid from 'uuid';
 import styled from 'styled-components';
 import { State, Dispatch, ActionType } from '../store/types';
 import NumberField from './NumberField';
@@ -64,6 +65,7 @@ const WizardDialog: React.FunctionComponent<Props> = ({
 }) => {
     const [wizardIsOpen, setWizardIsOpen] = useState(!celeries.length);
     const [activeStep, setActiveStep] = useState(0);
+    const [customRating, setCustomRating] = useState('');
     const isFinalStep = activeStep === 3;
 
     return (
@@ -124,6 +126,8 @@ const WizardDialog: React.FunctionComponent<Props> = ({
                             (on this device), and doesn't require an account. No
                             evil stuff, promise 👿
                         </Typography>
+                        <br />
+                        <br />
                     </DialogContent>
 
                     <DialogActions>
@@ -256,7 +260,7 @@ const WizardDialog: React.FunctionComponent<Props> = ({
                     <DialogContent>
                         <strong>
                             Rate your favourite qualities of each job
-                            opportunity, out of 5 stars!
+                            opportunity, out of 5 stars.
                         </strong>
                         <br />
                         <br />
@@ -268,6 +272,10 @@ const WizardDialog: React.FunctionComponent<Props> = ({
                                 <Grid item sm={7}>
                                     <TextField
                                         label="Add your own custom rating"
+                                        value={customRating}
+                                        onChange={e => {
+                                            setCustomRating(e.target.value);
+                                        }}
                                         placeholder="Ex: Work Life"
                                         fullWidth
                                         autoFocus
@@ -287,6 +295,18 @@ const WizardDialog: React.FunctionComponent<Props> = ({
                                         variant="contained"
                                         color="primary"
                                         size="small"
+                                        disabled={!customRating.length}
+                                        onClick={() => {
+                                            dispatch({
+                                                type: ActionType.AddRatingType,
+                                                payload: {
+                                                    id: uuid(),
+                                                    data: customRating
+                                                }
+                                            });
+
+                                            setCustomRating('');
+                                        }}
                                     >
                                         Add
                                     </Button>
@@ -301,7 +321,13 @@ const WizardDialog: React.FunctionComponent<Props> = ({
                                             avatar={<Star color="secondary" />}
                                             label={name}
                                             onDelete={() => {
-                                                console.log('delete', name);
+                                                dispatch({
+                                                    type:
+                                                        ActionType.DeleteRatingType,
+                                                    payload: {
+                                                        id: ratingID
+                                                    }
+                                                });
                                             }}
                                         />
                                     )
@@ -320,7 +346,7 @@ const WizardDialog: React.FunctionComponent<Props> = ({
                             color="primary"
                             autoFocus
                         >
-                            Complete Setup
+                            Done
                         </Button>
                     </DialogActions>
                 </>

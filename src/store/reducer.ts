@@ -1,4 +1,4 @@
-import uuid, { v4 as generateId } from 'uuid';
+import uuid from 'uuid';
 import { Celery, State, MeasurementType, ActionType, Action } from './types';
 import { CurrencyType } from '../services/types';
 
@@ -6,7 +6,7 @@ import { CurrencyType } from '../services/types';
 const defaultCurrency: CurrencyType = CurrencyType.USD;
 
 const newCelery = ({ currency } = { currency: null }) => ({
-    [generateId()]: {
+    [uuid()]: {
         name: '',
         input: {
             value: 0,
@@ -192,6 +192,30 @@ const reduceStore = (state: State, action: Action): State => {
                             ...state.ratingTypes,
                             [payload.id]: payload.data
                         }
+                    };
+
+                case ActionType.AddRatingType:
+                    return {
+                        ...state,
+                        ratingTypes: {
+                            ...state.ratingTypes,
+                            [payload.id]: payload.data
+                        }
+                    };
+
+                case ActionType.DeleteRatingType:
+                    if (!state.ratingTypes[payload.id]) {
+                        return state;
+                    }
+
+                    const {
+                        [payload.id]: __,
+                        ...ratingTypes
+                    } = state.ratingTypes;
+
+                    return {
+                        ...state,
+                        ratingTypes
                     };
             }
         } else if (typeof payload.data !== undefined) {
