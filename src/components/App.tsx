@@ -1,7 +1,6 @@
 import React, { useEffect, useReducer, useState } from 'react';
 import { hot } from 'react-hot-loader/root';
 import {
-    Button,
     AppBar,
     Toolbar,
     SvgIcon,
@@ -12,10 +11,12 @@ import {
     Slider,
     Paper,
     Snackbar,
-    Backdrop
+    Backdrop,
+    Fab,
+    Tooltip
 } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
-import { AddCircleOutline, Menu } from '@material-ui/icons';
+import { Menu, Add } from '@material-ui/icons';
 import { ReactComponent as CeleryIcon } from './CeleryIcon.svg';
 import styled from 'styled-components';
 
@@ -209,19 +210,6 @@ const App: React.FC = () => {
                             </Grid>
                         )
                     )}
-
-                    <Grid item>
-                        <Button
-                            size="large"
-                            color="primary"
-                            onClick={() =>
-                                dispatch({ type: ActionType.AddCelery })
-                            }
-                            endIcon={<AddCircleOutline />}
-                        >
-                            Add New
-                        </Button>
-                    </Grid>
                 </Grid>
 
                 <Grid item>
@@ -242,13 +230,13 @@ const App: React.FC = () => {
                                 valueLabelFormat={formatMoney}
                                 marks={[
                                     {
-                                        label: `Min (${formatMoney(
+                                        label: `Min. (${formatMoney(
                                             state.min
                                         )})`,
                                         value: state.min
                                     },
                                     {
-                                        label: `Des (${formatMoney(
+                                        label: `Des. (${formatMoney(
                                             state.desired
                                         )})`,
                                         value: state.desired
@@ -258,7 +246,24 @@ const App: React.FC = () => {
                             />
                         </Grid>
 
-                        <Grid item>
+                        <Grid item style={{ position: 'relative' }}>
+                            <Tooltip title="Add Company" placement="top">
+                                <Fab
+                                    size="large"
+                                    color="primary"
+                                    onClick={() =>
+                                        dispatch({ type: ActionType.AddCelery })
+                                    }
+                                    style={{
+                                        position: 'absolute',
+                                        top: -75,
+                                        right: 55
+                                    }}
+                                >
+                                    <Add />
+                                </Fab>
+                            </Tooltip>
+
                             <Typography variant="h6" color="textSecondary">
                                 $$$
                             </Typography>
