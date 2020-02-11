@@ -28,7 +28,7 @@ export const initTimestamp = 0;
 
 // Grab initialState from persistedStore in localStorage (if exists)
 export const defaultState: State = {
-    min: 1,
+    min: 25000,
     desired: 75000,
     celeries: {},
     timestamp: initTimestamp,

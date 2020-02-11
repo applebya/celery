@@ -88,7 +88,6 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({
             <ListItem>
                 <ListItemText>
                     <NumberField
-                        name="min"
                         label="Minimum"
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                             dispatch({
@@ -113,7 +112,6 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({
 
             <ListItem>
                 <NumberField
-                    name="desired"
                     label="Desired"
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         dispatch({
@@ -248,7 +246,8 @@ const DrawerMenu: React.FC<DrawerMenuProps> = ({
                     <DeleteForever /> Reset Database
                 </DialogTitle>
                 <DialogContent dividers>
-                    Are you sure you want to reset your Celery database?
+                    Are you sure you want to completely reset your database, and
+                    start over?
                 </DialogContent>
                 <DialogActions>
                     <Button
