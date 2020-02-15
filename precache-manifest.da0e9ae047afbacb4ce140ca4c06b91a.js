@@ -1,15 +1,15 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "7149d8f832b688810f99019e5b9e9685",
+    "revision": "1b4bc22fac451480cd74dcebfeabcd98",
     "url": "/celery/index.html"
   },
   {
-    "revision": "84b90b9ab793b710e7b9",
-    "url": "/celery/static/js/2.5bbcf39e.chunk.js"
+    "revision": "c8338e2eb14879061d1e",
+    "url": "/celery/static/js/2.a8e28f1a.chunk.js"
   },
   {
     "revision": "9652715b819d26dcc09aad3261a56a36",
-    "url": "/celery/static/js/2.5bbcf39e.chunk.js.LICENSE"
+    "url": "/celery/static/js/2.a8e28f1a.chunk.js.LICENSE"
   },
   {
     "revision": "76c732544325a18d0909",
