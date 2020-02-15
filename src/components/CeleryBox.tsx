@@ -125,7 +125,6 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
             <Grid container spacing={3}>
                 <Grid item sm={3} xs={12}>
                     <StyledTextField
-                        name="name"
                         placeholder={`Company ${index + 1}`}
                         color="secondary"
                         value={name}
@@ -181,7 +180,6 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                         }}
                     />
                     <NumberField
-                        name="value"
                         variant="outlined"
                         autoComplete="off"
                         // TODO: Show 'default' option to use base

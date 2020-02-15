@@ -247,7 +247,11 @@ const App: React.FC = () => {
                         </Grid>
 
                         <Grid item style={{ position: 'relative' }}>
-                            <Tooltip title="Add Company" placement="top">
+                            <Tooltip
+                                title="Add Opportunity"
+                                placement="top"
+                                arrow
+                            >
                                 <Fab
                                     size="large"
                                     color="primary"

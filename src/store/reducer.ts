@@ -1,4 +1,5 @@
 import uuid from 'uuid';
+import merge from 'lodash.merge';
 import { Celery, State, MeasurementType, ActionType, Action } from './types';
 import { CurrencyType } from '../services/types';
 
@@ -26,10 +27,9 @@ const newCelery = ({ currency } = { currency: null }) => ({
 
 export const initTimestamp = 0;
 
-// Grab initialState from persistedStore in localStorage (if exists)
-export const defaultState: State = {
-    min: 25000,
-    desired: 75000,
+const blankState: State = {
+    min: 0,
+    desired: 0,
     celeries: {},
     timestamp: initTimestamp,
     currencies: {
@@ -49,27 +49,25 @@ export const defaultState: State = {
             holidayDays: 0
         }
     },
+    ratingTypes: {}
+};
+
+export const defaultState: State = {
+    ...blankState,
     ratingTypes: {
         [uuid()]: 'Culture',
         [uuid()]: 'Work Life',
         [uuid()]: 'Benefits',
         [uuid()]: 'Likeability'
     }
-    // TODO
-    // settings: {
-    //     commitmentType: CommitmentType.Both,
-    //     isInternational: false,
-    // }
 };
 
+// Initialize from localStorage if it exists (merged into a blank state)
 const PERSISTED_STORE_NAME = 'persistedStore';
-
 const persistedStore = window.localStorage.getItem(PERSISTED_STORE_NAME);
 
-// TODO: Move this out, consolidate with useEffect in App.tsx
-// TODO: Deep-merge persistedStore into defaultState
 export const initialState: State = persistedStore
-    ? JSON.parse(persistedStore)
+    ? merge(blankState, JSON.parse(persistedStore))
     : defaultState;
 
 const reduceStore = (state: State, action: Action): State => {

@@ -104,15 +104,15 @@ const WizardDialog: React.FunctionComponent<Props> = ({
             {activeStep === 0 && (
                 <>
                     <DialogTitle style={{ textAlign: 'center' }}>
-                        And so... The Hunt Begins
+                        and so... The Hunt Begins
                     </DialogTitle>
                     <DialogContent>
                         <strong>Welcome to Celery!</strong>
                         <br />
                         <br />
                         Celery is a free/open-source tool that helps you track
-                        &amp; compare job opportunities - all in 1 convenient
-                        place. Hope you like it!
+                        &amp; compare job opportunities, and get the best out of
+                        your job hunt.
                         <br />
                         <br />
                         To get started, let's learn a few details about your job
@@ -149,7 +149,7 @@ const WizardDialog: React.FunctionComponent<Props> = ({
             {activeStep === 1 && (
                 <>
                     <DialogTitle style={{ textAlign: 'center' }}>
-                        Cool, let's get you set up
+                        Cool, let's get you set up!
                     </DialogTitle>
                     <DialogContent>
                         <StyledFormGroup>
@@ -258,20 +258,19 @@ const WizardDialog: React.FunctionComponent<Props> = ({
                         How do you rate job opportunities?
                     </DialogTitle>
                     <DialogContent>
-                        <strong>
-                            Rate your favourite qualities of each job
-                            opportunity, out of 5 stars.
-                        </strong>
+                        Think about the qualities you find{' '}
+                        <strong>most desireable</strong> about your next company
+                        &amp; role, that you could rate out of 5 stars.
                         <br />
                         <br />
-                        We've added a few suggestions to get you started:
+                        We've added a few suggestions to get you started.
                         <br />
                         <br />
                         <StyledFormGroup>
                             <Grid container spacing={3}>
                                 <Grid item sm={7}>
                                     <TextField
-                                        label="Add your own custom rating"
+                                        label="Add up to 6 custom ratings"
                                         value={customRating}
                                         onChange={e => {
                                             setCustomRating(e.target.value);
@@ -295,7 +294,10 @@ const WizardDialog: React.FunctionComponent<Props> = ({
                                         variant="contained"
                                         color="primary"
                                         size="small"
-                                        disabled={!customRating.length}
+                                        disabled={
+                                            !customRating.length ||
+                                            !Object.entries(ratingTypes).length
+                                        }
                                         onClick={() => {
                                             dispatch({
                                                 type: ActionType.AddRatingType,
@@ -346,7 +348,7 @@ const WizardDialog: React.FunctionComponent<Props> = ({
                             color="primary"
                             autoFocus
                         >
-                            Done
+                            Finish Setup
                         </Button>
                     </DialogActions>
                 </>
@@ -356,11 +358,7 @@ const WizardDialog: React.FunctionComponent<Props> = ({
                 <>
                     <DialogTitle>Bingo-Bango, you're set to go!</DialogTitle>
                     <DialogContent>
-                        <StyledFormGroup>
-                            <FormLabel htmlFor="base">
-                                Customize your list of rating types:
-                            </FormLabel>
-                        </StyledFormGroup>
+
                     </DialogContent>
                 </>
             )} */}
