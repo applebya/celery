@@ -13,7 +13,8 @@ import {
     Snackbar,
     Backdrop,
     Fab,
-    Tooltip
+    Tooltip,
+    IconButton
 } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
 import { Menu, Add } from '@material-ui/icons';
@@ -130,7 +131,9 @@ const App: React.FC = () => {
         <Layout>
             <AppBar position="static">
                 <TopNav>
-                    <Menu onClick={() => setDrawerIsOpen(!drawerIsOpen)} />
+                    <IconButton onClick={() => setDrawerIsOpen(!drawerIsOpen)}>
+                        <Menu style={{ fill: 'white' }} />
+                    </IconButton>
                     <Typography
                         variant="h6"
                         component="h1"
@@ -169,7 +172,7 @@ const App: React.FC = () => {
                     maxHeight: 'calc(100vh - 64px)',
                     display: 'flex',
                     flexDirection: 'column',
-                    padding: '3em 0 1em'
+                    padding: '3em 1.8em 1em'
                 }}
             >
                 <Grid
@@ -247,11 +250,7 @@ const App: React.FC = () => {
                         </Grid>
 
                         <Grid item style={{ position: 'relative' }}>
-                            <Tooltip
-                                title="Add Opportunity"
-                                placement="top"
-                                arrow
-                            >
+                            <Tooltip title="Add Job" placement="top" arrow>
                                 <Fab
                                     size="large"
                                     color="primary"

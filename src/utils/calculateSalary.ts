@@ -4,10 +4,10 @@ interface CalculateSalaryProps {
     value: number | null;
     valueType: MeasurementType;
     factor?: number;
-    hoursInDay: number;
-    daysInWeek: number;
-    vacationDays: number;
-    holidayDays: number;
+    hoursInDay: number | null;
+    daysInWeek: number | null;
+    vacationDays: number | null;
+    holidayDays: number | null;
     fullTime: boolean;
     outputType?: MeasurementType;
 }
@@ -27,6 +27,11 @@ export default function({
     outputType = MeasurementType.PerYear
 }: CalculateSalaryProps): number {
     if (!value) return 0;
+
+    hoursInDay = hoursInDay || 0;
+    daysInWeek = daysInWeek || 0;
+    vacationDays = vacationDays || 0;
+    holidayDays = holidayDays || 0;
 
     // TODO: Fix to number only
     if (typeof value === 'string') {

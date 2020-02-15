@@ -6,20 +6,17 @@ import { CurrencyType } from '../services/types';
 // TODO: Predict from browser location?
 const defaultCurrency: CurrencyType = CurrencyType.USD;
 
-const newCelery = ({ currency } = { currency: null }) => ({
+const newCelery = (state: State) => ({
     [uuid()]: {
         name: '',
         input: {
             value: 0,
             type: MeasurementType.PerYear,
-            currency
+            currency: state.currencies.base
         },
         commitment: {
             fullTime: true,
-            hoursInDay: null,
-            daysInWeek: null,
-            vacationDays: null,
-            holidayDays: null
+            ...state.defaults.fullTime
         },
         ratings: {}
     } as Celery
@@ -54,6 +51,8 @@ const blankState: State = {
 
 export const defaultState: State = {
     ...blankState,
+    min: 15000,
+    desired: 50000,
     ratingTypes: {
         [uuid()]: 'Culture',
         [uuid()]: 'Work Life',
@@ -68,7 +67,7 @@ const persistedStore = window.localStorage.getItem(PERSISTED_STORE_NAME);
 
 export const initialState: State = persistedStore
     ? merge(blankState, JSON.parse(persistedStore))
-    : defaultState;
+    : { ...defaultState };
 
 const reduceStore = (state: State, action: Action): State => {
     const { type } = action;
@@ -276,7 +275,7 @@ const reduceStore = (state: State, action: Action): State => {
                 ...state,
                 celeries: {
                     ...state.celeries,
-                    ...newCelery()
+                    ...newCelery(state)
                 }
             };
 
@@ -316,7 +315,7 @@ const reducer = (state: State, action: Action): State => {
     }
 
     // Persist new state to localStorage
-    if ('localStorage' in window) {
+    if ('localStorage' in window && action.type !== ActionType.ResetStore) {
         localStorage.setItem(PERSISTED_STORE_NAME, JSON.stringify(state));
     }
 

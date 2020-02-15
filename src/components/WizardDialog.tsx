@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Dialog,
     Button,
@@ -18,12 +18,13 @@ import {
     Chip,
     Box
 } from '@material-ui/core';
+import { Add, Star } from '@material-ui/icons';
 import uuid from 'uuid';
 import styled from 'styled-components';
 import { State, Dispatch, ActionType } from '../store/types';
+import { initTimestamp } from '../store/reducer';
 import NumberField from './NumberField';
 import CurrencySelect from './CurrencySelect';
-import { Add, Star } from '@material-ui/icons';
 
 interface Props extends State {
     dispatch: Dispatch;
@@ -55,15 +56,25 @@ const Chips = styled(Box)`
     }
 `;
 
-const WizardDialog: React.FunctionComponent<Props> = ({
+const WizardDialog: React.FC<Props> = ({
     celeries,
     currencies,
     min,
     desired,
     ratingTypes,
+    timestamp,
     dispatch
 }) => {
-    const [wizardIsOpen, setWizardIsOpen] = useState(!celeries.length);
+    const [wizardIsOpen, setWizardIsOpen] = useState(
+        timestamp === initTimestamp
+    );
+
+    useEffect(() => {
+        if (timestamp === initTimestamp) {
+            setWizardIsOpen(true);
+        }
+    }, [timestamp]);
+
     const [activeStep, setActiveStep] = useState(0);
     const [customRating, setCustomRating] = useState('');
     const isFinalStep = activeStep === 3;
@@ -104,15 +115,15 @@ const WizardDialog: React.FunctionComponent<Props> = ({
             {activeStep === 0 && (
                 <>
                     <DialogTitle style={{ textAlign: 'center' }}>
-                        and so... The Hunt Begins
+                        And so... The Hunt Begins
                     </DialogTitle>
                     <DialogContent>
                         <strong>Welcome to Celery!</strong>
                         <br />
                         <br />
                         Celery is a free/open-source tool that helps you track
-                        &amp; compare job opportunities, and get the best out of
-                        your job hunt.
+                        &amp; compare job opportunities, all from 1 convenient
+                        place.
                         <br />
                         <br />
                         To get started, let's learn a few details about your job
@@ -122,9 +133,9 @@ const WizardDialog: React.FunctionComponent<Props> = ({
                         <Typography variant="caption" style={{ width: '75%' }}>
                             <strong>Privacy Notice:</strong>
                             <br />
-                            Celery stores all private data in your browser cache
-                            (on this device), and doesn't require an account. No
-                            evil stuff, promise 👿
+                            Celery stores all private data in your own browser
+                            cache (on this device), and doesn't require an
+                            account. No evil stuff, promise 👿
                         </Typography>
                         <br />
                         <br />
@@ -159,7 +170,9 @@ const WizardDialog: React.FunctionComponent<Props> = ({
                             <CurrencySelect
                                 id="base"
                                 value={currencies.base}
-                                onChange={e => {
+                                onChange={(
+                                    e: React.ChangeEvent<{ value: unknown }>
+                                ) => {
                                     dispatch({
                                         type: ActionType.SetBaseCurrency,
                                         payload: { data: e.target.value }
@@ -296,7 +309,8 @@ const WizardDialog: React.FunctionComponent<Props> = ({
                                         size="small"
                                         disabled={
                                             !customRating.length ||
-                                            !Object.entries(ratingTypes).length
+                                            Object.entries(ratingTypes)
+                                                .length >= 6
                                         }
                                         onClick={() => {
                                             dispatch({

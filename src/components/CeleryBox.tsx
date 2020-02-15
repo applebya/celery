@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import {
     Box,
-    Button,
+    List,
+    ListItem,
     Grid,
     TextField,
     Select,
@@ -9,9 +10,13 @@ import {
     InputAdornment,
     FormControlLabel,
     Switch,
-    Typography
+    Typography,
+    Popover,
+    ListItemText,
+    ListItemIcon,
+    IconButton
 } from '@material-ui/core';
-import { Delete } from '@material-ui/icons';
+import { Delete, MoreVert } from '@material-ui/icons';
 import CountUp from 'react-countup';
 import calculateSalary from '../utils/calculateSalary';
 import NumberField from './NumberField';
@@ -26,6 +31,7 @@ import {
 import CurrencySelect from './CurrencySelect';
 import { CurrencyType } from '../services/types';
 import { Rating } from '@material-ui/lab';
+import PopupState, { bindTrigger, bindPopover } from 'material-ui-popup-state';
 
 interface CeleryBoxProps extends Celery {
     id: string;
@@ -46,6 +52,16 @@ const StyledTextField = styled(TextField)`
         font-size: 1.5em;
     }
 `;
+
+const OptionsPopover = styled.div`
+    position: absolute;
+    top: 5px;
+    right: 3px;
+`;
+
+interface MenuPopoverProps {
+    children: React.ReactNode;
+}
 
 const usePrevious = <T extends {}>(value: T) => {
     const ref = useRef<T>();
@@ -82,20 +98,18 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
     rateFactor,
     dispatch
 }) => {
-    const defaultValues = defaults[fullTime ? 'fullTime' : 'partTime'];
-
     const settings = {
         value,
         valueType: type,
         factor: rateFactor,
         fullTime,
-        hoursInDay: hoursInDay || defaultValues.hoursInDay,
-        daysInWeek: daysInWeek || defaultValues.daysInWeek,
-        vacationDays: vacationDays || defaultValues.vacationDays,
-        holidayDays: holidayDays || defaultValues.holidayDays
+        hoursInDay,
+        daysInWeek,
+        vacationDays,
+        holidayDays
     };
 
-    // TODO: Move into memoized component
+    // TODO: Move into memoized function, get all calculations at once?
     const salary = calculateSalary({
         ...settings,
         outputType: MeasurementType.PerYear
@@ -121,9 +135,9 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
     const prevHourly = usePrevious(hourly);
 
     return (
-        <Box style={{ padding: '1em' }}>
+        <Box style={{ padding: '1em', position: 'relative' }}>
             <Grid container spacing={3}>
-                <Grid item sm={3} xs={12}>
+                <Grid item md={4} sm={6} xs={12}>
                     <StyledTextField
                         placeholder={`Company ${index + 1}`}
                         color="secondary"
@@ -256,7 +270,8 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                 </Grid>
                 <Grid
                     item
-                    sm={3}
+                    md={3}
+                    sm={6}
                     xs={12}
                     style={{
                         display: 'flex',
@@ -268,7 +283,7 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                         {Object.entries(ratingTypes)
                             .filter(([ratingID, name]) => name.length)
                             .map(([ratingID, name]) => (
-                                <Grid item md={6} sm={12} key={ratingID}>
+                                <Grid item sm={6} key={ratingID}>
                                     <Typography
                                         component="legend"
                                         variant="caption"
@@ -276,6 +291,7 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                                         {name}
                                     </Typography>
                                     <Rating
+                                        name={`rating-${ratingID}`}
                                         size="small"
                                         value={ratings[ratingID] || 0}
                                         precision={0.5}
@@ -299,7 +315,8 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                 </Grid>
                 <Grid
                     item
-                    sm={3}
+                    md={3}
+                    sm={6}
                     xs={12}
                     style={{
                         display: 'flex',
@@ -308,15 +325,11 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                     }}
                 >
                     <Grid container spacing={2}>
-                        <Grid item sm={12} md={6}>
+                        <Grid item sm={6}>
                             <NumberField
                                 label="I work:"
                                 style={{ maxWidth: 110 }}
-                                value={
-                                    hoursInDay !== null
-                                        ? hoursInDay
-                                        : defaultValues.hoursInDay
-                                }
+                                value={hoursInDay}
                                 InputProps={{
                                     endAdornment: (
                                         <InputAdornment position="end">
@@ -330,8 +343,6 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                                 onChange={(
                                     e: React.ChangeEvent<HTMLInputElement>
                                 ) => {
-                                    // if (Number(e.target.value) > 24) return;
-
                                     dispatch({
                                         type: ActionType.SetCommitmentValue,
                                         payload: {
@@ -343,15 +354,11 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                                 }}
                             />
                         </Grid>
-                        <Grid item sm={12} md={6}>
+                        <Grid item sm={6}>
                             <NumberField
                                 label="Within:"
                                 style={{ maxWidth: 110 }}
-                                value={
-                                    daysInWeek !== null
-                                        ? daysInWeek
-                                        : defaultValues.daysInWeek
-                                }
+                                value={daysInWeek}
                                 InputProps={{
                                     max: 7,
                                     endAdornment: (
@@ -378,15 +385,11 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
 
                         {fullTime && (
                             <>
-                                <Grid item sm={12} md={6}>
+                                <Grid item sm={6}>
                                     <NumberField
                                         label="Paid Vacation"
                                         style={{ maxWidth: 110 }}
-                                        value={
-                                            vacationDays !== null
-                                                ? vacationDays
-                                                : defaultValues.vacationDays
-                                        }
+                                        value={vacationDays}
                                         InputProps={{
                                             max: 365, // TODO: Calculate remaining
                                             endAdornment: (
@@ -415,20 +418,14 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                                         }}
                                     />
                                 </Grid>
-                                <Grid item sm={12} md={6}>
+                                <Grid item sm={6}>
                                     <NumberField
                                         label={`Stat. Holiday${
-                                            (holidayDays ||
-                                                defaultValues.holidayDays) !== 1
-                                                ? 's'
-                                                : ''
+                                            holidayDays !== 1 ? 's' : ''
                                         }`}
-                                        value={
-                                            holidayDays !== null
-                                                ? holidayDays
-                                                : defaultValues.holidayDays
-                                        }
+                                        value={holidayDays}
                                         style={{ maxWidth: 110 }}
+                                        placeholder="0"
                                         InputProps={{
                                             max: 365, // TODO: Calculate remaining
                                             endAdornment: (
@@ -461,8 +458,19 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                         )}
                     </Grid>
                 </Grid>
-                <Grid item sm={3} xs={12}>
-                    <Box>
+                <Grid
+                    item
+                    md={2}
+                    sm={6}
+                    xs={12}
+                    style={{
+                        position: 'relative',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center'
+                    }}
+                >
+                    <Box style={{ lineHeight: '1.75em' }}>
                         <strong>
                             <CountUp
                                 start={prevSalary}
@@ -474,9 +482,7 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                             />
                         </strong>{' '}
                         / year
-                    </Box>
-
-                    <Box>
+                        <br />
                         <strong>
                             <CountUp
                                 start={prevMonthly}
@@ -488,9 +494,7 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                             />
                         </strong>{' '}
                         / month
-                    </Box>
-
-                    <Box>
+                        <br />
                         <strong>
                             <CountUp
                                 start={prevDaily}
@@ -502,9 +506,7 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                             />
                         </strong>{' '}
                         / day
-                    </Box>
-
-                    <Box>
+                        <br />
                         <strong>
                             <CountUp
                                 start={prevHourly}
@@ -517,22 +519,47 @@ const CeleryBox: React.FC<CeleryBoxProps> = ({
                         </strong>{' '}
                         / hour
                     </Box>
-                    {/* )} */}
-
-                    <Box>
-                        <Button
-                            onClick={() =>
-                                dispatch({
-                                    type: ActionType.RemoveCelery,
-                                    payload: { id, data: null }
-                                })
-                            }
-                        >
-                            <Delete color="error" />
-                        </Button>
-                    </Box>
                 </Grid>
             </Grid>
+
+            <PopupState variant="popover" popupId="options-popover">
+                {popupState => (
+                    <OptionsPopover>
+                        <IconButton {...bindTrigger(popupState)} size="small">
+                            <MoreVert />
+                        </IconButton>
+
+                        <Popover
+                            {...bindPopover(popupState)}
+                            anchorOrigin={{
+                                vertical: 'bottom',
+                                horizontal: 'right'
+                            }}
+                            transformOrigin={{
+                                vertical: 'top',
+                                horizontal: 'right'
+                            }}
+                        >
+                            <List>
+                                <ListItem
+                                    button
+                                    onClick={() =>
+                                        dispatch({
+                                            type: ActionType.RemoveCelery,
+                                            payload: { id, data: null }
+                                        })
+                                    }
+                                >
+                                    <ListItemIcon style={{ maxWidth: 20 }}>
+                                        <Delete color="error" />
+                                    </ListItemIcon>
+                                    <ListItemText>Delete</ListItemText>
+                                </ListItem>
+                            </List>
+                        </Popover>
+                    </OptionsPopover>
+                )}
+            </PopupState>
         </Box>
     );
 };
