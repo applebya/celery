@@ -1,73 +1,72 @@
-# React + TypeScript + Vite
+# Celery - Contractor Salary Calculator
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A lightweight, offline-first salary calculator for contractors in Canada and the USA. Convert hourly rates to annual compensation with tax estimates.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Hourly to Annual**: Calculate annual gross and net income from hourly rate
+- **Tax Estimates**: 2026 federal + provincial/state tax brackets
+- **Self-Employment Taxes**: CPP (Canada) and SE tax (US) calculations
+- **Holiday Presets**: Province/state-specific statutory holidays for CA and US
+- **Currency Conversion**: Live CAD/USD exchange rates with offline caching
+- **Comparison Mode**: Compare two scenarios side-by-side
+- **Offline-First**: PWA that works without internet
+- **Privacy-Focused**: All data stored locally, no accounts needed
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Vite** + **React 18** + **TypeScript**
+- **Tailwind CSS** + **shadcn/ui** for styling
+- **Vitest** for testing (58 tests)
+- **vite-plugin-pwa** for offline support
+- **Plausible** for privacy-friendly analytics
 
-## Expanding the ESLint configuration
+## Development
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+```bash
+# Install dependencies
+bun install
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+# Start dev server
+bun run dev
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+# Run tests
+bun run test
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Build for production
+bun run build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Deployment
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### GitHub Pages
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+1. Update `vite.config.ts` with your base path:
+   ```ts
+   export default defineConfig({
+     base: '/celery/',
+     // ...
+   })
+   ```
+
+2. Build and deploy:
+   ```bash
+   bun run build
+   # Deploy dist/ folder to GitHub Pages
+   ```
+
+### Analytics
+
+Replace `YOUR_DOMAIN` in `index.html` with your actual domain to enable Plausible analytics.
+
+## Tax Data Sources
+
+- Canada: 2026 federal and provincial tax brackets
+- USA: 2026 federal and state tax brackets (single filer)
+- Self-employment: CPP contributions (CA), Social Security + Medicare (US)
+
+**Disclaimer**: Tax estimates are rough approximations. Assumes single filer with no deductions or credits. Consult a tax professional for accurate calculations.
+
+## License
+
+MIT
