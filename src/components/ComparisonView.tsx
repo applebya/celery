@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Calculator } from './Calculator'
 import { useCalculation } from '@/hooks/useCalculation'
+import { useExchangeRate } from '@/hooks/useExchangeRate'
 import { formatCurrency } from '@/lib/calculate'
 import type { CalculatorState } from '@/types'
 import { DEFAULT_STATE } from '@/types'
@@ -22,6 +23,7 @@ export function ComparisonView({
 }: ComparisonViewProps) {
   const leftCalc = useCalculation(leftState)
   const rightCalc = useCalculation(rightState ?? DEFAULT_STATE)
+  const { convertCurrency, exchangeRate } = useExchangeRate()
 
   const addComparison = () => {
     onRightChange({
@@ -41,6 +43,8 @@ export function ComparisonView({
   const netPercentChange = isComparing && leftCalc.netAnnual > 0
     ? ((rightCalc.netAnnual - leftCalc.netAnnual) / leftCalc.netAnnual) * 100
     : 0
+  const otherCurrency = leftState.currency === 'CAD' ? 'USD' : 'CAD'
+  const convertedDifference = convertCurrency(Math.abs(netDifference), leftState.currency, otherCurrency)
 
   return (
     <div className="space-y-4">
@@ -79,7 +83,7 @@ export function ComparisonView({
           <CardContent className="py-4">
             <div className="flex items-center justify-center gap-4 text-center">
               <div>
-                <p className="text-sm text-muted-foreground">Difference</p>
+                <p className="text-sm text-muted-foreground">Net Difference</p>
                 <p className={`text-xl font-bold flex items-center justify-center gap-1 ${
                   netDifference >= 0 ? 'text-green-600' : 'text-red-600'
                 }`}>
@@ -88,9 +92,14 @@ export function ComparisonView({
                   ) : (
                     <ArrowDownRight className="h-5 w-5" />
                   )}
-                  {netDifference >= 0 ? '+' : ''}
-                  {formatCurrency(netDifference, leftState.currency)} net
+                  {netDifference >= 0 ? '+' : '-'}
+                  {formatCurrency(Math.abs(netDifference), leftState.currency)}
                 </p>
+                {exchangeRate && (
+                  <p className="text-sm text-muted-foreground">
+                    = {netDifference >= 0 ? '+' : '-'}{formatCurrency(convertedDifference, otherCurrency)}
+                  </p>
+                )}
                 <p className="text-sm text-muted-foreground">
                   ({netPercentChange >= 0 ? '+' : ''}{netPercentChange.toFixed(1)}%)
                 </p>

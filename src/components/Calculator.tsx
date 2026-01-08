@@ -194,7 +194,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
       {/* Results Card */}
       <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
         <CardContent className="pt-6">
-          <div className="text-center space-y-1">
+          <div className="text-center space-y-2">
             {state.calculationMode === 'hourlyToSalary' ? (
               <>
                 <p className="text-sm text-muted-foreground">Annual Compensation</p>
@@ -203,7 +203,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                 </p>
                 {exchangeRate && (
                   <p className="text-sm text-muted-foreground">
-                    → {formatCurrency(convertedGross, otherCurrency)} {otherCurrency}
+                    = {formatCurrency(convertedGross, otherCurrency)}
                   </p>
                 )}
               </>
@@ -215,18 +215,25 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                 </p>
                 {exchangeRate && (
                   <p className="text-sm text-muted-foreground">
-                    → {formatCurrency(convertCurrency(calculation.calculatedHourlyRate, state.currency, otherCurrency), otherCurrency)}/hr {otherCurrency}
+                    = {formatCurrency(convertCurrency(calculation.calculatedHourlyRate, state.currency, otherCurrency), otherCurrency)}/hr
                   </p>
                 )}
               </>
             )}
             {state.showTaxEstimate && (
-              <p className="text-lg text-green-600 dark:text-green-400">
-                After tax: ~{formatCurrency(calculation.netAnnual, state.currency)}
-                <span className="text-sm text-muted-foreground ml-1">
-                  ({formatPercent(calculation.taxBreakdown.effectiveRate)})
-                </span>
-              </p>
+              <div className="pt-1">
+                <p className="text-lg text-green-600 dark:text-green-400">
+                  After tax: ~{formatCurrency(calculation.netAnnual, state.currency)}
+                  <span className="text-sm text-muted-foreground ml-1">
+                    ({formatPercent(calculation.taxBreakdown.effectiveRate)})
+                  </span>
+                </p>
+                {exchangeRate && (
+                  <p className="text-sm text-muted-foreground">
+                    = {formatCurrency(convertCurrency(calculation.netAnnual, state.currency, otherCurrency), otherCurrency)}
+                  </p>
+                )}
+              </div>
             )}
             <p className="text-xs text-muted-foreground pt-2">
               {calculation.billableHours.toLocaleString()} billable hrs/yr

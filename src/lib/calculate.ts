@@ -47,16 +47,18 @@ export function calcNetAnnual(grossAnnual: number, totalTax: number): number {
 export function formatCurrency(
   amount: number,
   currency: 'CAD' | 'USD',
-  compact = false
+  options: { compact?: boolean; showCode?: boolean } = {}
 ): string {
+  const { compact = false, showCode = true } = options
   const formatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency,
+    currency: 'USD', // Always use $ symbol
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
     notation: compact ? 'compact' : 'standard',
   })
-  return formatter.format(amount)
+  const formatted = formatter.format(amount)
+  return showCode ? `${formatted} ${currency}` : formatted
 }
 
 /**
