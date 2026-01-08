@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { ChevronDown, ChevronRight, MapPin, Calendar, Clock, Receipt, Pencil, Check } from 'lucide-react'
+import { ChevronDown, ChevronRight, MapPin, Calendar, Clock, Receipt, Pencil, Check, ArrowRightLeft } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -7,6 +7,7 @@ import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { countries, getCountry, getHolidayCount } from '@/data/holidays-2026'
 import { useCalculation } from '@/hooks/useCalculation'
 import { useExchangeRate } from '@/hooks/useExchangeRate'
@@ -110,47 +111,114 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
         </div>
       )}
 
-      {/* Hourly Rate Input */}
-      <div className="space-y-2">
-        <Label htmlFor="hourlyRate">Hourly Rate</Label>
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-              $
-            </span>
-            <Input
-              id="hourlyRate"
-              type="number"
-              min={0}
-              value={state.hourlyRate || ''}
-              onChange={(e) => updateState({ hourlyRate: parseFloat(e.target.value) || 0 })}
-              className="pl-7 text-xl font-semibold"
-            />
-          </div>
-          <Select value={state.currency} onValueChange={(v) => updateState({ currency: v as 'CAD' | 'USD' })}>
-            <SelectTrigger className="w-24">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="CAD">CAD</SelectItem>
-              <SelectItem value="USD">USD</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+      {/* Mode Toggle */}
+      <div className="flex items-center justify-center gap-2">
+        <Button
+          variant={state.calculationMode === 'hourlyToSalary' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => updateState({ calculationMode: 'hourlyToSalary' })}
+          className="text-xs"
+        >
+          Hourly → Salary
+        </Button>
+        <ArrowRightLeft className="h-4 w-4 text-muted-foreground" />
+        <Button
+          variant={state.calculationMode === 'salaryToHourly' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => updateState({ calculationMode: 'salaryToHourly' })}
+          className="text-xs"
+        >
+          Salary → Hourly
+        </Button>
       </div>
+
+      {/* Input Section - changes based on mode */}
+      {state.calculationMode === 'hourlyToSalary' ? (
+        <div className="space-y-2">
+          <Label htmlFor="hourlyRate">Hourly Rate</Label>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                $
+              </span>
+              <Input
+                id="hourlyRate"
+                type="number"
+                min={0}
+                value={state.hourlyRate || ''}
+                onChange={(e) => updateState({ hourlyRate: parseFloat(e.target.value) || 0 })}
+                className="pl-7 text-xl font-semibold"
+              />
+            </div>
+            <Select value={state.currency} onValueChange={(v) => updateState({ currency: v as 'CAD' | 'USD' })}>
+              <SelectTrigger className="w-24">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="CAD">CAD</SelectItem>
+                <SelectItem value="USD">USD</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <Label htmlFor="targetSalary">Target Annual Salary</Label>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                $
+              </span>
+              <Input
+                id="targetSalary"
+                type="number"
+                min={0}
+                value={state.targetSalary || ''}
+                onChange={(e) => updateState({ targetSalary: parseFloat(e.target.value) || 0 })}
+                className="pl-7 text-xl font-semibold"
+              />
+            </div>
+            <Select value={state.currency} onValueChange={(v) => updateState({ currency: v as 'CAD' | 'USD' })}>
+              <SelectTrigger className="w-24">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="CAD">CAD</SelectItem>
+                <SelectItem value="USD">USD</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      )}
 
       {/* Results Card */}
       <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
         <CardContent className="pt-6">
           <div className="text-center space-y-1">
-            <p className="text-sm text-muted-foreground">Annual Compensation</p>
-            <p className="text-3xl font-bold">
-              {formatCurrency(calculation.grossAnnual, state.currency)}
-            </p>
-            {exchangeRate && (
-              <p className="text-sm text-muted-foreground">
-                → {formatCurrency(convertedGross, otherCurrency)} {otherCurrency}
-              </p>
+            {state.calculationMode === 'hourlyToSalary' ? (
+              <>
+                <p className="text-sm text-muted-foreground">Annual Compensation</p>
+                <p className="text-3xl font-bold">
+                  {formatCurrency(calculation.grossAnnual, state.currency)}
+                </p>
+                {exchangeRate && (
+                  <p className="text-sm text-muted-foreground">
+                    → {formatCurrency(convertedGross, otherCurrency)} {otherCurrency}
+                  </p>
+                )}
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-muted-foreground">Required Hourly Rate</p>
+                <p className="text-3xl font-bold">
+                  {formatCurrency(calculation.calculatedHourlyRate, state.currency)}/hr
+                </p>
+                {exchangeRate && (
+                  <p className="text-sm text-muted-foreground">
+                    → {formatCurrency(convertCurrency(calculation.calculatedHourlyRate, state.currency, otherCurrency), otherCurrency)}/hr {otherCurrency}
+                  </p>
+                )}
+              </>
             )}
             {state.showTaxEstimate && (
               <p className="text-lg text-green-600 dark:text-green-400">
@@ -162,6 +230,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
             )}
             <p className="text-xs text-muted-foreground pt-2">
               {calculation.billableHours.toLocaleString()} billable hrs/yr
+              {state.fixedMonthlyHours && ` (${state.monthlyHours} hrs/mo)`}
               {exchangeRate && ` • Rate ${getAgeString()}`}
             </p>
           </div>
@@ -225,7 +294,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                 type="number"
                 min={0}
                 max={20}
-                value={state.holidaysPerYear}
+                value={state.holidaysPerYear || ''}
                 onChange={(e) => updateState({ holidaysPerYear: parseInt(e.target.value) || 0 })}
               />
               <p className="text-xs text-muted-foreground">
@@ -259,7 +328,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                   type="number"
                   min={0}
                   max={60}
-                  value={state.ptoDays}
+                  value={state.ptoDays || ''}
                   onChange={(e) => updateState({ ptoDays: parseInt(e.target.value) || 0 })}
                 />
               </div>
@@ -269,7 +338,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                   type="number"
                   min={0}
                   max={30}
-                  value={state.sickDays}
+                  value={state.sickDays || ''}
                   onChange={(e) => updateState({ sickDays: parseInt(e.target.value) || 0 })}
                 />
               </div>
@@ -293,32 +362,63 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
               <span>Work Schedule</span>
             </div>
             <Badge variant="secondary">
-              {state.hoursPerDay * state.daysPerWeek} hrs/wk
+              {state.fixedMonthlyHours
+                ? `${state.monthlyHours} hrs/mo`
+                : `${state.hoursPerDay * state.daysPerWeek} hrs/wk`}
             </Badge>
           </CollapsibleTrigger>
           <CollapsibleContent className="pt-2 pb-4 px-3 space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Hours per Day</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={16}
-                  value={state.hoursPerDay}
-                  onChange={(e) => updateState({ hoursPerDay: parseInt(e.target.value) || 8 })}
-                />
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="fixedMonthly">Fixed monthly hours</Label>
+                <p className="text-xs text-muted-foreground">
+                  Time off already included in rate
+                </p>
               </div>
-              <div className="space-y-2">
-                <Label>Days per Week</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={7}
-                  value={state.daysPerWeek}
-                  onChange={(e) => updateState({ daysPerWeek: parseInt(e.target.value) || 5 })}
-                />
-              </div>
+              <Switch
+                id="fixedMonthly"
+                checked={state.fixedMonthlyHours}
+                onCheckedChange={(checked) => updateState({ fixedMonthlyHours: checked })}
+              />
             </div>
+            {state.fixedMonthlyHours ? (
+              <div className="space-y-2">
+                <Label>Hours per Month</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={300}
+                  value={state.monthlyHours || ''}
+                  onChange={(e) => updateState({ monthlyHours: parseInt(e.target.value) || 160 })}
+                />
+                <p className="text-xs text-muted-foreground">
+                  e.g., 160 hrs/mo = full-time with PTO built in
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Hours per Day</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={16}
+                    value={state.hoursPerDay || ''}
+                    onChange={(e) => updateState({ hoursPerDay: parseInt(e.target.value) || 8 })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Days per Week</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={7}
+                    value={state.daysPerWeek || ''}
+                    onChange={(e) => updateState({ daysPerWeek: parseInt(e.target.value) || 5 })}
+                  />
+                </div>
+              </div>
+            )}
           </CollapsibleContent>
         </Collapsible>
 

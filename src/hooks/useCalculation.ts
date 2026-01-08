@@ -8,20 +8,41 @@ export interface CalculationResult {
   grossAnnual: number
   netAnnual: number
   taxBreakdown: TaxBreakdown
+  // For reverse calculation mode
+  calculatedHourlyRate: number
 }
 
 export function useCalculation(state: CalculatorState): CalculationResult {
   return useMemo(() => {
-    const billableHours = calcBillableHours(
-      52, // weeks per year
-      state.daysPerWeek,
-      state.hoursPerDay,
-      state.holidaysPerYear,
-      state.ptoDays,
-      state.sickDays
-    )
+    // Calculate billable hours based on mode
+    let billableHours: number
+    if (state.fixedMonthlyHours) {
+      // Fixed monthly hours: time off already included in the rate
+      billableHours = state.monthlyHours * 12
+    } else {
+      // Standard calculation: 52 weeks minus time off
+      billableHours = calcBillableHours(
+        52,
+        state.daysPerWeek,
+        state.hoursPerDay,
+        state.holidaysPerYear,
+        state.ptoDays,
+        state.sickDays
+      )
+    }
 
-    const grossAnnual = calcGrossAnnual(state.hourlyRate, billableHours)
+    let grossAnnual: number
+    let calculatedHourlyRate: number
+
+    if (state.calculationMode === 'salaryToHourly') {
+      // Reverse calculation: salary → hourly rate
+      grossAnnual = state.targetSalary
+      calculatedHourlyRate = billableHours > 0 ? grossAnnual / billableHours : 0
+    } else {
+      // Standard calculation: hourly rate → salary
+      grossAnnual = calcGrossAnnual(state.hourlyRate, billableHours)
+      calculatedHourlyRate = state.hourlyRate
+    }
 
     const taxBreakdown = getTaxBreakdown(
       state.country,
@@ -37,6 +58,7 @@ export function useCalculation(state: CalculatorState): CalculationResult {
       grossAnnual,
       netAnnual,
       taxBreakdown,
+      calculatedHourlyRate,
     }
   }, [
     state.daysPerWeek,
@@ -48,5 +70,9 @@ export function useCalculation(state: CalculatorState): CalculationResult {
     state.country,
     state.region,
     state.isSelfEmployed,
+    state.calculationMode,
+    state.targetSalary,
+    state.fixedMonthlyHours,
+    state.monthlyHours,
   ])
 }

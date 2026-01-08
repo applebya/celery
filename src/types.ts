@@ -11,6 +11,12 @@ export interface CalculatorState {
   daysPerWeek: number
   showTaxEstimate: boolean
   isSelfEmployed: boolean
+  // New: calculation mode (hourly → salary or salary → hourly)
+  calculationMode: 'hourlyToSalary' | 'salaryToHourly'
+  targetSalary: number
+  // New: fixed monthly hours mode (time off already included)
+  fixedMonthlyHours: boolean
+  monthlyHours: number
 }
 
 export interface ExchangeRate {
@@ -33,4 +39,8 @@ export const DEFAULT_STATE: CalculatorState = {
   daysPerWeek: 5,
   showTaxEstimate: true,
   isSelfEmployed: true,
+  calculationMode: 'hourlyToSalary',
+  targetSalary: 150000,
+  fixedMonthlyHours: false,
+  monthlyHours: 160,
 }
