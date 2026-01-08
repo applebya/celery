@@ -1,4 +1,4 @@
-import { canadaTax, usTax, type TaxBracket, type TaxConfig } from '@/data/tax-brackets-2026'
+import { canadaTax, usTax, type TaxBracket } from '@/data/tax-brackets-2026'
 
 /**
  * Calculate tax using progressive brackets
