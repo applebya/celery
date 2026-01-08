@@ -5,7 +5,7 @@ import { Calculator } from './Calculator'
 import { useCalculation } from '@/hooks/useCalculation'
 import { useExchangeRate } from '@/hooks/useExchangeRate'
 import { formatCurrency } from '@/lib/calculate'
-import type { CalculatorState } from '@/types'
+import type { CalculatorState, Currency } from '@/types'
 import { DEFAULT_STATE } from '@/types'
 
 interface ComparisonViewProps {
@@ -23,7 +23,7 @@ export function ComparisonView({
 }: ComparisonViewProps) {
   const leftCalc = useCalculation(leftState)
   const rightCalc = useCalculation(rightState ?? DEFAULT_STATE)
-  const { convertCurrency, exchangeRate } = useExchangeRate()
+  const { convertCurrency, exchangeRates } = useExchangeRate()
 
   const addComparison = () => {
     onRightChange({
@@ -43,7 +43,9 @@ export function ComparisonView({
   const netPercentChange = isComparing && leftCalc.netAnnual > 0
     ? ((rightCalc.netAnnual - leftCalc.netAnnual) / leftCalc.netAnnual) * 100
     : 0
-  const otherCurrency = leftState.currency === 'CAD' ? 'USD' : 'CAD'
+  const otherCurrency: Currency = leftState.currency === 'USD' ? 'CAD'
+    : leftState.currency === 'CAD' ? 'USD'
+    : 'USD'
   const convertedDifference = convertCurrency(Math.abs(netDifference), leftState.currency, otherCurrency)
 
   return (
@@ -95,7 +97,7 @@ export function ComparisonView({
                   {netDifference >= 0 ? '+' : '-'}
                   {formatCurrency(Math.abs(netDifference), leftState.currency)}
                 </p>
-                {exchangeRate && (
+                {exchangeRates && (
                   <p className="text-sm text-muted-foreground">
                     = {netDifference >= 0 ? '+' : '-'}{formatCurrency(convertedDifference, otherCurrency)}
                   </p>

@@ -1,33 +1,48 @@
 import { useState, useEffect, useCallback } from 'react'
-import type { ExchangeRate } from '@/types'
+import type { Currency, ExchangeRates, HistoricalRate } from '@/types'
 
-const CACHE_KEY = 'celery-exchange-rate'
+const CACHE_KEY = 'celery-exchange-rates'
+const HISTORY_CACHE_KEY = 'celery-exchange-history'
 const CACHE_TTL = 24 * 60 * 60 * 1000 // 24 hours
 
-interface CachedRate {
-  rate: ExchangeRate
+interface CachedRates {
+  rates: ExchangeRates
   fetchedAt: number
 }
 
+interface CachedHistory {
+  data: Record<string, HistoricalRate[]> // keyed by "FROM-TO"
+  fetchedAt: number
+}
+
+// Fallback rates (approximate, relative to USD)
+const FALLBACK_RATES: Record<Currency, number> = {
+  USD: 1,
+  CAD: 1.36,
+  EUR: 0.92,
+  GBP: 0.79,
+}
+
 export function useExchangeRate() {
-  const [exchangeRate, setExchangeRate] = useState<ExchangeRate | null>(null)
+  const [exchangeRates, setExchangeRates] = useState<ExchangeRates | null>(null)
+  const [historicalData, setHistoricalData] = useState<Record<string, HistoricalRate[]>>({})
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchRate = useCallback(async (force = false) => {
+  const fetchRates = useCallback(async (force = false) => {
     // Check cache first
     if (!force) {
       try {
         const cached = localStorage.getItem(CACHE_KEY)
         if (cached) {
-          const { rate, fetchedAt }: CachedRate = JSON.parse(cached)
+          const { rates, fetchedAt }: CachedRates = JSON.parse(cached)
           if (Date.now() - fetchedAt < CACHE_TTL) {
-            setExchangeRate(rate)
-            return rate
+            setExchangeRates(rates)
+            return rates
           }
         }
       } catch (e) {
-        console.warn('Error reading cached exchange rate:', e)
+        console.warn('Error reading cached exchange rates:', e)
       }
     }
 
@@ -35,83 +50,156 @@ export function useExchangeRate() {
     setError(null)
 
     try {
-      // Using exchangerate.host API (free, no key required)
+      // Using frankfurter.app API (free, no key required, ECB data)
       const response = await fetch(
-        'https://api.exchangerate.host/latest?base=CAD&symbols=USD'
+        'https://api.frankfurter.app/latest?from=USD&to=CAD,EUR,GBP'
       )
 
       if (!response.ok) {
-        throw new Error('Failed to fetch exchange rate')
+        throw new Error('Failed to fetch exchange rates')
       }
 
       const data = await response.json()
 
-      const rate: ExchangeRate = {
-        rate: data.rates?.USD ?? 0.73, // fallback rate
+      const rates: ExchangeRates = {
+        rates: {
+          USD: 1,
+          CAD: data.rates?.CAD ?? FALLBACK_RATES.CAD,
+          EUR: data.rates?.EUR ?? FALLBACK_RATES.EUR,
+          GBP: data.rates?.GBP ?? FALLBACK_RATES.GBP,
+        },
         timestamp: Date.now(),
-        from: 'CAD',
-        to: 'USD',
       }
 
       // Cache the result
-      const cacheData: CachedRate = { rate, fetchedAt: Date.now() }
+      const cacheData: CachedRates = { rates, fetchedAt: Date.now() }
       localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData))
 
-      setExchangeRate(rate)
-      return rate
+      setExchangeRates(rates)
+      return rates
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : 'Unknown error'
       setError(errorMessage)
 
-      // Use fallback rate if fetch fails
-      const fallbackRate: ExchangeRate = {
-        rate: 0.73, // Approximate CAD to USD
+      // Use fallback rates if fetch fails
+      const fallbackRates: ExchangeRates = {
+        rates: FALLBACK_RATES,
         timestamp: Date.now(),
-        from: 'CAD',
-        to: 'USD',
       }
-      setExchangeRate(fallbackRate)
-      return fallbackRate
+      setExchangeRates(fallbackRates)
+      return fallbackRates
     } finally {
       setLoading(false)
     }
   }, [])
 
+  const fetchHistorical = useCallback(async (from: Currency, to: Currency): Promise<HistoricalRate[]> => {
+    const key = `${from}-${to}`
+
+    // Check cache first
+    try {
+      const cached = localStorage.getItem(HISTORY_CACHE_KEY)
+      if (cached) {
+        const { data, fetchedAt }: CachedHistory = JSON.parse(cached)
+        if (Date.now() - fetchedAt < CACHE_TTL && data[key]) {
+          setHistoricalData(prev => ({ ...prev, [key]: data[key] }))
+          return data[key]
+        }
+      }
+    } catch (e) {
+      console.warn('Error reading cached historical data:', e)
+    }
+
+    try {
+      // Get 1 year of historical data
+      const endDate = new Date()
+      const startDate = new Date()
+      startDate.setFullYear(startDate.getFullYear() - 1)
+
+      const formatDate = (d: Date) => d.toISOString().split('T')[0]
+
+      const response = await fetch(
+        `https://api.frankfurter.app/${formatDate(startDate)}..${formatDate(endDate)}?from=${from}&to=${to}`
+      )
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch historical rates')
+      }
+
+      const data = await response.json()
+
+      const history: HistoricalRate[] = Object.entries(data.rates || {}).map(([date, rates]) => ({
+        date,
+        rate: (rates as Record<string, number>)[to] ?? 1,
+      })).sort((a, b) => a.date.localeCompare(b.date))
+
+      // Update cache
+      const existingCache = localStorage.getItem(HISTORY_CACHE_KEY)
+      const existingData = existingCache ? JSON.parse(existingCache).data : {}
+      const newCache: CachedHistory = {
+        data: { ...existingData, [key]: history },
+        fetchedAt: Date.now(),
+      }
+      localStorage.setItem(HISTORY_CACHE_KEY, JSON.stringify(newCache))
+
+      setHistoricalData(prev => ({ ...prev, [key]: history }))
+      return history
+    } catch (e) {
+      console.warn('Error fetching historical rates:', e)
+      return []
+    }
+  }, [])
+
   useEffect(() => {
-    fetchRate()
-  }, [fetchRate])
+    fetchRates()
+  }, [fetchRates])
 
   const convertCurrency = useCallback(
-    (amount: number, from: 'CAD' | 'USD', to: 'CAD' | 'USD'): number => {
-      if (from === to || !exchangeRate) return amount
+    (amount: number, from: Currency, to: Currency): number => {
+      if (from === to || !exchangeRates) return amount
 
-      if (from === 'CAD' && to === 'USD') {
-        return amount * exchangeRate.rate
-      } else {
-        return amount / exchangeRate.rate
-      }
+      // Convert through USD as base
+      const fromRate = exchangeRates.rates[from]
+      const toRate = exchangeRates.rates[to]
+
+      // amount in FROM -> amount in USD -> amount in TO
+      const amountInUsd = amount / fromRate
+      return amountInUsd * toRate
     },
-    [exchangeRate]
+    [exchangeRates]
+  )
+
+  const getRate = useCallback(
+    (from: Currency, to: Currency): number => {
+      if (!exchangeRates) return 1
+      const fromRate = exchangeRates.rates[from]
+      const toRate = exchangeRates.rates[to]
+      return toRate / fromRate
+    },
+    [exchangeRates]
   )
 
   const getAgeString = useCallback((): string => {
-    if (!exchangeRate) return 'Loading...'
+    if (!exchangeRates) return 'Loading...'
 
-    const ageMs = Date.now() - exchangeRate.timestamp
+    const ageMs = Date.now() - exchangeRates.timestamp
     const ageHours = Math.floor(ageMs / (1000 * 60 * 60))
     const ageDays = Math.floor(ageHours / 24)
 
     if (ageDays > 0) return `${ageDays}d ago`
     if (ageHours > 0) return `${ageHours}h ago`
     return 'Just now'
-  }, [exchangeRate])
+  }, [exchangeRates])
 
   return {
-    exchangeRate,
+    exchangeRates,
+    historicalData,
     loading,
     error,
-    fetchRate,
+    fetchRates,
+    fetchHistorical,
     convertCurrency,
+    getRate,
     getAgeString,
   }
 }

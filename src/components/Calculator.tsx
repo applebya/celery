@@ -8,11 +8,19 @@ import { Badge } from '@/components/ui/badge'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { ExchangeRateDisplay } from './ExchangeRateDisplay'
 import { countries, getCountry, getHolidayCount } from '@/data/holidays-2026'
 import { useCalculation } from '@/hooks/useCalculation'
 import { useExchangeRate } from '@/hooks/useExchangeRate'
 import { formatCurrency, formatPercent } from '@/lib/calculate'
-import type { CalculatorState } from '@/types'
+import type { CalculatorState, Currency } from '@/types'
+
+const CURRENCIES: { value: Currency; label: string }[] = [
+  { value: 'CAD', label: 'CAD' },
+  { value: 'USD', label: 'USD' },
+  { value: 'EUR', label: 'EUR' },
+  { value: 'GBP', label: 'GBP' },
+]
 
 interface CalculatorProps {
   state: CalculatorState
@@ -26,7 +34,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
   const [titleInput, setTitleInput] = useState(state.title)
 
   const calculation = useCalculation(state)
-  const { convertCurrency, getAgeString, exchangeRate } = useExchangeRate()
+  const { convertCurrency, exchangeRates } = useExchangeRate()
 
   const updateState = useCallback(
     (updates: Partial<CalculatorState>) => {
@@ -68,7 +76,10 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
   }
 
   const currentCountry = getCountry(state.country)
-  const otherCurrency = state.currency === 'CAD' ? 'USD' : 'CAD'
+  // Pick a sensible alternate currency for conversions
+  const otherCurrency: Currency = state.currency === 'USD' ? 'CAD'
+    : state.currency === 'CAD' ? 'USD'
+    : 'USD' // For EUR/GBP, show USD
   const convertedGross = convertCurrency(calculation.grossAnnual, state.currency, otherCurrency)
 
   return (
@@ -150,13 +161,14 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                 className="pl-7 text-xl font-semibold"
               />
             </div>
-            <Select value={state.currency} onValueChange={(v) => updateState({ currency: v as 'CAD' | 'USD' })}>
+            <Select value={state.currency} onValueChange={(v) => updateState({ currency: v as Currency })}>
               <SelectTrigger className="w-24">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="CAD">CAD</SelectItem>
-                <SelectItem value="USD">USD</SelectItem>
+                {CURRENCIES.map((c) => (
+                  <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -178,13 +190,14 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                 className="pl-7 text-xl font-semibold"
               />
             </div>
-            <Select value={state.currency} onValueChange={(v) => updateState({ currency: v as 'CAD' | 'USD' })}>
+            <Select value={state.currency} onValueChange={(v) => updateState({ currency: v as Currency })}>
               <SelectTrigger className="w-24">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="CAD">CAD</SelectItem>
-                <SelectItem value="USD">USD</SelectItem>
+                {CURRENCIES.map((c) => (
+                  <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -201,7 +214,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                 <p className="text-3xl font-bold">
                   {formatCurrency(calculation.grossAnnual, state.currency)}
                 </p>
-                {exchangeRate && (
+                {exchangeRates && (
                   <p className="text-sm text-muted-foreground">
                     = {formatCurrency(convertedGross, otherCurrency)}
                   </p>
@@ -213,7 +226,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                 <p className="text-3xl font-bold">
                   {formatCurrency(calculation.calculatedHourlyRate, state.currency)}/hr
                 </p>
-                {exchangeRate && (
+                {exchangeRates && (
                   <p className="text-sm text-muted-foreground">
                     = {formatCurrency(convertCurrency(calculation.calculatedHourlyRate, state.currency, otherCurrency), otherCurrency)}/hr
                   </p>
@@ -228,7 +241,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                     ({formatPercent(calculation.taxBreakdown.effectiveRate)})
                   </span>
                 </p>
-                {exchangeRate && (
+                {exchangeRates && (
                   <p className="text-sm text-muted-foreground">
                     = {formatCurrency(convertCurrency(calculation.netAnnual, state.currency, otherCurrency), otherCurrency)}
                   </p>
@@ -238,11 +251,13 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
             <p className="text-xs text-muted-foreground pt-2">
               {calculation.billableHours.toLocaleString()} billable hrs/yr
               {state.fixedMonthlyHours && ` (${state.monthlyHours} hrs/mo)`}
-              {exchangeRate && ` • Rate ${getAgeString()}`}
             </p>
           </div>
         </CardContent>
       </Card>
+
+      {/* Exchange Rate Display */}
+      <ExchangeRateDisplay baseCurrency={state.currency} />
 
       {/* Collapsible Sections */}
       <div className="space-y-2">

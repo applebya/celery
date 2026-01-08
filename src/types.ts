@@ -1,7 +1,9 @@
+export type Currency = 'CAD' | 'USD' | 'EUR' | 'GBP'
+
 export interface CalculatorState {
   title: string
   hourlyRate: number
-  currency: 'CAD' | 'USD'
+  currency: Currency
   country: 'CA' | 'US'
   region: string
   holidaysPerYear: number
@@ -19,11 +21,14 @@ export interface CalculatorState {
   monthlyHours: number
 }
 
-export interface ExchangeRate {
-  rate: number
+export interface ExchangeRates {
+  rates: Record<Currency, number> // All rates relative to USD
   timestamp: number
-  from: string
-  to: string
+}
+
+export interface HistoricalRate {
+  date: string
+  rate: number
 }
 
 export const DEFAULT_STATE: CalculatorState = {

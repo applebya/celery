@@ -1,3 +1,5 @@
+import type { Currency } from '@/types'
+
 /**
  * Calculate base working hours per year
  */
@@ -41,23 +43,29 @@ export function calcNetAnnual(grossAnnual: number, totalTax: number): number {
   return grossAnnual - totalTax
 }
 
+const CURRENCY_SYMBOLS: Record<Currency, string> = {
+  USD: '$',
+  CAD: '$',
+  EUR: '€',
+  GBP: '£',
+}
+
 /**
  * Format currency for display
  */
 export function formatCurrency(
   amount: number,
-  currency: 'CAD' | 'USD',
+  currency: Currency,
   options: { compact?: boolean; showCode?: boolean } = {}
 ): string {
   const { compact = false, showCode = true } = options
+  const symbol = CURRENCY_SYMBOLS[currency]
   const formatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD', // Always use $ symbol
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
     notation: compact ? 'compact' : 'standard',
   })
-  const formatted = formatter.format(amount)
+  const formatted = `${symbol}${formatter.format(amount)}`
   return showCode ? `${formatted} ${currency}` : formatted
 }
 
