@@ -93,8 +93,8 @@ export function useExchangeRate() {
     }
   }, [])
 
-  const fetchHistorical = useCallback(async (from: Currency, to: Currency): Promise<HistoricalRate[]> => {
-    const key = `${from}-${to}`
+  const fetchHistorical = useCallback(async (from: Currency, to: Currency, days: number = 365): Promise<HistoricalRate[]> => {
+    const key = `${from}-${to}-${days}`
 
     // Check cache first
     try {
@@ -111,10 +111,9 @@ export function useExchangeRate() {
     }
 
     try {
-      // Get 1 year of historical data
       const endDate = new Date()
       const startDate = new Date()
-      startDate.setFullYear(startDate.getFullYear() - 1)
+      startDate.setDate(startDate.getDate() - days)
 
       const formatDate = (d: Date) => d.toISOString().split('T')[0]
 

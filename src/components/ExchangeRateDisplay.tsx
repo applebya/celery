@@ -1,12 +1,23 @@
 import { useState, useEffect } from 'react'
 import { ChevronDown, TrendingUp, TrendingDown, Minus, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useExchangeRate } from '@/hooks/useExchangeRate'
 import type { Currency, HistoricalRate } from '@/types'
 
 const CURRENCIES: Currency[] = ['CAD', 'USD', 'EUR', 'GBP']
+
+type TimeRange = '1M' | '3M' | '6M' | '1Y' | '5Y'
+
+const TIME_RANGES: { value: TimeRange; label: string; days: number }[] = [
+  { value: '1M', label: '1M', days: 30 },
+  { value: '3M', label: '3M', days: 90 },
+  { value: '6M', label: '6M', days: 180 },
+  { value: '1Y', label: '1Y', days: 365 },
+  { value: '5Y', label: '5Y', days: 365 * 5 },
+]
 
 interface SparklineProps {
   data: HistoricalRate[]
@@ -61,28 +72,33 @@ export function ExchangeRateDisplay({ baseCurrency }: ExchangeRateDisplayProps) 
   const [selectedPair, setSelectedPair] = useState<Currency>(
     baseCurrency === 'USD' ? 'CAD' : 'USD'
   )
+  const [timeRange, setTimeRange] = useState<TimeRange>('1Y')
   const { exchangeRates, historicalData, fetchHistorical, getRate, getAgeString, loading, fetchRates } = useExchangeRate()
 
-  // Fetch historical data when pair changes or collapsible opens
+  const selectedDays = TIME_RANGES.find(t => t.value === timeRange)?.days ?? 365
+
+  // Fetch historical data when pair or time range changes
   useEffect(() => {
     if (isOpen && baseCurrency && selectedPair) {
-      fetchHistorical(baseCurrency, selectedPair)
+      fetchHistorical(baseCurrency, selectedPair, selectedDays)
     }
-  }, [isOpen, baseCurrency, selectedPair, fetchHistorical])
+  }, [isOpen, baseCurrency, selectedPair, selectedDays, fetchHistorical])
 
   if (!exchangeRates) return null
 
   const rate = getRate(baseCurrency, selectedPair)
-  const historyKey = `${baseCurrency}-${selectedPair}`
+  const historyKey = `${baseCurrency}-${selectedPair}-${selectedDays}`
   const history = historicalData[historyKey] || []
 
-  // Calculate change from year ago
-  const yearAgoRate = history.length > 0 ? history[0].rate : rate
-  const changePercent = ((rate - yearAgoRate) / yearAgoRate) * 100
+  // Calculate change from start of selected period
+  const startRate = history.length > 0 ? history[0].rate : rate
+  const changePercent = ((rate - startRate) / startRate) * 100
   const TrendIcon = changePercent > 0.5 ? TrendingUp : changePercent < -0.5 ? TrendingDown : Minus
   const trendColor = changePercent > 0.5 ? 'text-green-600' : changePercent < -0.5 ? 'text-red-600' : 'text-muted-foreground'
 
   const otherCurrencies = CURRENCIES.filter(c => c !== baseCurrency)
+
+  const timeRangeLabel = TIME_RANGES.find(t => t.value === timeRange)?.label ?? '1Y'
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
@@ -121,6 +137,20 @@ export function ExchangeRateDisplay({ baseCurrency }: ExchangeRateDisplayProps) 
           </Button>
         </div>
 
+        {/* Time range badges */}
+        <div className="flex items-center gap-1">
+          {TIME_RANGES.map((range) => (
+            <Badge
+              key={range.value}
+              variant={timeRange === range.value ? 'default' : 'outline'}
+              className="cursor-pointer text-xs px-2 py-0.5"
+              onClick={() => setTimeRange(range.value)}
+            >
+              {range.label}
+            </Badge>
+          ))}
+        </div>
+
         {/* Rate display */}
         <div className="bg-muted/30 rounded-lg p-3">
           <div className="flex items-center justify-between">
@@ -128,7 +158,7 @@ export function ExchangeRateDisplay({ baseCurrency }: ExchangeRateDisplayProps) 
               <p className="text-lg font-semibold">1 {baseCurrency} = {rate.toFixed(4)} {selectedPair}</p>
               <p className={`text-sm ${trendColor} flex items-center gap-1`}>
                 <TrendIcon className="h-3 w-3" />
-                {changePercent >= 0 ? '+' : ''}{changePercent.toFixed(2)}% vs 1 year ago
+                {changePercent >= 0 ? '+' : ''}{changePercent.toFixed(2)}% vs {timeRangeLabel} ago
               </p>
             </div>
             {history.length > 0 && (
