@@ -14,22 +14,16 @@ export interface CalculationResult {
 
 export function useCalculation(state: CalculatorState): CalculationResult {
   return useMemo(() => {
-    // Calculate billable hours based on mode
-    let billableHours: number
-    if (state.fixedMonthlyHours) {
-      // Fixed monthly hours: time off already included in the rate
-      billableHours = state.monthlyHours * 12
-    } else {
-      // Standard calculation: 52 weeks minus time off
-      billableHours = calcBillableHours(
-        52,
-        state.daysPerWeek,
-        state.hoursPerDay,
-        state.holidaysPerYear,
-        state.ptoDays,
-        state.sickDays
-      )
-    }
+    // Calculate billable hours
+    // If unlimited PTO, time off doesn't reduce billable hours (paid time off)
+    const billableHours = calcBillableHours(
+      52,
+      state.daysPerWeek,
+      state.hoursPerDay,
+      state.unlimitedPTO ? 0 : state.holidaysPerYear,
+      state.unlimitedPTO ? 0 : state.ptoDays,
+      state.unlimitedPTO ? 0 : state.sickDays
+    )
 
     let grossAnnual: number
     let calculatedHourlyRate: number
@@ -72,7 +66,6 @@ export function useCalculation(state: CalculatorState): CalculationResult {
     state.isSelfEmployed,
     state.calculationMode,
     state.targetSalary,
-    state.fixedMonthlyHours,
-    state.monthlyHours,
+    state.unlimitedPTO,
   ])
 }

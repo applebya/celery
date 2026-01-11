@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { ChevronDown, ChevronRight, MapPin, Calendar, Clock, Receipt, Pencil, Check, ArrowRightLeft } from 'lucide-react'
+import { ChevronDown, ChevronRight, MapPin, Calendar, Clock, Receipt, Pencil, Check } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -123,24 +123,25 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
       )}
 
       {/* Mode Toggle */}
-      <div className="flex items-center justify-center gap-2">
-        <Button
-          variant={state.calculationMode === 'hourlyToSalary' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => updateState({ calculationMode: 'hourlyToSalary' })}
-          className="text-xs"
-        >
-          Hourly → Salary
-        </Button>
-        <ArrowRightLeft className="h-4 w-4 text-muted-foreground" />
-        <Button
-          variant={state.calculationMode === 'salaryToHourly' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => updateState({ calculationMode: 'salaryToHourly' })}
-          className="text-xs"
-        >
-          Salary → Hourly
-        </Button>
+      <div className="flex items-center justify-center">
+        <div className="inline-flex rounded-lg border p-1 bg-muted/30">
+          <Button
+            variant={state.calculationMode === 'hourlyToSalary' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => updateState({ calculationMode: 'hourlyToSalary' })}
+            className="text-xs rounded-md"
+          >
+            Rate to Salary
+          </Button>
+          <Button
+            variant={state.calculationMode === 'salaryToHourly' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => updateState({ calculationMode: 'salaryToHourly' })}
+            className="text-xs rounded-md"
+          >
+            Salary to Rate
+          </Button>
+        </div>
       </div>
 
       {/* Input Section - changes based on mode */}
@@ -205,8 +206,8 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
       )}
 
       {/* Results Card */}
-      <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-        <CardContent className="pt-6">
+      <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20 shadow-lg">
+        <CardContent className="pt-6 pb-6">
           <div className="text-center space-y-2">
             {state.calculationMode === 'hourlyToSalary' ? (
               <>
@@ -250,7 +251,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
             )}
             <p className="text-xs text-muted-foreground pt-2">
               {calculation.billableHours.toLocaleString()} billable hrs/yr
-              {state.fixedMonthlyHours && ` (${state.monthlyHours} hrs/mo)`}
+              {state.unlimitedPTO && ' (paid time off included)'}
             </p>
           </div>
         </CardContent>
@@ -260,7 +261,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
       <ExchangeRateDisplay baseCurrency={state.currency} />
 
       {/* Collapsible Sections */}
-      <div className="space-y-2">
+      <div className="space-y-1 border rounded-lg p-1 bg-muted/20">
         {/* Location & Holidays */}
         <Collapsible open={openSection === 'location'} onOpenChange={() => toggleSection('location')}>
           <CollapsibleTrigger className="flex items-center justify-between w-full p-3 rounded-lg hover:bg-muted/50 transition-colors">
@@ -319,9 +320,6 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                 value={state.holidaysPerYear || ''}
                 onChange={(e) => updateState({ holidaysPerYear: parseInt(e.target.value) || 0 })}
               />
-              <p className="text-xs text-muted-foreground">
-                Auto-set from region, but you can adjust
-              </p>
             </div>
           </CollapsibleContent>
         </Collapsible>
@@ -339,35 +337,49 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
               <span>Time Off</span>
             </div>
             <Badge variant="secondary">
-              {state.ptoDays + state.sickDays} days
+              {state.unlimitedPTO ? 'Paid' : `${state.ptoDays + state.sickDays} days`}
             </Badge>
           </CollapsibleTrigger>
           <CollapsibleContent className="pt-2 pb-4 px-3 space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>PTO Days</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  max={60}
-                  value={state.ptoDays || ''}
-                  onChange={(e) => updateState({ ptoDays: parseInt(e.target.value) || 0 })}
-                />
+            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+              <div className="space-y-0.5">
+                <Label htmlFor="unlimitedPTO" className="font-medium">Paid Time Off</Label>
+                <p className="text-xs text-muted-foreground">
+                  Employer provides paid vacation, sick days, etc.
+                </p>
               </div>
-              <div className="space-y-2">
-                <Label>Sick Days</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  max={30}
-                  value={state.sickDays || ''}
-                  onChange={(e) => updateState({ sickDays: parseInt(e.target.value) || 0 })}
-                />
-              </div>
+              <Switch
+                id="unlimitedPTO"
+                checked={state.unlimitedPTO}
+                onCheckedChange={(checked) => updateState({ unlimitedPTO: checked })}
+              />
             </div>
-            <p className="text-xs text-muted-foreground">
-              Days you won't be billing (unpaid time off)
-            </p>
+            {!state.unlimitedPTO && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>PTO Days</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={60}
+                      value={state.ptoDays || ''}
+                      onChange={(e) => updateState({ ptoDays: parseInt(e.target.value) || 0 })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Sick Days</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={30}
+                      value={state.sickDays || ''}
+                      onChange={(e) => updateState({ sickDays: parseInt(e.target.value) || 0 })}
+                    />
+                  </div>
+                </div>
+              </>
+            )}
           </CollapsibleContent>
         </Collapsible>
 
@@ -384,63 +396,32 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
               <span>Work Schedule</span>
             </div>
             <Badge variant="secondary">
-              {state.fixedMonthlyHours
-                ? `${state.monthlyHours} hrs/mo`
-                : `${state.hoursPerDay * state.daysPerWeek} hrs/wk`}
+              {state.hoursPerDay * state.daysPerWeek} hrs/wk
             </Badge>
           </CollapsibleTrigger>
           <CollapsibleContent className="pt-2 pb-4 px-3 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="fixedMonthly">Fixed monthly hours</Label>
-                <p className="text-xs text-muted-foreground">
-                  Time off already included in rate
-                </p>
-              </div>
-              <Switch
-                id="fixedMonthly"
-                checked={state.fixedMonthlyHours}
-                onCheckedChange={(checked) => updateState({ fixedMonthlyHours: checked })}
-              />
-            </div>
-            {state.fixedMonthlyHours ? (
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Hours per Month</Label>
+                <Label>Hours per Day</Label>
                 <Input
                   type="number"
                   min={1}
-                  max={300}
-                  value={state.monthlyHours || ''}
-                  onChange={(e) => updateState({ monthlyHours: parseInt(e.target.value) || 160 })}
+                  max={16}
+                  value={state.hoursPerDay || ''}
+                  onChange={(e) => updateState({ hoursPerDay: parseInt(e.target.value) || 8 })}
                 />
-                <p className="text-xs text-muted-foreground">
-                  e.g., 160 hrs/mo = full-time with PTO built in
-                </p>
               </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Hours per Day</Label>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={16}
-                    value={state.hoursPerDay || ''}
-                    onChange={(e) => updateState({ hoursPerDay: parseInt(e.target.value) || 8 })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Days per Week</Label>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={7}
-                    value={state.daysPerWeek || ''}
-                    onChange={(e) => updateState({ daysPerWeek: parseInt(e.target.value) || 5 })}
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label>Days per Week</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={7}
+                  value={state.daysPerWeek || ''}
+                  onChange={(e) => updateState({ daysPerWeek: parseInt(e.target.value) || 5 })}
+                />
               </div>
-            )}
+            </div>
           </CollapsibleContent>
         </Collapsible>
 
@@ -456,8 +437,8 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
               <Receipt className="h-4 w-4 text-muted-foreground" />
               <span>Tax Estimate</span>
             </div>
-            <Badge variant={state.showTaxEstimate ? 'default' : 'secondary'}>
-              {state.showTaxEstimate ? formatPercent(calculation.taxBreakdown.effectiveRate) : 'hidden'}
+            <Badge variant="secondary">
+              {state.showTaxEstimate ? formatPercent(calculation.taxBreakdown.effectiveRate) : 'Off'}
             </Badge>
           </CollapsibleTrigger>
           <CollapsibleContent className="pt-2 pb-4 px-3 space-y-4">
@@ -502,8 +483,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                   <span>{formatCurrency(calculation.taxBreakdown.total, state.currency)}</span>
                 </div>
                 <p className="text-xs text-muted-foreground pt-2">
-                  ⚠️ Rough estimate only. 2026 rates, single filer, no deductions.
-                  Consult a tax professional.
+                  Estimate only · Consult a tax professional
                 </p>
               </div>
             )}

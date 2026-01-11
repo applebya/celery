@@ -102,7 +102,7 @@ export function ExchangeRateDisplay({ baseCurrency }: ExchangeRateDisplayProps) 
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <CollapsibleTrigger className="flex items-center justify-between w-full p-2 rounded-lg hover:bg-muted/50 transition-colors text-sm">
+      <CollapsibleTrigger className="flex items-center justify-between w-full p-3 rounded-lg border bg-muted/10 hover:bg-muted/30 transition-colors text-sm">
         <div className="flex items-center gap-2">
           <span className="text-muted-foreground">1 {baseCurrency} =</span>
           <span className="font-medium">{rate.toFixed(4)} {selectedPair}</span>
@@ -176,10 +176,6 @@ export function ExchangeRateDisplay({ baseCurrency }: ExchangeRateDisplayProps) 
             </div>
           ))}
         </div>
-
-        <p className="text-xs text-muted-foreground text-center">
-          Rates from European Central Bank • Updated {getAgeString()}
-        </p>
       </CollapsibleContent>
     </Collapsible>
   )

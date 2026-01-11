@@ -16,9 +16,8 @@ export interface CalculatorState {
   // New: calculation mode (hourly → salary or salary → hourly)
   calculationMode: 'hourlyToSalary' | 'salaryToHourly'
   targetSalary: number
-  // New: fixed monthly hours mode (time off already included)
-  fixedMonthlyHours: boolean
-  monthlyHours: number
+  // Unlimited PTO: time off doesn't reduce billable hours (employer provides paid time off)
+  unlimitedPTO: boolean
 }
 
 export interface ExchangeRates {
@@ -46,6 +45,5 @@ export const DEFAULT_STATE: CalculatorState = {
   isSelfEmployed: true,
   calculationMode: 'hourlyToSalary',
   targetSalary: 150000,
-  fixedMonthlyHours: false,
-  monthlyHours: 160,
+  unlimitedPTO: false,
 }

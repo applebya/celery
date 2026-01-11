@@ -1,4 +1,5 @@
 import { ComparisonView } from '@/components/ComparisonView'
+import { ThemeToggle } from '@/components/ThemeToggle'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
 import { DEFAULT_STATE, type CalculatorState } from '@/types'
 
@@ -19,13 +20,15 @@ function App() {
     <div className="min-h-screen bg-background">
       <div className="container max-w-4xl mx-auto px-4 py-8">
         {/* Header */}
-        <header className="text-center mb-8">
-          <h1 className="text-3xl font-bold flex items-center justify-center gap-2">
-            <span className="text-4xl">🥬</span>
+        <header className="relative text-center mb-8">
+          <div className="absolute right-0 top-0">
+            <ThemeToggle />
+          </div>
+          <h1 className="text-2xl font-semibold tracking-tight">
             Celery
           </h1>
-          <p className="text-muted-foreground mt-1">
-            Contractor Salary Calculator
+          <p className="text-sm text-muted-foreground">
+            Salary Calculator
           </p>
         </header>
 
@@ -40,14 +43,8 @@ function App() {
         </main>
 
         {/* Footer */}
-        <footer className="text-center mt-12 text-sm text-muted-foreground space-y-1">
-          <p>
-            2026 tax rates for Canada & USA · Estimates only
-          </p>
-          <p className="flex items-center justify-center gap-1">
-            <span>💾</span>
-            <span>Preferences saved locally</span>
-          </p>
+        <footer className="text-center mt-12 text-xs text-muted-foreground">
+          <p>2026 tax rates · Estimates only · Saved locally</p>
         </footer>
       </div>
     </div>

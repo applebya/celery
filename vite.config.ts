@@ -12,9 +12,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
-        name: 'Celery - Contractor Salary Calculator',
+        name: 'Celery - Salary Calculator',
         short_name: 'Celery',
-        description: 'Calculate your annual take-home as a contractor. Hourly rate to annual compensation with tax estimates.',
+        description: 'Calculate your annual take-home pay. Hourly rate to salary with tax estimates.',
         theme_color: '#22c55e',
         background_color: '#ffffff',
         display: 'standalone',
@@ -41,13 +41,38 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/api\.exchangerate\.host\/.*/i,
+            urlPattern: /^https:\/\/api\.frankfurter\.app\/.*/i,
             handler: 'CacheFirst',
             options: {
               cacheName: 'exchange-rate-cache',
               expiration: {
-                maxEntries: 10,
+                maxEntries: 20,
                 maxAgeSeconds: 60 * 60 * 24, // 24 hours
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-stylesheets',
+              expiration: {
+                maxEntries: 5,
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+              },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-webfonts',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
               },
               cacheableResponse: {
                 statuses: [0, 200],
