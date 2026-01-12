@@ -168,6 +168,19 @@ export function useExchangeRate() {
     [exchangeRates]
   )
 
+  // Convert with trader margin applied (margin is percentage, e.g., 2 for 2%)
+  // Margin reduces the amount received (simulates bank/platform fees)
+  const convertWithMargin = useCallback(
+    (amount: number, from: Currency, to: Currency, marginPercent: number): number => {
+      const converted = convertCurrency(amount, from, to)
+      if (from === to) return converted
+      // Apply margin: you receive less when converting
+      const marginMultiplier = 1 - (marginPercent / 100)
+      return converted * marginMultiplier
+    },
+    [convertCurrency]
+  )
+
   const getRate = useCallback(
     (from: Currency, to: Currency): number => {
       if (!exchangeRates) return 1
@@ -198,6 +211,7 @@ export function useExchangeRate() {
     fetchRates,
     fetchHistorical,
     convertCurrency,
+    convertWithMargin,
     getRate,
     getAgeString,
   }

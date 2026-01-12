@@ -18,6 +18,10 @@ export interface CalculatorState {
   targetSalary: number
   // Unlimited PTO: time off doesn't reduce billable hours (employer provides paid time off)
   unlimitedPTO: boolean
+  // Forex trader margin (percentage markup on exchange rates, e.g., 2 for 2%)
+  traderMargin: number
+  // Secondary currency to display alongside primary
+  displayCurrency: Currency
 }
 
 export interface ExchangeRates {
@@ -46,4 +50,6 @@ export const DEFAULT_STATE: CalculatorState = {
   calculationMode: 'hourlyToSalary',
   targetSalary: 150000,
   unlimitedPTO: false,
+  traderMargin: 0,
+  displayCurrency: 'USD',
 }
