@@ -1,3 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <text y=".9em" font-size="90">🥬</text>
+  <!-- Celery stalk icon -->
+  <defs>
+    <linearGradient id="celeryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4ade80"/>
+      <stop offset="100%" style="stop-color:#22c55e"/>
+    </linearGradient>
+  </defs>
+  <!-- Main stalk -->
+  <path d="M50 95 C50 95 35 70 35 45 C35 20 42 5 50 5 C58 5 65 20 65 45 C65 70 50 95 50 95Z" fill="url(#celeryGrad)"/>
+  <!-- Left leaf -->
+  <path d="M35 45 C25 35 15 30 10 35 C5 40 15 50 30 50 C32 50 34 48 35 45Z" fill="#4ade80"/>
+  <!-- Right leaf -->
+  <path d="M65 45 C75 35 85 30 90 35 C95 40 85 50 70 50 C68 50 66 48 65 45Z" fill="#4ade80"/>
+  <!-- Stalk detail lines -->
+  <path d="M45 80 L45 25" stroke="#16a34a" stroke-width="1.5" fill="none" opacity="0.4"/>
+  <path d="M50 85 L50 15" stroke="#16a34a" stroke-width="1.5" fill="none" opacity="0.4"/>
+  <path d="M55 80 L55 25" stroke="#16a34a" stroke-width="1.5" fill="none" opacity="0.4"/>
 </svg>

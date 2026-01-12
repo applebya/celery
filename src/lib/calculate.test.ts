@@ -3,6 +3,9 @@ import {
   calcBaseHours,
   calcBillableHours,
   calcGrossAnnual,
+  calcNetAnnual,
+  formatCurrency,
+  formatPercent,
 } from './calculate'
 
 describe('calcBaseHours', () => {
@@ -70,5 +73,71 @@ describe('calcGrossAnnual', () => {
 
   it('returns 0 for 0 rate', () => {
     expect(calcGrossAnnual(0, 2000)).toBe(0)
+  })
+})
+
+describe('calcNetAnnual', () => {
+  it('subtracts tax from gross income', () => {
+    expect(calcNetAnnual(100000, 25000)).toBe(75000)
+  })
+
+  it('handles zero tax', () => {
+    expect(calcNetAnnual(100000, 0)).toBe(100000)
+  })
+
+  it('handles high tax rates', () => {
+    expect(calcNetAnnual(200000, 80000)).toBe(120000)
+  })
+})
+
+describe('formatCurrency', () => {
+  it('formats USD with symbol and code', () => {
+    expect(formatCurrency(100000, 'USD')).toBe('$100,000 USD')
+  })
+
+  it('formats CAD correctly', () => {
+    expect(formatCurrency(75000, 'CAD')).toBe('$75,000 CAD')
+  })
+
+  it('formats EUR with euro symbol', () => {
+    expect(formatCurrency(80000, 'EUR')).toBe('€80,000 EUR')
+  })
+
+  it('formats GBP with pound symbol', () => {
+    expect(formatCurrency(65000, 'GBP')).toBe('£65,000 GBP')
+  })
+
+  it('hides currency code when showCode is false', () => {
+    expect(formatCurrency(100000, 'USD', { showCode: false })).toBe('$100,000')
+  })
+
+  it('uses compact notation when compact is true', () => {
+    expect(formatCurrency(100000, 'USD', { compact: true })).toBe('$100K USD')
+  })
+
+  it('handles small amounts', () => {
+    expect(formatCurrency(500, 'USD')).toBe('$500 USD')
+  })
+})
+
+describe('formatPercent', () => {
+  it('formats decimal as percentage with one decimal place', () => {
+    expect(formatPercent(0.25)).toBe('25.0%')
+  })
+
+  it('rounds to one decimal place', () => {
+    expect(formatPercent(0.0765)).toBe('7.6%')
+  })
+
+  it('handles zero', () => {
+    expect(formatPercent(0)).toBe('0.0%')
+  })
+
+  it('handles 100%', () => {
+    expect(formatPercent(1)).toBe('100.0%')
+  })
+
+  it('handles small percentages', () => {
+    expect(formatPercent(0.001)).toBe('0.1%')
   })
 })

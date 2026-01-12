@@ -27,8 +27,9 @@ export function ThemeToggle() {
       size="sm"
       onClick={cycleTheme}
       className="h-8 gap-1.5 px-2"
+      aria-label={`Theme: ${label}. Click to change.`}
     >
-      <Icon className="h-4 w-4" />
+      <Icon className="h-4 w-4" aria-hidden="true" />
       <span className="text-xs">{label}</span>
     </Button>
   )

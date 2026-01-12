@@ -99,6 +99,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
               <button
                 onClick={handleTitleSave}
                 className="p-2 hover:bg-muted rounded-md"
+                aria-label="Save title"
               >
                 <Check className="h-4 w-4" />
               </button>
@@ -114,6 +115,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                   setEditingTitle(true)
                 }}
                 className="p-1 hover:bg-muted rounded-md"
+                aria-label="Edit title"
               >
                 <Pencil className="h-3 w-3 text-muted-foreground" />
               </button>
@@ -163,7 +165,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
               />
             </div>
             <Select value={state.currency} onValueChange={(v) => updateState({ currency: v as Currency })}>
-              <SelectTrigger className="w-24">
+              <SelectTrigger className="w-24" aria-label="Select currency">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -192,7 +194,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
               />
             </div>
             <Select value={state.currency} onValueChange={(v) => updateState({ currency: v as Currency })}>
-              <SelectTrigger className="w-24">
+              <SelectTrigger className="w-24" aria-label="Select currency">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
