@@ -18,18 +18,14 @@ function App() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container max-w-4xl mx-auto px-4 py-8">
+      <div className="container max-w-4xl mx-auto px-4 py-4">
         {/* Header */}
-        <header className="relative text-center mb-8">
-          <div className="absolute right-0 top-0">
-            <ThemeToggle />
+        <header className="flex items-center justify-between mb-4">
+          <div className="flex items-baseline gap-2">
+            <h1 className="text-lg font-semibold tracking-tight">Celery</h1>
+            <span className="text-xs text-muted-foreground">Salary Calculator</span>
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Celery
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Salary Calculator
-          </p>
+          <ThemeToggle />
         </header>
 
         {/* Calculator */}
@@ -43,7 +39,7 @@ function App() {
         </main>
 
         {/* Footer */}
-        <footer className="text-center mt-12 text-xs text-muted-foreground">
+        <footer className="text-center mt-6 text-[10px] text-muted-foreground">
           <p>2026 tax rates · Estimates only · Saved locally</p>
         </footer>
       </div>

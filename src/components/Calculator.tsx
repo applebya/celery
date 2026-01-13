@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { ChevronDown, ChevronRight, MapPin, Calendar, Clock, Receipt, Pencil, Check, ArrowRightLeft } from 'lucide-react'
+import { ChevronRight, MapPin, Calendar, Clock, Receipt, Pencil, Check, ArrowRightLeft } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -7,7 +7,6 @@ import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
 import { ExchangeRateDisplay } from './ExchangeRateDisplay'
 import { countries, getCountry, getHolidayCount } from '@/data/holidays-2026'
@@ -92,7 +91,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
   const rateWithMargin = effectiveRate * (1 - state.traderMargin / 100)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {showTitle && (
         <div className="flex items-center gap-2">
           {editingTitle ? (
@@ -101,21 +100,21 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                 value={titleInput}
                 onChange={(e) => setTitleInput(e.target.value)}
                 placeholder="Scenario name"
-                className="text-lg font-medium h-9"
+                className="font-medium h-8 text-sm"
                 autoFocus
                 onKeyDown={(e) => e.key === 'Enter' && handleTitleSave()}
               />
               <button
                 onClick={handleTitleSave}
-                className="p-2 hover:bg-muted rounded-md"
+                className="p-1.5 hover:bg-muted rounded-md"
                 aria-label="Save title"
               >
-                <Check className="h-4 w-4" />
+                <Check className="h-3.5 w-3.5" />
               </button>
             </>
           ) : (
             <>
-              <h2 className="text-lg font-medium">
+              <h2 className="font-medium">
                 {state.title || 'Untitled'}
               </h2>
               <button
@@ -123,176 +122,117 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                   setTitleInput(state.title)
                   setEditingTitle(true)
                 }}
-                className="p-1 hover:bg-muted rounded-md"
+                className="p-1 hover:bg-muted rounded-md opacity-50 hover:opacity-100"
                 aria-label="Edit title"
               >
-                <Pencil className="h-3 w-3 text-muted-foreground" />
+                <Pencil className="h-3 w-3" />
               </button>
             </>
           )}
         </div>
       )}
 
-      {/* Mode Toggle */}
-      <div className="flex items-center justify-center">
-        <div className="inline-flex rounded-lg border p-1 bg-muted/30">
-          <Button
-            variant={state.calculationMode === 'hourlyToSalary' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => updateState({ calculationMode: 'hourlyToSalary' })}
-            className="text-xs rounded-md"
-          >
-            Rate to Salary
-          </Button>
-          <Button
-            variant={state.calculationMode === 'salaryToHourly' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => updateState({ calculationMode: 'salaryToHourly' })}
-            className="text-xs rounded-md"
-          >
-            Salary to Rate
-          </Button>
+      {/* Input with Mode Toggle */}
+      <div className="flex gap-2 items-end">
+        <div className="flex-1 space-y-1">
+          <div className="flex items-center gap-2">
+            <Label htmlFor="mainInput" className="text-xs text-muted-foreground">
+              {state.calculationMode === 'hourlyToSalary' ? 'Hourly Rate' : 'Target Salary'}
+            </Label>
+            <button
+              onClick={() => updateState({
+                calculationMode: state.calculationMode === 'hourlyToSalary' ? 'salaryToHourly' : 'hourlyToSalary'
+              })}
+              className="text-[10px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded border border-transparent hover:border-border transition-colors"
+            >
+              Switch to {state.calculationMode === 'hourlyToSalary' ? 'salary' : 'rate'}
+            </button>
+          </div>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg">
+              $
+            </span>
+            <Input
+              id="mainInput"
+              type="number"
+              min={0}
+              value={state.calculationMode === 'hourlyToSalary' ? (state.hourlyRate || '') : (state.targetSalary || '')}
+              onChange={(e) => {
+                const val = parseFloat(e.target.value) || 0
+                updateState(state.calculationMode === 'hourlyToSalary' ? { hourlyRate: val } : { targetSalary: val })
+              }}
+              className="pl-8 text-xl font-semibold h-11"
+            />
+          </div>
         </div>
+        <Select value={state.currency} onValueChange={(v) => updateState({ currency: v as Currency })}>
+          <SelectTrigger className="w-20 h-11" aria-label="Select currency">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {CURRENCIES.map((c) => (
+              <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      {/* Input Section */}
-      {state.calculationMode === 'hourlyToSalary' ? (
-        <div className="space-y-2">
-          <Label htmlFor="hourlyRate" className="text-muted-foreground text-sm">Hourly Rate</Label>
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                $
-              </span>
-              <Input
-                id="hourlyRate"
-                type="number"
-                min={0}
-                value={state.hourlyRate || ''}
-                onChange={(e) => updateState({ hourlyRate: parseFloat(e.target.value) || 0 })}
-                className="pl-7 text-2xl font-semibold h-12"
-              />
-            </div>
-            <Select value={state.currency} onValueChange={(v) => updateState({ currency: v as Currency })}>
-              <SelectTrigger className="w-24 h-12" aria-label="Select currency">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {CURRENCIES.map((c) => (
-                  <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          <Label htmlFor="targetSalary" className="text-muted-foreground text-sm">Target Annual Salary</Label>
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                $
-              </span>
-              <Input
-                id="targetSalary"
-                type="number"
-                min={0}
-                value={state.targetSalary || ''}
-                onChange={(e) => updateState({ targetSalary: parseFloat(e.target.value) || 0 })}
-                className="pl-7 text-2xl font-semibold h-12"
-              />
-            </div>
-            <Select value={state.currency} onValueChange={(v) => updateState({ currency: v as Currency })}>
-              <SelectTrigger className="w-24 h-12" aria-label="Select currency">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {CURRENCIES.map((c) => (
-                  <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      )}
-
       {/* Results - 2 Column Layout */}
-      <Card className="overflow-hidden border-0 shadow-lg bg-gradient-to-br from-background to-muted/30">
+      <Card className="overflow-hidden border-0 shadow-md">
         <CardContent className="p-0">
           <div className="grid grid-cols-2 divide-x">
             {/* Main Currency Column */}
-            <div className="p-6 space-y-4">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <div className="p-4 space-y-2">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
                   {state.currency}
                 </span>
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0">Primary</Badge>
+                <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">Primary</Badge>
               </div>
 
-              <div className="space-y-3">
-                {state.calculationMode === 'hourlyToSalary' ? (
-                  <>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Annual Gross</p>
-                      <p className="text-2xl font-bold tracking-tight">
-                        {formatCurrency(calculation.grossAnnual, state.currency, { showCode: false })}
-                      </p>
-                    </div>
-                    {state.showTaxEstimate && (
-                      <div>
-                        <p className="text-xs text-muted-foreground">After Tax</p>
-                        <p className="text-xl font-semibold text-green-600 dark:text-green-400">
-                          {formatCurrency(calculation.netAnnual, state.currency, { showCode: false })}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {formatPercent(calculation.taxBreakdown.effectiveRate)} effective rate
-                        </p>
-                      </div>
-                    )}
-                    <div>
-                      <p className="text-xs text-muted-foreground">Hourly Rate</p>
-                      <p className="text-lg font-medium">
-                        {formatCurrency(state.hourlyRate, state.currency, { showCode: false })}/hr
-                      </p>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Required Hourly Rate</p>
-                      <p className="text-2xl font-bold tracking-tight">
-                        {formatCurrency(calculation.calculatedHourlyRate, state.currency, { showCode: false })}/hr
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Annual Gross</p>
-                      <p className="text-xl font-semibold">
-                        {formatCurrency(calculation.grossAnnual, state.currency, { showCode: false })}
-                      </p>
-                    </div>
-                    {state.showTaxEstimate && (
-                      <div>
-                        <p className="text-xs text-muted-foreground">After Tax</p>
-                        <p className="text-lg font-medium text-green-600 dark:text-green-400">
-                          {formatCurrency(calculation.netAnnual, state.currency, { showCode: false })}
-                        </p>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
+              {state.calculationMode === 'hourlyToSalary' ? (
+                <div className="space-y-1">
+                  <p className="text-2xl font-bold tracking-tight leading-none">
+                    {formatCurrency(calculation.grossAnnual, state.currency, { showCode: false })}
+                  </p>
+                  {state.showTaxEstimate && (
+                    <p className="text-base font-medium text-green-600 dark:text-green-400">
+                      {formatCurrency(calculation.netAnnual, state.currency, { showCode: false })}
+                      <span className="text-xs text-muted-foreground ml-1">net</span>
+                    </p>
+                  )}
+                  <p className="text-sm text-muted-foreground">
+                    {formatCurrency(state.hourlyRate, state.currency, { showCode: false })}/hr
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <p className="text-2xl font-bold tracking-tight leading-none">
+                    {formatCurrency(calculation.calculatedHourlyRate, state.currency, { showCode: false })}/hr
+                  </p>
+                  <p className="text-base font-medium">
+                    {formatCurrency(calculation.grossAnnual, state.currency, { showCode: false })}
+                    <span className="text-xs text-muted-foreground ml-1">gross</span>
+                  </p>
+                  {state.showTaxEstimate && (
+                    <p className="text-sm text-green-600 dark:text-green-400">
+                      {formatCurrency(calculation.netAnnual, state.currency, { showCode: false })} net
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Display Currency Column */}
-            <div className="p-6 space-y-4 bg-muted/20">
+            <div className="p-4 space-y-2 bg-muted/10">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
                     {displayCurrency}
                   </span>
                   {state.traderMargin > 0 && (
-                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                      -{state.traderMargin}% margin
+                    <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4">
+                      -{state.traderMargin}%
                     </Badge>
                   )}
                 </div>
@@ -300,7 +240,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                   value={displayCurrency}
                   onValueChange={(v) => updateState({ displayCurrency: v as Currency })}
                 >
-                  <SelectTrigger className="w-20 h-7 text-xs" aria-label="Select display currency">
+                  <SelectTrigger className="w-16 h-6 text-[10px] px-2" aria-label="Select display currency">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -311,67 +251,49 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                 </Select>
               </div>
 
-              <div className="space-y-3">
-                {state.calculationMode === 'hourlyToSalary' ? (
-                  <>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Annual Gross</p>
-                      <p className="text-2xl font-bold tracking-tight text-muted-foreground">
-                        {formatCurrency(convertedGross, displayCurrency, { showCode: false })}
-                      </p>
-                    </div>
-                    {state.showTaxEstimate && (
-                      <div>
-                        <p className="text-xs text-muted-foreground">After Tax</p>
-                        <p className="text-xl font-semibold text-green-600/70 dark:text-green-400/70">
-                          {formatCurrency(convertedNet, displayCurrency, { showCode: false })}
-                        </p>
-                      </div>
-                    )}
-                    <div>
-                      <p className="text-xs text-muted-foreground">Hourly Rate</p>
-                      <p className="text-lg font-medium text-muted-foreground">
-                        {formatCurrency(convertWithMargin(state.hourlyRate, state.currency, displayCurrency, state.traderMargin), displayCurrency, { showCode: false })}/hr
-                      </p>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Required Hourly Rate</p>
-                      <p className="text-2xl font-bold tracking-tight text-muted-foreground">
-                        {formatCurrency(convertedHourly, displayCurrency, { showCode: false })}/hr
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Annual Gross</p>
-                      <p className="text-xl font-semibold text-muted-foreground">
-                        {formatCurrency(convertedGross, displayCurrency, { showCode: false })}
-                      </p>
-                    </div>
-                    {state.showTaxEstimate && (
-                      <div>
-                        <p className="text-xs text-muted-foreground">After Tax</p>
-                        <p className="text-lg font-medium text-green-600/70 dark:text-green-400/70">
-                          {formatCurrency(convertedNet, displayCurrency, { showCode: false })}
-                        </p>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
+              {state.calculationMode === 'hourlyToSalary' ? (
+                <div className="space-y-1">
+                  <p className="text-2xl font-bold tracking-tight leading-none text-muted-foreground/80">
+                    {formatCurrency(convertedGross, displayCurrency, { showCode: false })}
+                  </p>
+                  {state.showTaxEstimate && (
+                    <p className="text-base font-medium text-green-600/60 dark:text-green-400/60">
+                      {formatCurrency(convertedNet, displayCurrency, { showCode: false })}
+                      <span className="text-xs text-muted-foreground/60 ml-1">net</span>
+                    </p>
+                  )}
+                  <p className="text-sm text-muted-foreground/60">
+                    {formatCurrency(convertWithMargin(state.hourlyRate, state.currency, displayCurrency, state.traderMargin), displayCurrency, { showCode: false })}/hr
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <p className="text-2xl font-bold tracking-tight leading-none text-muted-foreground/80">
+                    {formatCurrency(convertedHourly, displayCurrency, { showCode: false })}/hr
+                  </p>
+                  <p className="text-base font-medium text-muted-foreground/70">
+                    {formatCurrency(convertedGross, displayCurrency, { showCode: false })}
+                    <span className="text-xs text-muted-foreground/60 ml-1">gross</span>
+                  </p>
+                  {state.showTaxEstimate && (
+                    <p className="text-sm text-green-600/60 dark:text-green-400/60">
+                      {formatCurrency(convertedNet, displayCurrency, { showCode: false })} net
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
           {/* Exchange Rate Footer */}
           {exchangeRates && (
-            <div className="px-6 py-3 border-t bg-muted/10 flex items-center justify-between text-xs text-muted-foreground">
-              <div className="flex items-center gap-2">
+            <div className="px-4 py-2 border-t bg-muted/5 flex items-center justify-between text-[11px] text-muted-foreground">
+              <div className="flex items-center gap-1.5">
                 <ArrowRightLeft className="h-3 w-3" />
                 <span>
                   1 {state.currency} = {rateWithMargin.toFixed(4)} {displayCurrency}
                   {state.traderMargin > 0 && (
-                    <span className="text-muted-foreground/60"> (incl. {state.traderMargin}% margin)</span>
+                    <span className="opacity-60"> ({state.traderMargin}% margin)</span>
                   )}
                 </span>
               </div>
@@ -385,100 +307,79 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
       <ExchangeRateDisplay baseCurrency={state.currency} />
 
       {/* Settings Sections */}
-      <div className="space-y-1 rounded-xl border bg-card/50 p-1">
+      <div className="space-y-px rounded-lg border bg-card/50 overflow-hidden">
         {/* Currency & Margin */}
         <Collapsible open={openSection === 'currency'} onOpenChange={() => toggleSection('currency')}>
-          <CollapsibleTrigger className="flex items-center justify-between w-full p-3 rounded-lg hover:bg-muted/50 transition-colors">
+          <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-colors text-sm">
             <div className="flex items-center gap-2">
-              {openSection === 'currency' ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-              <ArrowRightLeft className="h-4 w-4 text-muted-foreground" />
-              <span>Currency & Margin</span>
+              <ChevronRight className={`h-3.5 w-3.5 transition-transform ${openSection === 'currency' ? 'rotate-90' : ''}`} />
+              <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground" />
+              <span>Margin</span>
             </div>
-            <Badge variant="secondary">
-              {state.traderMargin > 0 ? `${state.traderMargin}% margin` : 'No margin'}
-            </Badge>
+            <span className="text-xs text-muted-foreground">
+              {state.traderMargin > 0 ? `${state.traderMargin}%` : '0%'}
+            </span>
           </CollapsibleTrigger>
-          <CollapsibleContent className="pt-2 pb-4 px-3 space-y-4">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm">Trader/Bank Margin</Label>
-                <span className="text-sm font-medium tabular-nums">{state.traderMargin}%</span>
-              </div>
+          <CollapsibleContent className="px-3 pb-3 space-y-2">
+            <div className="flex items-center gap-3">
               <Slider
                 value={[state.traderMargin]}
                 onValueChange={([value]) => updateState({ traderMargin: value })}
                 max={10}
                 step={0.5}
-                className="py-2"
+                className="flex-1"
               />
-              <p className="text-xs text-muted-foreground">
-                Simulates fees from banks, wire transfers, or platforms like Wise/PayPal
-              </p>
+              <span className="text-xs font-medium tabular-nums w-10 text-right">{state.traderMargin}%</span>
             </div>
           </CollapsibleContent>
         </Collapsible>
 
         {/* Location & Holidays */}
         <Collapsible open={openSection === 'location'} onOpenChange={() => toggleSection('location')}>
-          <CollapsibleTrigger className="flex items-center justify-between w-full p-3 rounded-lg hover:bg-muted/50 transition-colors">
+          <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-colors text-sm border-t">
             <div className="flex items-center gap-2">
-              {openSection === 'location' ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-              <MapPin className="h-4 w-4 text-muted-foreground" />
-              <span>Location & Holidays</span>
+              <ChevronRight className={`h-3.5 w-3.5 transition-transform ${openSection === 'location' ? 'rotate-90' : ''}`} />
+              <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+              <span>Location</span>
             </div>
-            <Badge variant="secondary">
-              {currentCountry?.flag} {state.region} · {state.holidaysPerYear} days
-            </Badge>
+            <span className="text-xs text-muted-foreground">
+              {currentCountry?.flag} {state.region} · {state.holidaysPerYear} holidays
+            </span>
           </CollapsibleTrigger>
-          <CollapsibleContent className="pt-2 pb-4 px-3 space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-sm">Country</Label>
-                <Select value={state.country} onValueChange={handleCountryChange}>
-                  <SelectTrigger aria-label="Select country">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {countries.map((c) => (
-                      <SelectItem key={c.code} value={c.code}>
-                        {c.flag} {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-sm">Province/State</Label>
-                <Select value={state.region} onValueChange={handleRegionChange}>
-                  <SelectTrigger aria-label="Select region">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {currentCountry?.regions.map((r) => (
-                      <SelectItem key={r.code} value={r.code}>
-                        {r.name} ({r.holidays})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-sm">Statutory Holidays</Label>
+          <CollapsibleContent className="px-3 pb-3 space-y-2">
+            <div className="grid grid-cols-3 gap-2">
+              <Select value={state.country} onValueChange={handleCountryChange}>
+                <SelectTrigger className="h-8 text-xs" aria-label="Select country">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {countries.map((c) => (
+                    <SelectItem key={c.code} value={c.code}>
+                      {c.flag} {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={state.region} onValueChange={handleRegionChange}>
+                <SelectTrigger className="h-8 text-xs" aria-label="Select region">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {currentCountry?.regions.map((r) => (
+                    <SelectItem key={r.code} value={r.code}>
+                      {r.name} ({r.holidays})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Input
                 type="number"
                 min={0}
                 max={20}
                 value={state.holidaysPerYear || ''}
                 onChange={(e) => updateState({ holidaysPerYear: parseInt(e.target.value) || 0 })}
+                className="h-8 text-xs"
+                placeholder="Holidays"
               />
             </div>
           </CollapsibleContent>
@@ -486,28 +387,19 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
 
         {/* Time Off */}
         <Collapsible open={openSection === 'timeoff'} onOpenChange={() => toggleSection('timeoff')}>
-          <CollapsibleTrigger className="flex items-center justify-between w-full p-3 rounded-lg hover:bg-muted/50 transition-colors">
+          <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-colors text-sm border-t">
             <div className="flex items-center gap-2">
-              {openSection === 'timeoff' ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <ChevronRight className={`h-3.5 w-3.5 transition-transform ${openSection === 'timeoff' ? 'rotate-90' : ''}`} />
+              <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
               <span>Time Off</span>
             </div>
-            <Badge variant="secondary">
-              {state.unlimitedPTO ? 'Paid' : `${state.ptoDays + state.sickDays} days`}
-            </Badge>
+            <span className="text-xs text-muted-foreground">
+              {state.unlimitedPTO ? 'Paid PTO' : `${state.ptoDays + state.sickDays} days unpaid`}
+            </span>
           </CollapsibleTrigger>
-          <CollapsibleContent className="pt-2 pb-4 px-3 space-y-4">
-            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-              <div className="space-y-0.5">
-                <Label htmlFor="unlimitedPTO" className="font-medium">Paid Time Off</Label>
-                <p className="text-xs text-muted-foreground">
-                  Employer provides paid vacation, sick days, etc.
-                </p>
-              </div>
+          <CollapsibleContent className="px-3 pb-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="unlimitedPTO" className="text-xs">Employer provides paid time off</Label>
               <Switch
                 id="unlimitedPTO"
                 checked={state.unlimitedPTO}
@@ -515,25 +407,27 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
               />
             </div>
             {!state.unlimitedPTO && (
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm">PTO Days</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-[10px] text-muted-foreground">PTO Days</Label>
                   <Input
                     type="number"
                     min={0}
                     max={60}
                     value={state.ptoDays || ''}
                     onChange={(e) => updateState({ ptoDays: parseInt(e.target.value) || 0 })}
+                    className="h-8 text-xs"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-sm">Sick Days</Label>
+                <div className="space-y-1">
+                  <Label className="text-[10px] text-muted-foreground">Sick Days</Label>
                   <Input
                     type="number"
                     min={0}
                     max={30}
                     value={state.sickDays || ''}
                     onChange={(e) => updateState({ sickDays: parseInt(e.target.value) || 0 })}
+                    className="h-8 text-xs"
                   />
                 </div>
               </div>
@@ -543,40 +437,38 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
 
         {/* Work Schedule */}
         <Collapsible open={openSection === 'schedule'} onOpenChange={() => toggleSection('schedule')}>
-          <CollapsibleTrigger className="flex items-center justify-between w-full p-3 rounded-lg hover:bg-muted/50 transition-colors">
+          <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-colors text-sm border-t">
             <div className="flex items-center gap-2">
-              {openSection === 'schedule' ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              <span>Work Schedule</span>
+              <ChevronRight className={`h-3.5 w-3.5 transition-transform ${openSection === 'schedule' ? 'rotate-90' : ''}`} />
+              <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+              <span>Schedule</span>
             </div>
-            <Badge variant="secondary">
-              {state.hoursPerDay * state.daysPerWeek} hrs/wk
-            </Badge>
+            <span className="text-xs text-muted-foreground">
+              {state.hoursPerDay}h × {state.daysPerWeek}d = {state.hoursPerDay * state.daysPerWeek}h/wk
+            </span>
           </CollapsibleTrigger>
-          <CollapsibleContent className="pt-2 pb-4 px-3 space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-sm">Hours per Day</Label>
+          <CollapsibleContent className="px-3 pb-3">
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground">Hours/Day</Label>
                 <Input
                   type="number"
                   min={1}
                   max={16}
                   value={state.hoursPerDay || ''}
                   onChange={(e) => updateState({ hoursPerDay: parseInt(e.target.value) || 8 })}
+                  className="h-8 text-xs"
                 />
               </div>
-              <div className="space-y-2">
-                <Label className="text-sm">Days per Week</Label>
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground">Days/Week</Label>
                 <Input
                   type="number"
                   min={1}
                   max={7}
                   value={state.daysPerWeek || ''}
                   onChange={(e) => updateState({ daysPerWeek: parseInt(e.target.value) || 5 })}
+                  className="h-8 text-xs"
                 />
               </div>
             </div>
@@ -585,23 +477,19 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
 
         {/* Tax Estimate */}
         <Collapsible open={openSection === 'tax'} onOpenChange={() => toggleSection('tax')}>
-          <CollapsibleTrigger className="flex items-center justify-between w-full p-3 rounded-lg hover:bg-muted/50 transition-colors">
+          <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-colors text-sm border-t">
             <div className="flex items-center gap-2">
-              {openSection === 'tax' ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-              <Receipt className="h-4 w-4 text-muted-foreground" />
-              <span>Tax Estimate</span>
+              <ChevronRight className={`h-3.5 w-3.5 transition-transform ${openSection === 'tax' ? 'rotate-90' : ''}`} />
+              <Receipt className="h-3.5 w-3.5 text-muted-foreground" />
+              <span>Taxes</span>
             </div>
-            <Badge variant="secondary">
+            <span className="text-xs text-muted-foreground">
               {state.showTaxEstimate ? formatPercent(calculation.taxBreakdown.effectiveRate) : 'Off'}
-            </Badge>
+            </span>
           </CollapsibleTrigger>
-          <CollapsibleContent className="pt-2 pb-4 px-3 space-y-4">
+          <CollapsibleContent className="px-3 pb-3 space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="showTax" className="text-sm">Show tax estimate</Label>
+              <Label htmlFor="showTax" className="text-xs">Show tax estimate</Label>
               <Switch
                 id="showTax"
                 checked={state.showTaxEstimate}
@@ -609,7 +497,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
               />
             </div>
             <div className="flex items-center justify-between">
-              <Label htmlFor="selfEmployed" className="text-sm">Self-employed / contractor</Label>
+              <Label htmlFor="selfEmployed" className="text-xs">Self-employed</Label>
               <Switch
                 id="selfEmployed"
                 checked={state.isSelfEmployed}
@@ -617,7 +505,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
               />
             </div>
             {state.showTaxEstimate && (
-              <div className="space-y-2 text-sm pt-2">
+              <div className="space-y-1 text-xs pt-1 border-t">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Federal</span>
                   <span>{formatCurrency(calculation.taxBreakdown.federal, state.currency, { showCode: false })}</span>
@@ -631,18 +519,15 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                 {state.isSelfEmployed && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">
-                      {state.country === 'CA' ? 'CPP' : 'Self-Employment'}
+                      {state.country === 'CA' ? 'CPP' : 'Self-Emp'}
                     </span>
                     <span>{formatCurrency(calculation.taxBreakdown.selfEmployment, state.currency, { showCode: false })}</span>
                   </div>
                 )}
-                <div className="flex justify-between font-medium pt-2 border-t">
-                  <span>Total Tax</span>
+                <div className="flex justify-between font-medium pt-1 border-t">
+                  <span>Total</span>
                   <span>{formatCurrency(calculation.taxBreakdown.total, state.currency, { showCode: false })}</span>
                 </div>
-                <p className="text-xs text-muted-foreground pt-2">
-                  Estimate only · Consult a tax professional
-                </p>
               </div>
             )}
           </CollapsibleContent>
