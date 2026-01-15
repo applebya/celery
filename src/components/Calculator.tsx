@@ -25,6 +25,13 @@ const CURRENCIES: { value: Currency; label: string; symbol: string }[] = [
   { value: 'GBP', label: 'GBP', symbol: '£' },
 ]
 
+const CURRENCY_FLAGS: Record<Currency, string> = {
+  USD: '🇺🇸',
+  CAD: '🇨🇦',
+  EUR: '🇪🇺',
+  GBP: '🇬🇧',
+}
+
 interface CalculatorProps {
   state: CalculatorState
   onChange: (state: CalculatorState) => void
@@ -222,39 +229,81 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
           </button>
         </div>
         <div className="space-y-px rounded-lg border bg-card/50 overflow-hidden">
-          {/* Currency & Margin */}
+          {/* Currency Settings */}
           <Collapsible open={openSection === 'currency' || openSection === 'all'} onOpenChange={() => toggleSection('currency')}>
-            <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-colors text-sm">
+            <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-colors text-base">
               <div className="flex items-center gap-2">
-                <ChevronRight className={`h-3.5 w-3.5 transition-transform ${openSection === 'currency' || openSection === 'all' ? 'rotate-90' : ''}`} />
-                <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground" />
-                <span>Currency Margin</span>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
-                      <HelpCircle className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent side="top">
-                      <p>Fee cushion for payment processing, currency conversion, or client payment delays. Contractors typically add 2-5%.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <ChevronRight className={`h-4 w-4 transition-transform ${openSection === 'currency' || openSection === 'all' ? 'rotate-90' : ''}`} />
+                <ArrowRightLeft className="h-4 w-4 text-muted-foreground" />
+                <span>Currency Settings</span>
               </div>
-              <span className="text-xs text-muted-foreground">
-                {state.traderMargin > 0 ? `${state.traderMargin}%` : '0%'}
+              <span className="text-sm text-muted-foreground">
+                {state.showCurrencyConversion
+                  ? `${CURRENCY_FLAGS[displayCurrency]} ${displayCurrency} · ${state.traderMargin}%`
+                  : 'Disabled'}
               </span>
             </CollapsibleTrigger>
-            <CollapsibleContent className="px-3 pb-3 space-y-2">
-              <div className="flex items-center gap-3">
-                <Slider
-                  value={[state.traderMargin]}
-                  onValueChange={([value]) => updateState({ traderMargin: value })}
-                  max={10}
-                  step={0.5}
-                  className="flex-1"
+            <CollapsibleContent className="px-3 pb-3 space-y-3">
+              {/* Master Toggle */}
+              <div className="flex items-center justify-between">
+                <Label htmlFor="showConversion" className="text-base">Show currency conversion</Label>
+                <Switch
+                  id="showConversion"
+                  checked={state.showCurrencyConversion}
+                  onCheckedChange={(checked) => updateState({ showCurrencyConversion: checked })}
                 />
-                <span className="text-xs font-medium tabular-nums w-10 text-right">{state.traderMargin}%</span>
               </div>
+
+              {state.showCurrencyConversion && (
+                <>
+                  {/* Display Currency Selector */}
+                  <div className="space-y-1">
+                    <Label className="text-sm text-muted-foreground">Display Currency</Label>
+                    <Select
+                      value={displayCurrency}
+                      onValueChange={(v) => updateState({ displayCurrency: v as Currency })}
+                    >
+                      <SelectTrigger className="h-10 text-base">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CURRENCIES.filter(c => c.value !== state.currency).map((c) => (
+                          <SelectItem key={c.value} value={c.value}>
+                            {CURRENCY_FLAGS[c.value]} {c.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Existing margin slider - keep for now, will be enhanced in Task 2.2 */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Label className="text-sm text-muted-foreground">Conversion Margin</Label>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <HelpCircle className="h-4 w-4 text-muted-foreground hover:text-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            <p>Fee cushion for payment processing, currency conversion, or client payment delays. Contractors typically add 2-5%.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Slider
+                        value={[state.traderMargin]}
+                        onValueChange={([value]) => updateState({ traderMargin: value })}
+                        max={10}
+                        step={0.5}
+                        className="flex-1"
+                      />
+                      <span className="text-base font-medium tabular-nums w-12 text-right">{state.traderMargin}%</span>
+                    </div>
+                  </div>
+                </>
+              )}
             </CollapsibleContent>
           </Collapsible>
 
