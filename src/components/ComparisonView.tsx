@@ -92,10 +92,11 @@ export function ComparisonView({
                   e.stopPropagation()
                   removeScenario()
                 }}
-                className="absolute -top-1 -right-1 p-0.5 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute -top-2 -right-2 p-1.5 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
                 title="Remove scenario"
+                aria-label="Remove scenario"
               >
-                <X className="h-3 w-3" />
+                <X className="h-4 w-4" />
               </button>
             </TabsTrigger>
             <TabsTrigger value="compare" className="min-w-24">
