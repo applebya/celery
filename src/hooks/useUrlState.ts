@@ -101,7 +101,8 @@ export function useUrlState(
     if (Object.keys(urlState).length > 0) {
       onChange({ ...state, ...urlState })
     }
-  }, []) // Only on mount
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Only runs on mount to restore URL state
+  }, [])
 
   const getShareUrl = useCallback(() => {
     const base = window.location.origin + window.location.pathname

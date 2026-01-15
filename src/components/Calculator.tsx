@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { ChevronRight, MapPin, Calendar, Clock, Receipt, Pencil, Check, ArrowRightLeft, HelpCircle } from 'lucide-react'
+import { ChevronRight, MapPin, Calendar, Clock, Receipt, Pencil, Check, ArrowRightLeft, HelpCircle, Share2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -13,6 +13,7 @@ import { ExchangeRateDisplay } from './ExchangeRateDisplay'
 import { countries, getCountry, getHolidayCount } from '@/data/holidays-2026'
 import { useCalculation } from '@/hooks/useCalculation'
 import { useExchangeRate } from '@/hooks/useExchangeRate'
+import { useUrlState } from '@/hooks/useUrlState'
 import { formatCurrency, formatPercent } from '@/lib/calculate'
 import type { CalculatorState, Currency } from '@/types'
 
@@ -37,6 +38,20 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
 
   const calculation = useCalculation(state)
   const { convertWithMargin, exchangeRates, getRate } = useExchangeRate()
+  const { getShareUrl } = useUrlState(state, onChange)
+
+  const [copied, setCopied] = useState(false)
+
+  const handleShare = async () => {
+    const url = getShareUrl()
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Silently fail - clipboard API not available
+    }
+  }
 
   const updateState = useCallback(
     (updates: Partial<CalculatorState>) => {
@@ -319,6 +334,16 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
           )}
         </CardContent>
       </Card>
+
+      <div className="flex justify-end">
+        <button
+          onClick={handleShare}
+          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted/50 transition-colors"
+        >
+          <Share2 className="h-3.5 w-3.5" />
+          {copied ? 'Copied!' : 'Share calculation'}
+        </button>
+      </div>
 
       {/* Exchange Rate Display */}
       <ExchangeRateDisplay baseCurrency={state.currency} />
