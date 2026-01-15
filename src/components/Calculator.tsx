@@ -508,7 +508,19 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
               />
             </div>
             <div className="flex items-center justify-between">
-              <Label htmlFor="selfEmployed" className="text-xs">Self-employed</Label>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="selfEmployed" className="text-xs">Self-employed</Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      <p>Includes self-employment tax (~15.3% in US, CPP in Canada). Turn off if you're a W-2/T4 employee.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               <Switch
                 id="selfEmployed"
                 checked={state.isSelfEmployed}
