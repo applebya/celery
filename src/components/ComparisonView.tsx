@@ -80,8 +80,8 @@ export function ComparisonView({
   return (
     <div className="space-y-4">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="flex items-center justify-center gap-2 mb-4">
-          <TabsList>
+        <div className="flex items-center justify-center gap-2 mb-4 overflow-x-auto">
+          <TabsList className="flex-shrink-0">
             <TabsTrigger value="scenario-1" className="min-w-24">
               {leftState.title || 'Scenario 1'}
             </TabsTrigger>
