@@ -9,6 +9,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Card, CardContent } from '@/components/ui/card'
 import { Slider } from '@/components/ui/slider'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { AnimatedNumber } from './AnimatedNumber'
 import { ExchangeRateDisplay } from './ExchangeRateDisplay'
 import { countries, getCountry, getHolidayCount } from '@/data/holidays-2026'
 import { useCalculation } from '@/hooks/useCalculation'
@@ -225,7 +226,10 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
               {state.calculationMode === 'hourlyToSalary' ? (
                 <div className="space-y-1">
                   <p className="text-2xl font-bold tracking-tight leading-none">
-                    {formatCurrency(calculation.grossAnnual, state.currency, { showCode: false })}
+                    <AnimatedNumber
+                      value={calculation.grossAnnual}
+                      formatter={(n) => formatCurrency(n, state.currency, { showCode: false })}
+                    />
                   </p>
                   {state.showTaxEstimate && (
                     <p className="text-base font-medium text-green-600 dark:text-green-400">
