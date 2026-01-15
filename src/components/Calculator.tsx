@@ -273,7 +273,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
 
             {/* Display Currency Column */}
             <div className="p-4 space-y-2 bg-muted/10">
-              <h3 className="sr-only">Results in {displayCurrency}</h3>
+              <span className="sr-only">Results in {displayCurrency}</span>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide sm:text-[10px]">
