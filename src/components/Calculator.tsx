@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { ChevronRight, MapPin, Calendar, Clock, Receipt, Pencil, Check, ArrowRightLeft } from 'lucide-react'
+import { ChevronRight, MapPin, Calendar, Clock, Receipt, Pencil, Check, ArrowRightLeft, HelpCircle } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Card, CardContent } from '@/components/ui/card'
 import { Slider } from '@/components/ui/slider'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { ExchangeRateDisplay } from './ExchangeRateDisplay'
 import { countries, getCountry, getHolidayCount } from '@/data/holidays-2026'
 import { useCalculation } from '@/hooks/useCalculation'
@@ -314,7 +315,17 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
             <div className="flex items-center gap-2">
               <ChevronRight className={`h-3.5 w-3.5 transition-transform ${openSection === 'currency' ? 'rotate-90' : ''}`} />
               <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground" />
-              <span>Margin</span>
+              <span>Currency Margin</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
+                    <HelpCircle className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    <p>Fee cushion for payment processing, currency conversion, or client payment delays. Contractors typically add 2-5%.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
             <span className="text-xs text-muted-foreground">
               {state.traderMargin > 0 ? `${state.traderMargin}%` : '0%'}
