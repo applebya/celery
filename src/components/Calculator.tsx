@@ -180,7 +180,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
       {/* Results - 2 Column Layout */}
       <Card className="overflow-hidden border-0 shadow-md">
         <CardContent className="p-0">
-          <div className="grid grid-cols-2 divide-x">
+          <div className="grid grid-cols-1 sm:grid-cols-2 sm:divide-x divide-y sm:divide-y-0">
             {/* Main Currency Column */}
             <div className="p-4 space-y-2">
               <div className="flex items-center gap-1.5">
