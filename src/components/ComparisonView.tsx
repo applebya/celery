@@ -30,8 +30,10 @@ export function ComparisonView({
 
   const addScenario = () => {
     onRightChange({
-      ...DEFAULT_STATE,
+      ...leftState,
       title: 'New Offer',
+      // Slightly different to demonstrate comparison
+      hourlyRate: Math.round(leftState.hourlyRate * 1.1),
     })
     setActiveTab('scenario-2')
   }
