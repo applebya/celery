@@ -106,10 +106,10 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
               />
               <button
                 onClick={handleTitleSave}
-                className="p-1.5 hover:bg-muted rounded-md"
+                className="p-2 hover:bg-muted rounded-md"
                 aria-label="Save title"
               >
-                <Check className="h-3.5 w-3.5" />
+                <Check className="h-4 w-4" />
               </button>
             </>
           ) : (
@@ -122,10 +122,10 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                   setTitleInput(state.title)
                   setEditingTitle(true)
                 }}
-                className="p-1 hover:bg-muted rounded-md opacity-50 hover:opacity-100"
+                className="p-2 hover:bg-muted rounded-md opacity-50 hover:opacity-100"
                 aria-label="Edit title"
               >
-                <Pencil className="h-3 w-3" />
+                <Pencil className="h-4 w-4" />
               </button>
             </>
           )}
