@@ -32,6 +32,12 @@ const CURRENCY_FLAGS: Record<Currency, string> = {
   GBP: '🇬🇧',
 }
 
+const MARGIN_PRESETS = [
+  { label: 'Wise', value: 0.5 },
+  { label: 'Bank', value: 2.5 },
+  { label: 'PayPal', value: 3.5 },
+] as const
+
 interface CalculatorProps {
   state: CalculatorState
   onChange: (state: CalculatorState) => void
@@ -276,7 +282,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                     </Select>
                   </div>
 
-                  {/* Existing margin slider - keep for now, will be enhanced in Task 2.2 */}
+                  {/* Conversion Margin */}
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <Label className="text-sm text-muted-foreground">Conversion Margin</Label>
@@ -291,6 +297,34 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                         </Tooltip>
                       </TooltipProvider>
                     </div>
+
+                    {/* Preset Chips */}
+                    <div className="flex flex-wrap gap-2">
+                      {MARGIN_PRESETS.map((preset) => (
+                        <button
+                          key={preset.label}
+                          onClick={() => updateState({ traderMargin: preset.value })}
+                          className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
+                            state.traderMargin === preset.value
+                              ? 'bg-primary text-primary-foreground border-primary'
+                              : 'bg-muted/50 hover:bg-muted border-transparent'
+                          }`}
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                      <button
+                        className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
+                          !MARGIN_PRESETS.some(p => p.value === state.traderMargin)
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'bg-muted/50 hover:bg-muted border-transparent'
+                        }`}
+                      >
+                        Custom
+                      </button>
+                    </div>
+
+                    {/* Slider */}
                     <div className="flex items-center gap-3">
                       <Slider
                         value={[state.traderMargin]}
