@@ -225,20 +225,32 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
 
               {state.calculationMode === 'hourlyToSalary' ? (
                 <div className="space-y-1">
-                  <p className="text-2xl font-bold tracking-tight leading-none">
-                    <AnimatedNumber
-                      value={calculation.grossAnnual}
-                      formatter={(n) => formatCurrency(n, state.currency, { showCode: false })}
-                    />
-                  </p>
-                  {state.showTaxEstimate && (
-                    <p className="text-base font-medium text-green-600 dark:text-green-400">
-                      {formatCurrency(calculation.netAnnual, state.currency, { showCode: false })}
-                      <span className="text-xs text-muted-foreground ml-1">net</span>
-                    </p>
+                  {state.showTaxEstimate ? (
+                    <>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide">Take-home</p>
+                      <p className="text-2xl font-bold tracking-tight leading-none text-green-600 dark:text-green-400">
+                        <AnimatedNumber
+                          value={calculation.netAnnual}
+                          formatter={(n) => formatCurrency(n, state.currency, { showCode: false })}
+                        />
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {formatCurrency(calculation.grossAnnual, state.currency, { showCode: false })} gross
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide">Annual</p>
+                      <p className="text-2xl font-bold tracking-tight leading-none">
+                        <AnimatedNumber
+                          value={calculation.grossAnnual}
+                          formatter={(n) => formatCurrency(n, state.currency, { showCode: false })}
+                        />
+                      </p>
+                    </>
                   )}
-                  <p className="text-sm text-muted-foreground">
-                    {formatCurrency(state.hourlyRate, state.currency, { showCode: false })}/hr
+                  <p className="text-xs text-muted-foreground">
+                    {formatCurrency(state.hourlyRate, state.currency, { showCode: false })}/hr × {calculation.billableHours.toLocaleString()} hrs
                   </p>
                 </div>
               ) : (
@@ -261,6 +273,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
 
             {/* Display Currency Column */}
             <div className="p-4 space-y-2 bg-muted/10">
+              <h3 className="sr-only">Results in {displayCurrency}</h3>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide sm:text-[10px]">
@@ -289,17 +302,26 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
 
               {state.calculationMode === 'hourlyToSalary' ? (
                 <div className="space-y-1">
-                  <p className="text-2xl font-bold tracking-tight leading-none text-muted-foreground/80">
-                    {formatCurrency(convertedGross, displayCurrency, { showCode: false })}
-                  </p>
-                  {state.showTaxEstimate && (
-                    <p className="text-base font-medium text-green-600/60 dark:text-green-400/60">
-                      {formatCurrency(convertedNet, displayCurrency, { showCode: false })}
-                      <span className="text-xs text-muted-foreground/60 ml-1">net</span>
-                    </p>
+                  {state.showTaxEstimate ? (
+                    <>
+                      <p className="text-xs text-muted-foreground/60 uppercase tracking-wide">Take-home</p>
+                      <p className="text-2xl font-bold tracking-tight leading-none text-green-600/60 dark:text-green-400/60">
+                        {formatCurrency(convertedNet, displayCurrency, { showCode: false })}
+                      </p>
+                      <p className="text-sm text-muted-foreground/60">
+                        {formatCurrency(convertedGross, displayCurrency, { showCode: false })} gross
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-xs text-muted-foreground/60 uppercase tracking-wide">Annual</p>
+                      <p className="text-2xl font-bold tracking-tight leading-none text-muted-foreground/80">
+                        {formatCurrency(convertedGross, displayCurrency, { showCode: false })}
+                      </p>
+                    </>
                   )}
-                  <p className="text-sm text-muted-foreground/60">
-                    {formatCurrency(convertWithMargin(state.hourlyRate, state.currency, displayCurrency, state.traderMargin), displayCurrency, { showCode: false })}/hr
+                  <p className="text-xs text-muted-foreground/60">
+                    {formatCurrency(convertWithMargin(state.hourlyRate, state.currency, displayCurrency, state.traderMargin), displayCurrency, { showCode: false })}/hr × {calculation.billableHours.toLocaleString()} hrs
                   </p>
                 </div>
               ) : (
