@@ -22,6 +22,8 @@ export interface CalculatorState {
   traderMargin: number
   // Secondary currency to display alongside primary
   displayCurrency: Currency
+  // Toggle to show/hide currency conversion column
+  showCurrencyConversion: boolean
 }
 
 export interface ExchangeRates {
@@ -52,4 +54,5 @@ export const DEFAULT_STATE: CalculatorState = {
   unlimitedPTO: false,
   traderMargin: 0,
   displayCurrency: 'USD',
+  showCurrencyConversion: true,
 }
