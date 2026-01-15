@@ -476,7 +476,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
         {/* Results - 2 Column Layout */}
         <Card className="overflow-hidden border-0 shadow-md">
         <CardContent className="p-0">
-          <div className="grid grid-cols-1 sm:grid-cols-2 sm:divide-x divide-y sm:divide-y-0">
+          <div className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'grid-cols-1 sm:grid-cols-2 sm:divide-x' : 'grid-cols-1'} divide-y sm:divide-y-0`}>
             {/* Main Currency Column */}
             <div className="p-4 space-y-2">
               <div className="flex items-center gap-1.5">
@@ -534,76 +534,78 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
               )}
             </div>
 
-            {/* Display Currency Column */}
-            <div className="p-4 space-y-2 bg-muted/10">
-              <span className="sr-only">Results in {displayCurrency}</span>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide sm:text-[10px]">
-                    Also in {displayCurrency}
-                  </span>
-                  {state.traderMargin > 0 && (
-                    <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4">
-                      -{state.traderMargin}%
-                    </Badge>
-                  )}
+            {/* Display Currency Column - only show if enabled */}
+            {state.showCurrencyConversion && state.currency !== displayCurrency && (
+              <div className="p-4 space-y-2 bg-muted/10">
+                <span className="sr-only">Results in {displayCurrency}</span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide sm:text-[10px]">
+                      Also in {displayCurrency}
+                    </span>
+                    {state.traderMargin > 0 && (
+                      <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4">
+                        -{state.traderMargin}%
+                      </Badge>
+                    )}
+                  </div>
+                  <Select
+                    value={displayCurrency}
+                    onValueChange={(v) => updateState({ displayCurrency: v as Currency })}
+                  >
+                    <SelectTrigger className="w-20 h-9 text-xs px-2" aria-label="Select display currency">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CURRENCIES.filter(c => c.value !== state.currency).map((c) => (
+                        <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <Select
-                  value={displayCurrency}
-                  onValueChange={(v) => updateState({ displayCurrency: v as Currency })}
-                >
-                  <SelectTrigger className="w-20 h-9 text-xs px-2" aria-label="Select display currency">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CURRENCIES.filter(c => c.value !== state.currency).map((c) => (
-                      <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
 
-              {state.calculationMode === 'hourlyToSalary' ? (
-                <div className="space-y-1">
-                  {state.showTaxEstimate ? (
-                    <>
-                      <p className="text-xs text-muted-foreground/60 uppercase tracking-wide">Take-home</p>
-                      <p className="text-2xl font-bold tracking-tight leading-none text-green-600/60 dark:text-green-400/60">
-                        {formatCurrency(convertedNet, displayCurrency, { showCode: false })}
-                      </p>
-                      <p className="text-sm text-muted-foreground/60">
-                        {formatCurrency(convertedGross, displayCurrency, { showCode: false })} gross
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-xs text-muted-foreground/60 uppercase tracking-wide">Annual</p>
-                      <p className="text-2xl font-bold tracking-tight leading-none text-muted-foreground/80">
-                        {formatCurrency(convertedGross, displayCurrency, { showCode: false })}
-                      </p>
-                    </>
-                  )}
-                  <p className="text-xs text-muted-foreground/60">
-                    {formatCurrency(convertWithMargin(state.hourlyRate, state.currency, displayCurrency, state.traderMargin), displayCurrency, { showCode: false })}/hr × {calculation.billableHours.toLocaleString()} hrs
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-1">
-                  <p className="text-2xl font-bold tracking-tight leading-none text-muted-foreground/80">
-                    {formatCurrency(convertedHourly, displayCurrency, { showCode: false })}/hr
-                  </p>
-                  <p className="text-base font-medium text-muted-foreground/70">
-                    {formatCurrency(convertedGross, displayCurrency, { showCode: false })}
-                    <span className="text-xs text-muted-foreground/60 ml-1">gross</span>
-                  </p>
-                  {state.showTaxEstimate && (
-                    <p className="text-sm text-green-600/60 dark:text-green-400/60">
-                      {formatCurrency(convertedNet, displayCurrency, { showCode: false })} net
+                {state.calculationMode === 'hourlyToSalary' ? (
+                  <div className="space-y-1">
+                    {state.showTaxEstimate ? (
+                      <>
+                        <p className="text-xs text-muted-foreground/60 uppercase tracking-wide">Take-home</p>
+                        <p className="text-2xl font-bold tracking-tight leading-none text-green-600/60 dark:text-green-400/60">
+                          {formatCurrency(convertedNet, displayCurrency, { showCode: false })}
+                        </p>
+                        <p className="text-sm text-muted-foreground/60">
+                          {formatCurrency(convertedGross, displayCurrency, { showCode: false })} gross
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-xs text-muted-foreground/60 uppercase tracking-wide">Annual</p>
+                        <p className="text-2xl font-bold tracking-tight leading-none text-muted-foreground/80">
+                          {formatCurrency(convertedGross, displayCurrency, { showCode: false })}
+                        </p>
+                      </>
+                    )}
+                    <p className="text-xs text-muted-foreground/60">
+                      {formatCurrency(convertWithMargin(state.hourlyRate, state.currency, displayCurrency, state.traderMargin), displayCurrency, { showCode: false })}/hr × {calculation.billableHours.toLocaleString()} hrs
                     </p>
-                  )}
-                </div>
-              )}
-            </div>
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    <p className="text-2xl font-bold tracking-tight leading-none text-muted-foreground/80">
+                      {formatCurrency(convertedHourly, displayCurrency, { showCode: false })}/hr
+                    </p>
+                    <p className="text-base font-medium text-muted-foreground/70">
+                      {formatCurrency(convertedGross, displayCurrency, { showCode: false })}
+                      <span className="text-xs text-muted-foreground/60 ml-1">gross</span>
+                    </p>
+                    {state.showTaxEstimate && (
+                      <p className="text-sm text-green-600/60 dark:text-green-400/60">
+                        {formatCurrency(convertedNet, displayCurrency, { showCode: false })} net
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Exchange Rate Footer */}
