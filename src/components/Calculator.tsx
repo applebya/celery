@@ -38,7 +38,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
   const [titleInput, setTitleInput] = useState(state.title)
 
   const calculation = useCalculation(state)
-  const { convertWithMargin, exchangeRates, getRate } = useExchangeRate()
+  const { convertWithMargin, exchangeRates, getRate, error } = useExchangeRate()
   const { getShareUrl } = useUrlState(state, onChange)
 
   const [copied, setCopied] = useState(false)
@@ -332,6 +332,11 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                     <span className="opacity-60"> ({state.traderMargin}% margin)</span>
                   )}
                 </span>
+                {error && (
+                  <span className="text-amber-500" title="Using offline fallback rates">
+                    (offline)
+                  </span>
+                )}
               </div>
               <span>{calculation.billableHours.toLocaleString()} hrs/yr</span>
             </div>
