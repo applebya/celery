@@ -124,49 +124,51 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
   const rateWithMargin = effectiveRate * (1 - state.traderMargin / 100)
 
   return (
-    <div className="space-y-3">
-      {showTitle && (
-        <div className="flex items-center gap-2">
-          {editingTitle ? (
-            <>
-              <Input
-                value={titleInput}
-                onChange={(e) => setTitleInput(e.target.value)}
-                placeholder="Scenario name"
-                className="font-medium h-8 text-sm"
-                autoFocus
-                onKeyDown={(e) => e.key === 'Enter' && handleTitleSave()}
-              />
-              <button
-                onClick={handleTitleSave}
-                className="p-2 hover:bg-muted rounded-md"
-                aria-label="Save title"
-              >
-                <Check className="h-4 w-4" />
-              </button>
-            </>
-          ) : (
-            <>
-              <h2 className="font-medium">
-                {state.title || 'Untitled'}
-              </h2>
-              <button
-                onClick={() => {
-                  setTitleInput(state.title)
-                  setEditingTitle(true)
-                }}
-                className="p-2 hover:bg-muted rounded-md opacity-50 hover:opacity-100"
-                aria-label="Edit title"
-              >
-                <Pencil className="h-4 w-4" />
-              </button>
-            </>
-          )}
-        </div>
-      )}
+    <div className="grid grid-cols-1 md:grid-cols-[1fr,1.2fr] gap-4 md:gap-6">
+      {/* Left Panel - Inputs */}
+      <div className="space-y-3">
+        {showTitle && (
+          <div className="flex items-center gap-2">
+            {editingTitle ? (
+              <>
+                <Input
+                  value={titleInput}
+                  onChange={(e) => setTitleInput(e.target.value)}
+                  placeholder="Scenario name"
+                  className="font-medium h-8 text-sm"
+                  autoFocus
+                  onKeyDown={(e) => e.key === 'Enter' && handleTitleSave()}
+                />
+                <button
+                  onClick={handleTitleSave}
+                  className="p-2 hover:bg-muted rounded-md"
+                  aria-label="Save title"
+                >
+                  <Check className="h-4 w-4" />
+                </button>
+              </>
+            ) : (
+              <>
+                <h2 className="font-medium">
+                  {state.title || 'Untitled'}
+                </h2>
+                <button
+                  onClick={() => {
+                    setTitleInput(state.title)
+                    setEditingTitle(true)
+                  }}
+                  className="p-2 hover:bg-muted rounded-md opacity-50 hover:opacity-100"
+                  aria-label="Edit title"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+              </>
+            )}
+          </div>
+        )}
 
-      {/* Input with Mode Toggle */}
-      <div className="flex gap-2 items-end">
+        {/* Input with Mode Toggle */}
+        <div className="flex gap-2 items-end">
         <div className="flex-1 space-y-1">
           <div className="flex items-center gap-2">
             <Label htmlFor="mainInput" className="text-xs text-muted-foreground">
@@ -208,10 +210,271 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
             ))}
           </SelectContent>
         </Select>
+        </div>
+
+        {/* Settings Sections */}
+        <div className="flex justify-end mb-1">
+          <button
+            onClick={toggleAllSections}
+            className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted/50 transition-colors"
+          >
+            {allExpanded || openSection === 'all' ? 'Collapse all' : 'Expand all settings'}
+          </button>
+        </div>
+        <div className="space-y-px rounded-lg border bg-card/50 overflow-hidden">
+          {/* Currency & Margin */}
+          <Collapsible open={openSection === 'currency' || openSection === 'all'} onOpenChange={() => toggleSection('currency')}>
+            <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-colors text-sm">
+              <div className="flex items-center gap-2">
+                <ChevronRight className={`h-3.5 w-3.5 transition-transform ${openSection === 'currency' || openSection === 'all' ? 'rotate-90' : ''}`} />
+                <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground" />
+                <span>Currency Margin</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <HelpCircle className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      <p>Fee cushion for payment processing, currency conversion, or client payment delays. Contractors typically add 2-5%.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {state.traderMargin > 0 ? `${state.traderMargin}%` : '0%'}
+              </span>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="px-3 pb-3 space-y-2">
+              <div className="flex items-center gap-3">
+                <Slider
+                  value={[state.traderMargin]}
+                  onValueChange={([value]) => updateState({ traderMargin: value })}
+                  max={10}
+                  step={0.5}
+                  className="flex-1"
+                />
+                <span className="text-xs font-medium tabular-nums w-10 text-right">{state.traderMargin}%</span>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
+          {/* Location & Holidays */}
+          <Collapsible open={openSection === 'location' || openSection === 'all'} onOpenChange={() => toggleSection('location')}>
+            <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-colors text-sm border-t">
+              <div className="flex items-center gap-2">
+                <ChevronRight className={`h-3.5 w-3.5 transition-transform ${openSection === 'location' || openSection === 'all' ? 'rotate-90' : ''}`} />
+                <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                <span>Location</span>
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {currentCountry?.flag} {state.region} · {state.holidaysPerYear} holidays
+              </span>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="px-3 pb-3 space-y-2">
+              <div className="grid grid-cols-3 gap-2">
+                <Select value={state.country} onValueChange={handleCountryChange}>
+                  <SelectTrigger className="h-8 text-xs" aria-label="Select country">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {countries.map((c) => (
+                      <SelectItem key={c.code} value={c.code}>
+                        {c.flag} {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={state.region} onValueChange={handleRegionChange}>
+                  <SelectTrigger className="h-8 text-xs" aria-label="Select region">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {currentCountry?.regions.map((r) => (
+                      <SelectItem key={r.code} value={r.code}>
+                        {r.name} ({r.holidays})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input
+                  type="number"
+                  min={0}
+                  max={20}
+                  value={state.holidaysPerYear || ''}
+                  onChange={(e) => updateState({ holidaysPerYear: parseInt(e.target.value) || 0 })}
+                  className="h-8 text-xs"
+                  placeholder="Holidays"
+                />
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
+          {/* Time Off */}
+          <Collapsible open={openSection === 'timeoff' || openSection === 'all'} onOpenChange={() => toggleSection('timeoff')}>
+            <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-colors text-sm border-t">
+              <div className="flex items-center gap-2">
+                <ChevronRight className={`h-3.5 w-3.5 transition-transform ${openSection === 'timeoff' || openSection === 'all' ? 'rotate-90' : ''}`} />
+                <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                <span>Time Off</span>
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {state.unlimitedPTO ? 'Paid PTO' : `${state.ptoDays + state.sickDays} days unpaid`}
+              </span>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="px-3 pb-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="unlimitedPTO" className="text-xs">Employer provides paid time off</Label>
+                <Switch
+                  id="unlimitedPTO"
+                  checked={state.unlimitedPTO}
+                  onCheckedChange={(checked) => updateState({ unlimitedPTO: checked })}
+                />
+              </div>
+              {!state.unlimitedPTO && (
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground">PTO Days</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={60}
+                      value={state.ptoDays || ''}
+                      onChange={(e) => updateState({ ptoDays: parseInt(e.target.value) || 0 })}
+                      className="h-8 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground">Sick Days</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={30}
+                      value={state.sickDays || ''}
+                      onChange={(e) => updateState({ sickDays: parseInt(e.target.value) || 0 })}
+                      className="h-8 text-xs"
+                    />
+                  </div>
+                </div>
+              )}
+            </CollapsibleContent>
+          </Collapsible>
+
+          {/* Work Schedule */}
+          <Collapsible open={openSection === 'schedule' || openSection === 'all'} onOpenChange={() => toggleSection('schedule')}>
+            <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-colors text-sm border-t">
+              <div className="flex items-center gap-2">
+                <ChevronRight className={`h-3.5 w-3.5 transition-transform ${openSection === 'schedule' || openSection === 'all' ? 'rotate-90' : ''}`} />
+                <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                <span>Schedule</span>
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {state.hoursPerDay}h × {state.daysPerWeek}d = {state.hoursPerDay * state.daysPerWeek}h/wk
+              </span>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="px-3 pb-3">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-[10px] text-muted-foreground">Hours/Day</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={16}
+                    value={state.hoursPerDay || ''}
+                    onChange={(e) => updateState({ hoursPerDay: parseInt(e.target.value) || 8 })}
+                    className="h-8 text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] text-muted-foreground">Days/Week</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={7}
+                    value={state.daysPerWeek || ''}
+                    onChange={(e) => updateState({ daysPerWeek: parseInt(e.target.value) || 5 })}
+                    className="h-8 text-xs"
+                  />
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
+          {/* Tax Estimate */}
+          <Collapsible open={openSection === 'tax' || openSection === 'all'} onOpenChange={() => toggleSection('tax')}>
+            <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-colors text-sm border-t">
+              <div className="flex items-center gap-2">
+                <ChevronRight className={`h-3.5 w-3.5 transition-transform ${openSection === 'tax' || openSection === 'all' ? 'rotate-90' : ''}`} />
+                <Receipt className="h-3.5 w-3.5 text-muted-foreground" />
+                <span>Taxes</span>
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {state.showTaxEstimate ? formatPercent(calculation.taxBreakdown.effectiveRate) : 'Off'}
+              </span>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="px-3 pb-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="showTax" className="text-xs">Show tax estimate</Label>
+                <Switch
+                  id="showTax"
+                  checked={state.showTaxEstimate}
+                  onCheckedChange={(checked) => updateState({ showTaxEstimate: checked })}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="selfEmployed" className="text-xs">Self-employed</Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        <p>Includes self-employment tax (~15.3% in US, CPP in Canada). Turn off if you're a W-2/T4 employee.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <Switch
+                  id="selfEmployed"
+                  checked={state.isSelfEmployed}
+                  onCheckedChange={(checked) => updateState({ isSelfEmployed: checked })}
+                />
+              </div>
+              {state.showTaxEstimate && (
+                <div className="space-y-1 text-xs pt-1 border-t">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Federal</span>
+                    <span>{formatCurrency(calculation.taxBreakdown.federal, state.currency, { showCode: false })}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">
+                      {state.country === 'CA' ? 'Provincial' : 'State'}
+                    </span>
+                    <span>{formatCurrency(calculation.taxBreakdown.provincialState, state.currency, { showCode: false })}</span>
+                  </div>
+                  {state.isSelfEmployed && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        {state.country === 'CA' ? 'CPP' : 'Self-Emp'}
+                      </span>
+                      <span>{formatCurrency(calculation.taxBreakdown.selfEmployment, state.currency, { showCode: false })}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between font-medium pt-1 border-t">
+                    <span>Total</span>
+                    <span>{formatCurrency(calculation.taxBreakdown.total, state.currency, { showCode: false })}</span>
+                  </div>
+                </div>
+              )}
+            </CollapsibleContent>
+          </Collapsible>
+        </div>
       </div>
 
-      {/* Results - 2 Column Layout */}
-      <Card className="overflow-hidden border-0 shadow-md">
+      {/* Right Panel - Results */}
+      <div className="md:sticky md:top-4 md:self-start space-y-3">
+        {/* Results - 2 Column Layout */}
+        <Card className="overflow-hidden border-0 shadow-md">
         <CardContent className="p-0">
           <div className="grid grid-cols-1 sm:grid-cols-2 sm:divide-x divide-y sm:divide-y-0">
             {/* Main Currency Column */}
@@ -377,264 +640,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
       </div>
 
       {/* Exchange Rate Display */}
-      <ExchangeRateDisplay baseCurrency={state.currency} />
-
-      {/* Settings Sections */}
-      <div className="flex justify-end mb-1">
-        <button
-          onClick={toggleAllSections}
-          className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted/50 transition-colors"
-        >
-          {allExpanded || openSection === 'all' ? 'Collapse all' : 'Expand all settings'}
-        </button>
-      </div>
-      <div className="space-y-px rounded-lg border bg-card/50 overflow-hidden">
-        {/* Currency & Margin */}
-        <Collapsible open={openSection === 'currency' || openSection === 'all'} onOpenChange={() => toggleSection('currency')}>
-          <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-colors text-sm">
-            <div className="flex items-center gap-2">
-              <ChevronRight className={`h-3.5 w-3.5 transition-transform ${openSection === 'currency' || openSection === 'all' ? 'rotate-90' : ''}`} />
-              <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground" />
-              <span>Currency Margin</span>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
-                    <HelpCircle className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground cursor-help" />
-                  </TooltipTrigger>
-                  <TooltipContent side="top">
-                    <p>Fee cushion for payment processing, currency conversion, or client payment delays. Contractors typically add 2-5%.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-            <span className="text-xs text-muted-foreground">
-              {state.traderMargin > 0 ? `${state.traderMargin}%` : '0%'}
-            </span>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="px-3 pb-3 space-y-2">
-            <div className="flex items-center gap-3">
-              <Slider
-                value={[state.traderMargin]}
-                onValueChange={([value]) => updateState({ traderMargin: value })}
-                max={10}
-                step={0.5}
-                className="flex-1"
-              />
-              <span className="text-xs font-medium tabular-nums w-10 text-right">{state.traderMargin}%</span>
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-
-        {/* Location & Holidays */}
-        <Collapsible open={openSection === 'location' || openSection === 'all'} onOpenChange={() => toggleSection('location')}>
-          <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-colors text-sm border-t">
-            <div className="flex items-center gap-2">
-              <ChevronRight className={`h-3.5 w-3.5 transition-transform ${openSection === 'location' || openSection === 'all' ? 'rotate-90' : ''}`} />
-              <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-              <span>Location</span>
-            </div>
-            <span className="text-xs text-muted-foreground">
-              {currentCountry?.flag} {state.region} · {state.holidaysPerYear} holidays
-            </span>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="px-3 pb-3 space-y-2">
-            <div className="grid grid-cols-3 gap-2">
-              <Select value={state.country} onValueChange={handleCountryChange}>
-                <SelectTrigger className="h-8 text-xs" aria-label="Select country">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {countries.map((c) => (
-                    <SelectItem key={c.code} value={c.code}>
-                      {c.flag} {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={state.region} onValueChange={handleRegionChange}>
-                <SelectTrigger className="h-8 text-xs" aria-label="Select region">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {currentCountry?.regions.map((r) => (
-                    <SelectItem key={r.code} value={r.code}>
-                      {r.name} ({r.holidays})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Input
-                type="number"
-                min={0}
-                max={20}
-                value={state.holidaysPerYear || ''}
-                onChange={(e) => updateState({ holidaysPerYear: parseInt(e.target.value) || 0 })}
-                className="h-8 text-xs"
-                placeholder="Holidays"
-              />
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-
-        {/* Time Off */}
-        <Collapsible open={openSection === 'timeoff' || openSection === 'all'} onOpenChange={() => toggleSection('timeoff')}>
-          <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-colors text-sm border-t">
-            <div className="flex items-center gap-2">
-              <ChevronRight className={`h-3.5 w-3.5 transition-transform ${openSection === 'timeoff' || openSection === 'all' ? 'rotate-90' : ''}`} />
-              <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-              <span>Time Off</span>
-            </div>
-            <span className="text-xs text-muted-foreground">
-              {state.unlimitedPTO ? 'Paid PTO' : `${state.ptoDays + state.sickDays} days unpaid`}
-            </span>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="px-3 pb-3 space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="unlimitedPTO" className="text-xs">Employer provides paid time off</Label>
-              <Switch
-                id="unlimitedPTO"
-                checked={state.unlimitedPTO}
-                onCheckedChange={(checked) => updateState({ unlimitedPTO: checked })}
-              />
-            </div>
-            {!state.unlimitedPTO && (
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <Label className="text-[10px] text-muted-foreground">PTO Days</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    max={60}
-                    value={state.ptoDays || ''}
-                    onChange={(e) => updateState({ ptoDays: parseInt(e.target.value) || 0 })}
-                    className="h-8 text-xs"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-[10px] text-muted-foreground">Sick Days</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    max={30}
-                    value={state.sickDays || ''}
-                    onChange={(e) => updateState({ sickDays: parseInt(e.target.value) || 0 })}
-                    className="h-8 text-xs"
-                  />
-                </div>
-              </div>
-            )}
-          </CollapsibleContent>
-        </Collapsible>
-
-        {/* Work Schedule */}
-        <Collapsible open={openSection === 'schedule' || openSection === 'all'} onOpenChange={() => toggleSection('schedule')}>
-          <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-colors text-sm border-t">
-            <div className="flex items-center gap-2">
-              <ChevronRight className={`h-3.5 w-3.5 transition-transform ${openSection === 'schedule' || openSection === 'all' ? 'rotate-90' : ''}`} />
-              <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-              <span>Schedule</span>
-            </div>
-            <span className="text-xs text-muted-foreground">
-              {state.hoursPerDay}h × {state.daysPerWeek}d = {state.hoursPerDay * state.daysPerWeek}h/wk
-            </span>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="px-3 pb-3">
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label className="text-[10px] text-muted-foreground">Hours/Day</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={16}
-                  value={state.hoursPerDay || ''}
-                  onChange={(e) => updateState({ hoursPerDay: parseInt(e.target.value) || 8 })}
-                  className="h-8 text-xs"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-[10px] text-muted-foreground">Days/Week</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={7}
-                  value={state.daysPerWeek || ''}
-                  onChange={(e) => updateState({ daysPerWeek: parseInt(e.target.value) || 5 })}
-                  className="h-8 text-xs"
-                />
-              </div>
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-
-        {/* Tax Estimate */}
-        <Collapsible open={openSection === 'tax' || openSection === 'all'} onOpenChange={() => toggleSection('tax')}>
-          <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-colors text-sm border-t">
-            <div className="flex items-center gap-2">
-              <ChevronRight className={`h-3.5 w-3.5 transition-transform ${openSection === 'tax' || openSection === 'all' ? 'rotate-90' : ''}`} />
-              <Receipt className="h-3.5 w-3.5 text-muted-foreground" />
-              <span>Taxes</span>
-            </div>
-            <span className="text-xs text-muted-foreground">
-              {state.showTaxEstimate ? formatPercent(calculation.taxBreakdown.effectiveRate) : 'Off'}
-            </span>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="px-3 pb-3 space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="showTax" className="text-xs">Show tax estimate</Label>
-              <Switch
-                id="showTax"
-                checked={state.showTaxEstimate}
-                onCheckedChange={(checked) => updateState({ showTaxEstimate: checked })}
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Label htmlFor="selfEmployed" className="text-xs">Self-employed</Label>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <HelpCircle className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent side="top">
-                      <p>Includes self-employment tax (~15.3% in US, CPP in Canada). Turn off if you're a W-2/T4 employee.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <Switch
-                id="selfEmployed"
-                checked={state.isSelfEmployed}
-                onCheckedChange={(checked) => updateState({ isSelfEmployed: checked })}
-              />
-            </div>
-            {state.showTaxEstimate && (
-              <div className="space-y-1 text-xs pt-1 border-t">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Federal</span>
-                  <span>{formatCurrency(calculation.taxBreakdown.federal, state.currency, { showCode: false })}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">
-                    {state.country === 'CA' ? 'Provincial' : 'State'}
-                  </span>
-                  <span>{formatCurrency(calculation.taxBreakdown.provincialState, state.currency, { showCode: false })}</span>
-                </div>
-                {state.isSelfEmployed && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">
-                      {state.country === 'CA' ? 'CPP' : 'Self-Emp'}
-                    </span>
-                    <span>{formatCurrency(calculation.taxBreakdown.selfEmployment, state.currency, { showCode: false })}</span>
-                  </div>
-                )}
-                <div className="flex justify-between font-medium pt-1 border-t">
-                  <span>Total</span>
-                  <span>{formatCurrency(calculation.taxBreakdown.total, state.currency, { showCode: false })}</span>
-                </div>
-              </div>
-            )}
-          </CollapsibleContent>
-        </Collapsible>
+        <ExchangeRateDisplay baseCurrency={state.currency} />
       </div>
     </div>
   )
