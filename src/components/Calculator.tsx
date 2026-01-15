@@ -240,7 +240,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                   value={displayCurrency}
                   onValueChange={(v) => updateState({ displayCurrency: v as Currency })}
                 >
-                  <SelectTrigger className="w-16 h-6 text-[10px] px-2" aria-label="Select display currency">
+                  <SelectTrigger className="w-20 h-9 text-xs px-2" aria-label="Select display currency">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
