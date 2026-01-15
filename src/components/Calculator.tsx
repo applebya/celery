@@ -31,6 +31,7 @@ interface CalculatorProps {
 
 export function Calculator({ state, onChange, showTitle = false }: CalculatorProps) {
   const [openSection, setOpenSection] = useState<string | null>(null)
+  const [allExpanded, setAllExpanded] = useState(false)
   const [editingTitle, setEditingTitle] = useState(false)
   const [titleInput, setTitleInput] = useState(state.title)
 
@@ -68,7 +69,22 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
   )
 
   const toggleSection = (section: string) => {
-    setOpenSection(openSection === section ? null : section)
+    if (openSection === 'all') {
+      // When all expanded, clicking one collapses to just that one
+      setOpenSection(section)
+      setAllExpanded(false)
+    } else {
+      setOpenSection(openSection === section ? null : section)
+    }
+  }
+
+  const toggleAllSections = () => {
+    if (allExpanded) {
+      setOpenSection(null)
+    } else {
+      setOpenSection('all')
+    }
+    setAllExpanded(!allExpanded)
   }
 
   const handleTitleSave = () => {
@@ -308,12 +324,20 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
       <ExchangeRateDisplay baseCurrency={state.currency} />
 
       {/* Settings Sections */}
+      <div className="flex justify-end mb-1">
+        <button
+          onClick={toggleAllSections}
+          className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted/50 transition-colors"
+        >
+          {allExpanded || openSection === 'all' ? 'Collapse all' : 'Expand all settings'}
+        </button>
+      </div>
       <div className="space-y-px rounded-lg border bg-card/50 overflow-hidden">
         {/* Currency & Margin */}
-        <Collapsible open={openSection === 'currency'} onOpenChange={() => toggleSection('currency')}>
+        <Collapsible open={openSection === 'currency' || openSection === 'all'} onOpenChange={() => toggleSection('currency')}>
           <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-colors text-sm">
             <div className="flex items-center gap-2">
-              <ChevronRight className={`h-3.5 w-3.5 transition-transform ${openSection === 'currency' ? 'rotate-90' : ''}`} />
+              <ChevronRight className={`h-3.5 w-3.5 transition-transform ${openSection === 'currency' || openSection === 'all' ? 'rotate-90' : ''}`} />
               <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground" />
               <span>Currency Margin</span>
               <TooltipProvider>
@@ -346,10 +370,10 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
         </Collapsible>
 
         {/* Location & Holidays */}
-        <Collapsible open={openSection === 'location'} onOpenChange={() => toggleSection('location')}>
+        <Collapsible open={openSection === 'location' || openSection === 'all'} onOpenChange={() => toggleSection('location')}>
           <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-colors text-sm border-t">
             <div className="flex items-center gap-2">
-              <ChevronRight className={`h-3.5 w-3.5 transition-transform ${openSection === 'location' ? 'rotate-90' : ''}`} />
+              <ChevronRight className={`h-3.5 w-3.5 transition-transform ${openSection === 'location' || openSection === 'all' ? 'rotate-90' : ''}`} />
               <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
               <span>Location</span>
             </div>
@@ -397,10 +421,10 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
         </Collapsible>
 
         {/* Time Off */}
-        <Collapsible open={openSection === 'timeoff'} onOpenChange={() => toggleSection('timeoff')}>
+        <Collapsible open={openSection === 'timeoff' || openSection === 'all'} onOpenChange={() => toggleSection('timeoff')}>
           <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-colors text-sm border-t">
             <div className="flex items-center gap-2">
-              <ChevronRight className={`h-3.5 w-3.5 transition-transform ${openSection === 'timeoff' ? 'rotate-90' : ''}`} />
+              <ChevronRight className={`h-3.5 w-3.5 transition-transform ${openSection === 'timeoff' || openSection === 'all' ? 'rotate-90' : ''}`} />
               <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
               <span>Time Off</span>
             </div>
@@ -447,10 +471,10 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
         </Collapsible>
 
         {/* Work Schedule */}
-        <Collapsible open={openSection === 'schedule'} onOpenChange={() => toggleSection('schedule')}>
+        <Collapsible open={openSection === 'schedule' || openSection === 'all'} onOpenChange={() => toggleSection('schedule')}>
           <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-colors text-sm border-t">
             <div className="flex items-center gap-2">
-              <ChevronRight className={`h-3.5 w-3.5 transition-transform ${openSection === 'schedule' ? 'rotate-90' : ''}`} />
+              <ChevronRight className={`h-3.5 w-3.5 transition-transform ${openSection === 'schedule' || openSection === 'all' ? 'rotate-90' : ''}`} />
               <Clock className="h-3.5 w-3.5 text-muted-foreground" />
               <span>Schedule</span>
             </div>
@@ -487,10 +511,10 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
         </Collapsible>
 
         {/* Tax Estimate */}
-        <Collapsible open={openSection === 'tax'} onOpenChange={() => toggleSection('tax')}>
+        <Collapsible open={openSection === 'tax' || openSection === 'all'} onOpenChange={() => toggleSection('tax')}>
           <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-colors text-sm border-t">
             <div className="flex items-center gap-2">
-              <ChevronRight className={`h-3.5 w-3.5 transition-transform ${openSection === 'tax' ? 'rotate-90' : ''}`} />
+              <ChevronRight className={`h-3.5 w-3.5 transition-transform ${openSection === 'tax' || openSection === 'all' ? 'rotate-90' : ''}`} />
               <Receipt className="h-3.5 w-3.5 text-muted-foreground" />
               <span>Taxes</span>
             </div>
