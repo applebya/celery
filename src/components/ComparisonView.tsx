@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Plus, X, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Calculator } from './Calculator'
 import { useCalculation } from '@/hooks/useCalculation'
@@ -51,6 +52,9 @@ export function ComparisonView({
     : leftState.currency === 'CAD' ? 'USD'
     : 'USD'
   const convertedDifference = convertCurrency(Math.abs(netDifference), leftState.currency, otherCurrency)
+
+  // Determine winner based on net annual income
+  const winner = netDifference > 0 ? 'right' : netDifference < 0 ? 'left' : null
 
   // Single calculator mode (no comparison)
   if (!isComparing) {
@@ -124,8 +128,13 @@ export function ComparisonView({
         <TabsContent value="compare">
           {/* Side by side comparison */}
           <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardContent className="pt-6">
+            <Card className={winner === 'left' ? 'ring-2 ring-green-500 ring-offset-2' : ''}>
+              <CardContent className="pt-6 relative">
+                {winner === 'left' && (
+                  <Badge className="absolute -top-2 left-1/2 -translate-x-1/2 bg-green-500 text-white">
+                    Better Deal
+                  </Badge>
+                )}
                 <h3 className="font-semibold text-center mb-4">{leftState.title || 'Scenario 1'}</h3>
                 <div className="text-center space-y-1">
                   <p className="text-2xl font-bold">{formatCurrency(leftCalc.grossAnnual, leftState.currency)}</p>
@@ -139,8 +148,13 @@ export function ComparisonView({
               </CardContent>
             </Card>
 
-            <Card>
-              <CardContent className="pt-6">
+            <Card className={winner === 'right' ? 'ring-2 ring-green-500 ring-offset-2' : ''}>
+              <CardContent className="pt-6 relative">
+                {winner === 'right' && (
+                  <Badge className="absolute -top-2 left-1/2 -translate-x-1/2 bg-green-500 text-white">
+                    Better Deal
+                  </Badge>
+                )}
                 <h3 className="font-semibold text-center mb-4">{rightState.title || 'Scenario 2'}</h3>
                 <div className="text-center space-y-1">
                   <p className="text-2xl font-bold">{formatCurrency(rightCalc.grossAnnual, rightState.currency)}</p>
