@@ -1,13 +1,11 @@
 import { useState } from 'react'
-import { Plus, X, ArrowUpRight, ArrowDownRight } from 'lucide-react'
+import { Plus, X } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Calculator } from './Calculator'
 import { useCalculation } from '@/hooks/useCalculation'
-import { useExchangeRate } from '@/hooks/useExchangeRate'
 import { formatCurrency } from '@/lib/calculate'
-import type { CalculatorState, Currency } from '@/types'
+import type { CalculatorState } from '@/types'
 import { DEFAULT_STATE } from '@/types'
 
 interface ComparisonViewProps {
@@ -26,7 +24,6 @@ export function ComparisonView({
   const [activeTab, setActiveTab] = useState<string>('scenario-1')
   const leftCalc = useCalculation(leftState)
   const rightCalc = useCalculation(rightState ?? DEFAULT_STATE)
-  const { convertCurrency, exchangeRates } = useExchangeRate()
 
   const addScenario = () => {
     onRightChange({
@@ -50,11 +47,6 @@ export function ComparisonView({
   const netPercentChange = isComparing && leftCalc.netAnnual > 0
     ? ((rightCalc.netAnnual - leftCalc.netAnnual) / leftCalc.netAnnual) * 100
     : 0
-  const otherCurrency: Currency = leftState.currency === 'USD' ? 'CAD'
-    : leftState.currency === 'CAD' ? 'USD'
-    : 'USD'
-  const convertedDifference = convertCurrency(Math.abs(netDifference), leftState.currency, otherCurrency)
-
   // Determine winner based on net annual income
   const winner = netDifference > 0 ? 'right' : netDifference < 0 ? 'left' : null
 
@@ -127,79 +119,133 @@ export function ComparisonView({
           />
         </TabsContent>
 
-        <TabsContent value="compare">
-          {/* Side by side comparison */}
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card className={winner === 'left' ? 'ring-2 ring-green-500 ring-offset-2' : ''}>
-              <CardContent className="pt-6 relative">
-                {winner === 'left' && (
-                  <Badge className="absolute -top-2 left-1/2 -translate-x-1/2 bg-green-500 text-white">
-                    Better Deal
-                  </Badge>
-                )}
-                <h3 className="font-semibold text-lg text-center mb-4">{leftState.title || 'Scenario 1'}</h3>
-                <div className="text-center space-y-1">
-                  <p className="text-3xl font-bold">{formatCurrency(leftCalc.grossAnnual, leftState.currency)}</p>
-                  <p className="text-base text-green-600 dark:text-green-400">
-                    After tax: {formatCurrency(leftCalc.netAnnual, leftState.currency)}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {leftCalc.billableHours.toLocaleString()} hrs/yr
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className={winner === 'right' ? 'ring-2 ring-green-500 ring-offset-2' : ''}>
-              <CardContent className="pt-6 relative">
-                {winner === 'right' && (
-                  <Badge className="absolute -top-2 left-1/2 -translate-x-1/2 bg-green-500 text-white">
-                    Better Deal
-                  </Badge>
-                )}
-                <h3 className="font-semibold text-lg text-center mb-4">{rightState.title || 'Scenario 2'}</h3>
-                <div className="text-center space-y-1">
-                  <p className="text-3xl font-bold">{formatCurrency(rightCalc.grossAnnual, rightState.currency)}</p>
-                  <p className="text-base text-green-600 dark:text-green-400">
-                    After tax: {formatCurrency(rightCalc.netAnnual, rightState.currency)}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {rightCalc.billableHours.toLocaleString()} hrs/yr
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+        <TabsContent value="compare" className="space-y-4">
+          {/* Header Row */}
+          <div className="grid grid-cols-[1fr,1fr,auto] gap-4 text-center">
+            <div className="font-semibold text-lg">{leftState.title || 'Scenario 1'}</div>
+            <div className="font-semibold text-lg">{rightState.title || 'Scenario 2'}</div>
+            <div className="w-20"></div>
           </div>
 
-          {/* Difference summary */}
-          <Card className="mt-4 bg-muted/50">
-            <CardContent className="py-6">
-              <div className="flex items-center justify-center gap-4 text-center">
-                <div>
-                  <p className="text-base text-muted-foreground mb-1">
-                    {rightState.title || 'Scenario 2'} vs {leftState.title || 'Scenario 1'}
-                  </p>
-                  <p className={`text-3xl font-bold flex items-center justify-center gap-1 ${
-                    netDifference >= 0 ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {netDifference >= 0 ? (
-                      <ArrowUpRight className="h-7 w-7" />
-                    ) : (
-                      <ArrowDownRight className="h-7 w-7" />
-                    )}
-                    {netDifference >= 0 ? '+' : '-'}
+          {/* Gross Annual Row */}
+          <div className="grid grid-cols-[1fr,1fr,auto] gap-4 items-center py-3 border-b">
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-1">Gross Annual</p>
+              <p className="text-2xl font-bold tabular-nums">
+                {formatCurrency(leftCalc.grossAnnual, leftState.currency)}
+              </p>
+            </div>
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-1">Gross Annual</p>
+              <p className="text-2xl font-bold tabular-nums">
+                {formatCurrency(rightCalc.grossAnnual, rightState.currency)}
+              </p>
+            </div>
+            <div className="w-20 text-right">
+              <span className={`text-sm font-medium ${
+                rightCalc.grossAnnual >= leftCalc.grossAnnual ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {rightCalc.grossAnnual >= leftCalc.grossAnnual ? '+' : ''}
+                {leftCalc.grossAnnual > 0 ? (((rightCalc.grossAnnual - leftCalc.grossAnnual) / leftCalc.grossAnnual) * 100).toFixed(1) : '0'}%
+              </span>
+            </div>
+          </div>
+
+          {/* Net Annual Row */}
+          <div className="grid grid-cols-[1fr,1fr,auto] gap-4 items-center py-3 border-b">
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-1">Net Annual (Take-home)</p>
+              <p className={`text-3xl font-bold tabular-nums ${winner === 'left' ? 'text-green-600' : ''}`}>
+                {formatCurrency(leftCalc.netAnnual, leftState.currency)}
+                {winner === 'left' && <span className="ml-2 text-sm">●</span>}
+              </p>
+            </div>
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-1">Net Annual (Take-home)</p>
+              <p className={`text-3xl font-bold tabular-nums ${winner === 'right' ? 'text-green-600' : ''}`}>
+                {formatCurrency(rightCalc.netAnnual, rightState.currency)}
+                {winner === 'right' && <span className="ml-2 text-sm">●</span>}
+              </p>
+            </div>
+            <div className="w-20 text-right">
+              <span className={`text-sm font-medium ${
+                netDifference >= 0 ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {netPercentChange >= 0 ? '+' : ''}{netPercentChange.toFixed(1)}%
+              </span>
+            </div>
+          </div>
+
+          {/* Effective Hourly Row */}
+          <div className="grid grid-cols-[1fr,1fr,auto] gap-4 items-center py-3 border-b">
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-1">Effective Hourly</p>
+              <p className="text-xl font-bold tabular-nums">
+                {formatCurrency(leftCalc.billableHours > 0 ? leftCalc.netAnnual / leftCalc.billableHours : 0, leftState.currency)}/hr
+              </p>
+            </div>
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-1">Effective Hourly</p>
+              <p className="text-xl font-bold tabular-nums">
+                {formatCurrency(rightCalc.billableHours > 0 ? rightCalc.netAnnual / rightCalc.billableHours : 0, rightState.currency)}/hr
+              </p>
+            </div>
+            <div className="w-20 text-right">
+              {(() => {
+                const leftHourly = leftCalc.billableHours > 0 ? leftCalc.netAnnual / leftCalc.billableHours : 0
+                const rightHourly = rightCalc.billableHours > 0 ? rightCalc.netAnnual / rightCalc.billableHours : 0
+                const hourlyDiff = leftHourly > 0 ? ((rightHourly - leftHourly) / leftHourly) * 100 : 0
+                return (
+                  <span className={`text-sm font-medium ${rightHourly >= leftHourly ? 'text-green-600' : 'text-red-600'}`}>
+                    {hourlyDiff >= 0 ? '+' : ''}{hourlyDiff.toFixed(1)}%
+                  </span>
+                )
+              })()}
+            </div>
+          </div>
+
+          {/* Hours/Year Row */}
+          <div className="grid grid-cols-[1fr,1fr,auto] gap-4 items-center py-3 border-b">
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-1">Hours/Year</p>
+              <p className="text-lg font-medium tabular-nums">
+                {leftCalc.billableHours.toLocaleString()}
+              </p>
+            </div>
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-1">Hours/Year</p>
+              <p className="text-lg font-medium tabular-nums">
+                {rightCalc.billableHours.toLocaleString()}
+              </p>
+            </div>
+            <div className="w-20 text-right">
+              {(() => {
+                const hoursDiff = leftCalc.billableHours > 0 ? ((rightCalc.billableHours - leftCalc.billableHours) / leftCalc.billableHours) * 100 : 0
+                // For hours, less is better (more free time)
+                return (
+                  <span className={`text-sm font-medium ${rightCalc.billableHours <= leftCalc.billableHours ? 'text-green-600' : 'text-red-600'}`}>
+                    {hoursDiff >= 0 ? '+' : ''}{hoursDiff.toFixed(1)}%
+                  </span>
+                )
+              })()}
+            </div>
+          </div>
+
+          {/* Verdict */}
+          <Card className="bg-muted/50">
+            <CardContent className="py-4 text-center">
+              {winner ? (
+                <p className="text-lg">
+                  <span className="font-semibold">{winner === 'right' ? (rightState.title || 'Scenario 2') : (leftState.title || 'Scenario 1')}</span>
+                  {' pays '}
+                  <span className="font-bold text-green-600">
                     {formatCurrency(Math.abs(netDifference), leftState.currency)}
-                  </p>
-                  {exchangeRates && (
-                    <p className="text-base text-muted-foreground mt-1">
-                      = {netDifference >= 0 ? '+' : '-'}{formatCurrency(convertedDifference, otherCurrency)}
-                    </p>
-                  )}
-                  <p className="text-base text-muted-foreground">
-                    ({netPercentChange >= 0 ? '+' : ''}{netPercentChange.toFixed(1)}% after tax)
-                  </p>
-                </div>
-              </div>
+                  </span>
+                  {' more annually (net)'}
+                </p>
+              ) : (
+                <p className="text-lg text-muted-foreground">Both scenarios have equal net pay</p>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
