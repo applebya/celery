@@ -646,37 +646,37 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                   <div className="space-y-1">
                     {state.showTaxEstimate ? (
                       <>
-                        <p className="text-sm text-muted-foreground/60 uppercase tracking-wide">Take-home</p>
-                        <p className="text-3xl font-bold tracking-tight leading-none text-green-600/60 dark:text-green-400/60">
+                        <p className="text-sm text-muted-foreground uppercase tracking-wide">Take-home</p>
+                        <p className="text-3xl font-bold tracking-tight leading-none text-green-600 dark:text-green-400">
                           {formatCurrency(convertedNet, displayCurrency, { showCode: false })}
                         </p>
-                        <p className="text-base text-muted-foreground/60">
+                        <p className="text-base text-muted-foreground">
                           {formatCurrency(convertedGross, displayCurrency, { showCode: false })} gross
                         </p>
                       </>
                     ) : (
                       <>
-                        <p className="text-sm text-muted-foreground/60 uppercase tracking-wide">Annual</p>
-                        <p className="text-3xl font-bold tracking-tight leading-none text-muted-foreground/80">
+                        <p className="text-sm text-muted-foreground uppercase tracking-wide">Annual</p>
+                        <p className="text-3xl font-bold tracking-tight leading-none text-muted-foreground">
                           {formatCurrency(convertedGross, displayCurrency, { showCode: false })}
                         </p>
                       </>
                     )}
-                    <p className="text-sm text-muted-foreground/60">
+                    <p className="text-sm text-muted-foreground">
                       {formatCurrency(convertWithMargin(state.hourlyRate, state.currency, displayCurrency, state.traderMargin), displayCurrency, { showCode: false })}/hr × {calculation.billableHours.toLocaleString()} hrs
                     </p>
                   </div>
                 ) : (
                   <div className="space-y-1">
-                    <p className="text-3xl font-bold tracking-tight leading-none text-muted-foreground/80">
+                    <p className="text-3xl font-bold tracking-tight leading-none text-muted-foreground">
                       {formatCurrency(convertedHourly, displayCurrency, { showCode: false })}/hr
                     </p>
-                    <p className="text-lg font-medium text-muted-foreground/70">
+                    <p className="text-lg font-medium text-muted-foreground">
                       {formatCurrency(convertedGross, displayCurrency, { showCode: false })}
-                      <span className="text-sm text-muted-foreground/60 ml-1">gross</span>
+                      <span className="text-sm text-muted-foreground ml-1">gross</span>
                     </p>
                     {state.showTaxEstimate && (
-                      <p className="text-base text-green-600/60 dark:text-green-400/60">
+                      <p className="text-base text-green-600 dark:text-green-400">
                         {formatCurrency(convertedNet, displayCurrency, { showCode: false })} net
                       </p>
                     )}
