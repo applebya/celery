@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { ChevronRight, MapPin, Calendar, Clock, Receipt, Pencil, Check, ArrowRightLeft, HelpCircle, Share2 } from 'lucide-react'
+import { ChevronRight, Calendar, Receipt, Pencil, Check, ArrowRightLeft, HelpCircle, Share2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -341,143 +341,134 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
             </CollapsibleContent>
           </Collapsible>
 
-          {/* Location & Holidays */}
-          <Collapsible open={openSection === 'location' || openSection === 'all'} onOpenChange={() => toggleSection('location')}>
-            <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-colors text-sm border-t">
+          {/* Work Schedule - Consolidated */}
+          <Collapsible open={openSection === 'schedule' || openSection === 'all'} onOpenChange={() => toggleSection('schedule')}>
+            <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-colors text-base border-t">
               <div className="flex items-center gap-2">
-                <ChevronRight className={`h-3.5 w-3.5 transition-transform ${openSection === 'location' || openSection === 'all' ? 'rotate-90' : ''}`} />
-                <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                <span>Location</span>
+                <ChevronRight className={`h-4 w-4 transition-transform ${openSection === 'schedule' || openSection === 'all' ? 'rotate-90' : ''}`} />
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <span>Work Schedule</span>
               </div>
-              <span className="text-xs text-muted-foreground">
-                {currentCountry?.flag} {state.region} · {state.holidaysPerYear} holidays
+              <span className="text-sm text-muted-foreground">
+                {currentCountry?.flag} {state.region} · {state.holidaysPerYear + (state.unlimitedPTO ? 0 : state.ptoDays + state.sickDays)} days off
               </span>
             </CollapsibleTrigger>
-            <CollapsibleContent className="px-3 pb-3 space-y-2">
-              <div className="grid grid-cols-3 gap-2">
-                <Select value={state.country} onValueChange={handleCountryChange}>
-                  <SelectTrigger className="h-8 text-xs" aria-label="Select country">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {countries.map((c) => (
-                      <SelectItem key={c.code} value={c.code}>
-                        {c.flag} {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={state.region} onValueChange={handleRegionChange}>
-                  <SelectTrigger className="h-8 text-xs" aria-label="Select region">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {currentCountry?.regions.map((r) => (
-                      <SelectItem key={r.code} value={r.code}>
-                        {r.name} ({r.holidays})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Input
-                  type="number"
-                  min={0}
-                  max={20}
-                  value={state.holidaysPerYear || ''}
-                  onChange={(e) => updateState({ holidaysPerYear: parseInt(e.target.value) || 0 })}
-                  className="h-8 text-xs"
-                  placeholder="Holidays"
-                />
+            <CollapsibleContent className="px-3 pb-3 space-y-4">
+              {/* Location Row */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-sm text-muted-foreground">Country</Label>
+                  <Select value={state.country} onValueChange={handleCountryChange}>
+                    <SelectTrigger className="h-10 text-base">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {countries.map((c) => (
+                        <SelectItem key={c.code} value={c.code}>
+                          {c.flag} {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-sm text-muted-foreground">Region</Label>
+                  <Select value={state.region} onValueChange={handleRegionChange}>
+                    <SelectTrigger className="h-10 text-base">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {currentCountry?.regions.map((r) => (
+                        <SelectItem key={r.code} value={r.code}>
+                          {r.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            </CollapsibleContent>
-          </Collapsible>
 
-          {/* Time Off */}
-          <Collapsible open={openSection === 'timeoff' || openSection === 'all'} onOpenChange={() => toggleSection('timeoff')}>
-            <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-colors text-sm border-t">
-              <div className="flex items-center gap-2">
-                <ChevronRight className={`h-3.5 w-3.5 transition-transform ${openSection === 'timeoff' || openSection === 'all' ? 'rotate-90' : ''}`} />
-                <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                <span>Time Off</span>
+              {/* Time Off Grid */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-sm text-muted-foreground">Holidays</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={20}
+                    value={state.holidaysPerYear || ''}
+                    onChange={(e) => updateState({ holidaysPerYear: parseInt(e.target.value) || 0 })}
+                    className="h-10 text-base"
+                  />
+                  <span className="text-xs text-muted-foreground">public</span>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-sm text-muted-foreground">PTO</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={60}
+                    value={state.ptoDays || ''}
+                    onChange={(e) => updateState({ ptoDays: parseInt(e.target.value) || 0 })}
+                    className="h-10 text-base"
+                    disabled={state.unlimitedPTO}
+                  />
+                  <span className="text-xs text-muted-foreground">vacation</span>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-sm text-muted-foreground">Sick Days</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={30}
+                    value={state.sickDays || ''}
+                    onChange={(e) => updateState({ sickDays: parseInt(e.target.value) || 0 })}
+                    className="h-10 text-base"
+                    disabled={state.unlimitedPTO}
+                  />
+                  <span className="text-xs text-muted-foreground">personal</span>
+                </div>
               </div>
-              <span className="text-xs text-muted-foreground">
-                {state.unlimitedPTO ? 'Paid PTO' : `${state.ptoDays + state.sickDays} days unpaid`}
-              </span>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="px-3 pb-3 space-y-2">
+
+              {/* Paid PTO Toggle */}
               <div className="flex items-center justify-between">
-                <Label htmlFor="unlimitedPTO" className="text-xs">Employer provides paid time off</Label>
+                <Label htmlFor="unlimitedPTO" className="text-base">Employer provides paid time off</Label>
                 <Switch
                   id="unlimitedPTO"
                   checked={state.unlimitedPTO}
                   onCheckedChange={(checked) => updateState({ unlimitedPTO: checked })}
                 />
               </div>
-              {!state.unlimitedPTO && (
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1">
-                    <Label className="text-[10px] text-muted-foreground">PTO Days</Label>
-                    <Input
-                      type="number"
-                      min={0}
-                      max={60}
-                      value={state.ptoDays || ''}
-                      onChange={(e) => updateState({ ptoDays: parseInt(e.target.value) || 0 })}
-                      className="h-8 text-xs"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-[10px] text-muted-foreground">Sick Days</Label>
-                    <Input
-                      type="number"
-                      min={0}
-                      max={30}
-                      value={state.sickDays || ''}
-                      onChange={(e) => updateState({ sickDays: parseInt(e.target.value) || 0 })}
-                      className="h-8 text-xs"
-                    />
-                  </div>
-                </div>
-              )}
-            </CollapsibleContent>
-          </Collapsible>
 
-          {/* Work Schedule */}
-          <Collapsible open={openSection === 'schedule' || openSection === 'all'} onOpenChange={() => toggleSection('schedule')}>
-            <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-colors text-sm border-t">
-              <div className="flex items-center gap-2">
-                <ChevronRight className={`h-3.5 w-3.5 transition-transform ${openSection === 'schedule' || openSection === 'all' ? 'rotate-90' : ''}`} />
-                <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                <span>Schedule</span>
-              </div>
-              <span className="text-xs text-muted-foreground">
-                {state.hoursPerDay}h × {state.daysPerWeek}d = {state.hoursPerDay * state.daysPerWeek}h/wk
-              </span>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="px-3 pb-3">
-              <div className="grid grid-cols-2 gap-2">
+              {/* Hours Per Week */}
+              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label className="text-[10px] text-muted-foreground">Hours/Day</Label>
+                  <Label className="text-sm text-muted-foreground">Hours/Day</Label>
                   <Input
                     type="number"
                     min={1}
                     max={16}
                     value={state.hoursPerDay || ''}
                     onChange={(e) => updateState({ hoursPerDay: parseInt(e.target.value) || 8 })}
-                    className="h-8 text-xs"
+                    className="h-10 text-base"
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-[10px] text-muted-foreground">Days/Week</Label>
+                  <Label className="text-sm text-muted-foreground">Days/Week</Label>
                   <Input
                     type="number"
                     min={1}
                     max={7}
                     value={state.daysPerWeek || ''}
                     onChange={(e) => updateState({ daysPerWeek: parseInt(e.target.value) || 5 })}
-                    className="h-8 text-xs"
+                    className="h-10 text-base"
                   />
                 </div>
+              </div>
+
+              {/* Summary */}
+              <div className="pt-2 border-t text-base text-muted-foreground">
+                {calculation.billableHours.toLocaleString()} billable hours/year
               </div>
             </CollapsibleContent>
           </Collapsible>
