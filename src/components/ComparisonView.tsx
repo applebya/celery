@@ -72,7 +72,7 @@ export function ComparisonView({
         <div className="flex justify-center">
           <button
             onClick={addScenario}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary border border-primary/30 hover:bg-primary/10 rounded-lg transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-base font-medium text-primary border border-primary/30 hover:bg-primary/10 rounded-lg transition-colors"
           >
             <Plus className="h-4 w-4" />
             Compare Job Offers
@@ -137,13 +137,13 @@ export function ComparisonView({
                     Better Deal
                   </Badge>
                 )}
-                <h3 className="font-semibold text-center mb-4">{leftState.title || 'Scenario 1'}</h3>
+                <h3 className="font-semibold text-lg text-center mb-4">{leftState.title || 'Scenario 1'}</h3>
                 <div className="text-center space-y-1">
-                  <p className="text-2xl font-bold">{formatCurrency(leftCalc.grossAnnual, leftState.currency)}</p>
-                  <p className="text-sm text-green-600 dark:text-green-400">
+                  <p className="text-3xl font-bold">{formatCurrency(leftCalc.grossAnnual, leftState.currency)}</p>
+                  <p className="text-base text-green-600 dark:text-green-400">
                     After tax: {formatCurrency(leftCalc.netAnnual, leftState.currency)}
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     {leftCalc.billableHours.toLocaleString()} hrs/yr
                   </p>
                 </div>
@@ -157,13 +157,13 @@ export function ComparisonView({
                     Better Deal
                   </Badge>
                 )}
-                <h3 className="font-semibold text-center mb-4">{rightState.title || 'Scenario 2'}</h3>
+                <h3 className="font-semibold text-lg text-center mb-4">{rightState.title || 'Scenario 2'}</h3>
                 <div className="text-center space-y-1">
-                  <p className="text-2xl font-bold">{formatCurrency(rightCalc.grossAnnual, rightState.currency)}</p>
-                  <p className="text-sm text-green-600 dark:text-green-400">
+                  <p className="text-3xl font-bold">{formatCurrency(rightCalc.grossAnnual, rightState.currency)}</p>
+                  <p className="text-base text-green-600 dark:text-green-400">
                     After tax: {formatCurrency(rightCalc.netAnnual, rightState.currency)}
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     {rightCalc.billableHours.toLocaleString()} hrs/yr
                   </p>
                 </div>
@@ -176,26 +176,26 @@ export function ComparisonView({
             <CardContent className="py-6">
               <div className="flex items-center justify-center gap-4 text-center">
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">
+                  <p className="text-base text-muted-foreground mb-1">
                     {rightState.title || 'Scenario 2'} vs {leftState.title || 'Scenario 1'}
                   </p>
-                  <p className={`text-2xl font-bold flex items-center justify-center gap-1 ${
+                  <p className={`text-3xl font-bold flex items-center justify-center gap-1 ${
                     netDifference >= 0 ? 'text-green-600' : 'text-red-600'
                   }`}>
                     {netDifference >= 0 ? (
-                      <ArrowUpRight className="h-6 w-6" />
+                      <ArrowUpRight className="h-7 w-7" />
                     ) : (
-                      <ArrowDownRight className="h-6 w-6" />
+                      <ArrowDownRight className="h-7 w-7" />
                     )}
                     {netDifference >= 0 ? '+' : '-'}
                     {formatCurrency(Math.abs(netDifference), leftState.currency)}
                   </p>
                   {exchangeRates && (
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <p className="text-base text-muted-foreground mt-1">
                       = {netDifference >= 0 ? '+' : '-'}{formatCurrency(convertedDifference, otherCurrency)}
                     </p>
                   )}
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-base text-muted-foreground">
                     ({netPercentChange >= 0 ? '+' : ''}{netPercentChange.toFixed(1)}% after tax)
                   </p>
                 </div>
