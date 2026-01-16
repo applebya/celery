@@ -552,8 +552,10 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
       {/* Right Panel - Results */}
       <div className="md:sticky md:top-4 md:self-start space-y-3">
         {/* Results - 2 Column Layout */}
-        <Card className="overflow-hidden border-0 shadow-md">
-        <CardContent className="p-0">
+        <Card className="relative overflow-hidden border-0 shadow-xl shadow-black/5 hover:shadow-2xl transition-shadow duration-300">
+        {/* Gradient accent stripe */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500" />
+        <CardContent className="p-0 pt-1">
           <div className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'grid-cols-1 sm:grid-cols-2 sm:divide-x' : 'grid-cols-1'} divide-y sm:divide-y-0`}>
             {/* Main Currency Column */}
             <div className="p-4 space-y-2">
