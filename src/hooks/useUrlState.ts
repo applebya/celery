@@ -67,7 +67,7 @@ export function decodeUrlToState(search: string): Partial<CalculatorState> {
   }
 
   const currency = params.get(URL_PARAMS.currency) as Currency
-  if (currency && ['CAD', 'USD', 'EUR', 'GBP'].includes(currency)) {
+  if (currency && ['CAD', 'USD', 'EUR', 'GBP', 'MXN'].includes(currency)) {
     state.currency = currency
   }
 

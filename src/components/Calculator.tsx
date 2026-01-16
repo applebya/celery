@@ -23,6 +23,7 @@ const CURRENCIES: { value: Currency; label: string; symbol: string }[] = [
   { value: 'USD', label: 'USD', symbol: '$' },
   { value: 'EUR', label: 'EUR', symbol: '€' },
   { value: 'GBP', label: 'GBP', symbol: '£' },
+  { value: 'MXN', label: 'MXN', symbol: '$' },
 ]
 
 const CURRENCY_FLAGS: Record<Currency, string> = {
@@ -30,6 +31,7 @@ const CURRENCY_FLAGS: Record<Currency, string> = {
   CAD: '🇨🇦',
   EUR: '🇪🇺',
   GBP: '🇬🇧',
+  MXN: '🇲🇽',
 }
 
 const MARGIN_PRESETS = [

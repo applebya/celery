@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useExchangeRate } from '@/hooks/useExchangeRate'
 import type { Currency, HistoricalRate } from '@/types'
 
-const CURRENCIES: Currency[] = ['CAD', 'USD', 'EUR', 'GBP']
+const CURRENCIES: Currency[] = ['CAD', 'USD', 'EUR', 'GBP', 'MXN']
 
 type TimeRange = '1M' | '3M' | '6M' | '1Y' | '5Y'
 

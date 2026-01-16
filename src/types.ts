@@ -1,4 +1,4 @@
-export type Currency = 'CAD' | 'USD' | 'EUR' | 'GBP'
+export type Currency = 'CAD' | 'USD' | 'EUR' | 'GBP' | 'MXN'
 
 export interface CalculatorState {
   title: string

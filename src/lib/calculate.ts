@@ -48,6 +48,7 @@ const CURRENCY_SYMBOLS: Record<Currency, string> = {
   CAD: '$',
   EUR: '€',
   GBP: '£',
+  MXN: '$',
 }
 
 /**

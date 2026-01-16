@@ -21,6 +21,7 @@ const FALLBACK_RATES: Record<Currency, number> = {
   CAD: 1.36,
   EUR: 0.92,
   GBP: 0.79,
+  MXN: 17.2,
 }
 
 export function useExchangeRate() {
@@ -52,7 +53,7 @@ export function useExchangeRate() {
     try {
       // Using frankfurter.app API (free, no key required, ECB data)
       const response = await fetch(
-        'https://api.frankfurter.app/latest?from=USD&to=CAD,EUR,GBP'
+        'https://api.frankfurter.app/latest?from=USD&to=CAD,EUR,GBP,MXN'
       )
 
       if (!response.ok) {
@@ -67,6 +68,7 @@ export function useExchangeRate() {
           CAD: data.rates?.CAD ?? FALLBACK_RATES.CAD,
           EUR: data.rates?.EUR ?? FALLBACK_RATES.EUR,
           GBP: data.rates?.GBP ?? FALLBACK_RATES.GBP,
+          MXN: data.rates?.MXN ?? FALLBACK_RATES.MXN,
         },
         timestamp: Date.now(),
       }
