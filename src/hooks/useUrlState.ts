@@ -71,8 +71,8 @@ export function decodeUrlToState(search: string): Partial<CalculatorState> {
     state.currency = currency
   }
 
-  const country = params.get(URL_PARAMS.country) as 'CA' | 'US'
-  if (country && ['CA', 'US'].includes(country)) {
+  const country = params.get(URL_PARAMS.country) as 'CA' | 'US' | 'MX'
+  if (country && ['CA', 'US', 'MX'].includes(country)) {
     state.country = country
   }
 

@@ -8,7 +8,7 @@ export interface Country {
   code: string
   name: string
   flag: string
-  currency: 'CAD' | 'USD'
+  currency: 'CAD' | 'USD' | 'MXN'
   regions: Region[]
 }
 
@@ -91,6 +91,46 @@ export const countries: Country[] = [
       { code: 'WI', name: 'Wisconsin', holidays: 11 },
       { code: 'WY', name: 'Wyoming', holidays: 11 },
       { code: 'DC', name: 'District of Columbia', holidays: 12 }, // Inauguration Day
+    ],
+  },
+  {
+    code: 'MX',
+    name: 'Mexico',
+    flag: '🇲🇽',
+    currency: 'MXN',
+    regions: [
+      { code: 'AGU', name: 'Aguascalientes', holidays: 7 },
+      { code: 'BCN', name: 'Baja California', holidays: 7 },
+      { code: 'BCS', name: 'Baja California Sur', holidays: 7 },
+      { code: 'CAM', name: 'Campeche', holidays: 7 },
+      { code: 'CHP', name: 'Chiapas', holidays: 7 },
+      { code: 'CHH', name: 'Chihuahua', holidays: 7 },
+      { code: 'COA', name: 'Coahuila', holidays: 7 },
+      { code: 'COL', name: 'Colima', holidays: 7 },
+      { code: 'CMX', name: 'Ciudad de México', holidays: 7 },
+      { code: 'DUR', name: 'Durango', holidays: 7 },
+      { code: 'GUA', name: 'Guanajuato', holidays: 7 },
+      { code: 'GRO', name: 'Guerrero', holidays: 7 },
+      { code: 'HID', name: 'Hidalgo', holidays: 7 },
+      { code: 'JAL', name: 'Jalisco', holidays: 7 },
+      { code: 'MEX', name: 'Estado de México', holidays: 7 },
+      { code: 'MIC', name: 'Michoacán', holidays: 7 },
+      { code: 'MOR', name: 'Morelos', holidays: 7 },
+      { code: 'NAY', name: 'Nayarit', holidays: 7 },
+      { code: 'NLE', name: 'Nuevo León', holidays: 7 },
+      { code: 'OAX', name: 'Oaxaca', holidays: 7 },
+      { code: 'PUE', name: 'Puebla', holidays: 7 },
+      { code: 'QUE', name: 'Querétaro', holidays: 7 },
+      { code: 'ROO', name: 'Quintana Roo', holidays: 7 },
+      { code: 'SLP', name: 'San Luis Potosí', holidays: 7 },
+      { code: 'SIN', name: 'Sinaloa', holidays: 7 },
+      { code: 'SON', name: 'Sonora', holidays: 7 },
+      { code: 'TAB', name: 'Tabasco', holidays: 7 },
+      { code: 'TAM', name: 'Tamaulipas', holidays: 7 },
+      { code: 'TLA', name: 'Tlaxcala', holidays: 7 },
+      { code: 'VER', name: 'Veracruz', holidays: 7 },
+      { code: 'YUC', name: 'Yucatán', holidays: 7 },
+      { code: 'ZAC', name: 'Zacatecas', holidays: 7 },
     ],
   },
 ]

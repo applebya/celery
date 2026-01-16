@@ -4,7 +4,7 @@ export interface CalculatorState {
   title: string
   hourlyRate: number
   currency: Currency
-  country: 'CA' | 'US'
+  country: 'CA' | 'US' | 'MX'
   region: string
   holidaysPerYear: number
   ptoDays: number

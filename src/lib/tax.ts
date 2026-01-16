@@ -21,20 +21,24 @@ export function calcBracketTax(income: number, brackets: TaxBracket[]): number {
 
 /**
  * Calculate federal tax for a country
+ * Returns 0 for countries without tax data
  */
-export function calcFederalTax(country: 'CA' | 'US', income: number): number {
+export function calcFederalTax(country: 'CA' | 'US' | 'MX', income: number): number {
+  if (country === 'MX') return 0 // Mexico tax data not available
   const config = country === 'CA' ? canadaTax : usTax
   return calcBracketTax(income, config.federal)
 }
 
 /**
  * Calculate provincial (CA) or state (US) tax
+ * Returns 0 for countries without tax data
  */
 export function calcProvincialStateTax(
-  country: 'CA' | 'US',
+  country: 'CA' | 'US' | 'MX',
   region: string,
   income: number
 ): number {
+  if (country === 'MX') return 0 // Mexico tax data not available
   const config = country === 'CA' ? canadaTax : usTax
   const regions = country === 'CA' ? config.provinces : config.states
 
@@ -52,8 +56,10 @@ export function calcProvincialStateTax(
 
 /**
  * Calculate self-employment taxes (CPP for Canada, SE tax for US)
+ * Returns 0 for countries without tax data
  */
-export function calcSelfEmploymentTax(country: 'CA' | 'US', income: number): number {
+export function calcSelfEmploymentTax(country: 'CA' | 'US' | 'MX', income: number): number {
+  if (country === 'MX') return 0 // Mexico tax data not available
   if (country === 'CA') {
     return calcCanadaCPP(income)
   } else {
@@ -104,7 +110,7 @@ function calcUSSelfEmploymentTax(income: number): number {
  * Calculate total tax (federal + provincial/state + self-employment)
  */
 export function calcTotalTax(
-  country: 'CA' | 'US',
+  country: 'CA' | 'US' | 'MX',
   region: string,
   income: number,
   isSelfEmployed: boolean
@@ -120,7 +126,7 @@ export function calcTotalTax(
  * Calculate effective tax rate
  */
 export function calcEffectiveRate(
-  country: 'CA' | 'US',
+  country: 'CA' | 'US' | 'MX',
   region: string,
   income: number,
   isSelfEmployed: boolean
@@ -142,7 +148,7 @@ export interface TaxBreakdown {
 }
 
 export function getTaxBreakdown(
-  country: 'CA' | 'US',
+  country: 'CA' | 'US' | 'MX',
   region: string,
   income: number,
   isSelfEmployed: boolean

@@ -97,13 +97,18 @@ describe('getHolidayCount', () => {
 })
 
 describe('countries data integrity', () => {
-  it('has 2 countries', () => {
-    expect(countries).toHaveLength(2)
+  it('has 3 countries', () => {
+    expect(countries).toHaveLength(3)
   })
 
   it('Canada has 13 provinces/territories', () => {
     const canada = getCountry('CA')
     expect(canada?.regions).toHaveLength(13)
+  })
+
+  it('Mexico has 32 states', () => {
+    const mexico = getCountry('MX')
+    expect(mexico?.regions).toHaveLength(32)
   })
 
   it('US has 51 regions (50 states + DC)', () => {
