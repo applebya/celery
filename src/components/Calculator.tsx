@@ -312,7 +312,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                         <button
                           key={preset.label}
                           onClick={() => updateState({ traderMargin: preset.value })}
-                          className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
+                          className={`px-3 py-1.5 text-sm rounded-full border transition-all duration-150 hover:scale-[1.02] active:scale-[0.98] ${
                             state.traderMargin === preset.value
                               ? 'bg-primary text-primary-foreground border-primary'
                               : 'bg-muted/50 hover:bg-muted border-transparent'
@@ -322,7 +322,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                         </button>
                       ))}
                       <button
-                        className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
+                        className={`px-3 py-1.5 text-sm rounded-full border transition-all duration-150 hover:scale-[1.02] active:scale-[0.98] ${
                           !MARGIN_PRESETS.some(p => p.value === state.traderMargin)
                             ? 'bg-primary text-primary-foreground border-primary'
                             : 'bg-muted/50 hover:bg-muted border-transparent'
@@ -722,7 +722,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
       <div className="flex justify-end">
         <button
           onClick={handleShare}
-          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted/50 transition-colors"
+          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted/50 transition-all duration-150 hover:scale-[1.02] active:scale-[0.98]"
         >
           <Share2 className="h-4 w-4" />
           {copied ? 'Copied!' : 'Share calculation'}

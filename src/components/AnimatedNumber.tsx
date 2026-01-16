@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { useSpring, MotionValue } from 'framer-motion'
+import { useEffect, useState } from 'react'
 
 interface AnimatedNumberProps {
   value: number
@@ -6,43 +7,39 @@ interface AnimatedNumberProps {
   className?: string
 }
 
-export function AnimatedNumber({ value, formatter, className }: AnimatedNumberProps) {
-  const [displayValue, setDisplayValue] = useState(value)
-  const prevValue = useRef(value)
+function AnimatedValue({
+  motionValue,
+  formatter
+}: {
+  motionValue: MotionValue<number>
+  formatter: (n: number) => string
+}) {
+  const [displayValue, setDisplayValue] = useState(formatter(motionValue.get()))
 
   useEffect(() => {
-    if (prevValue.current === value) return
+    const unsubscribe = motionValue.on('change', (v) => {
+      setDisplayValue(formatter(v))
+    })
+    return unsubscribe
+  }, [motionValue, formatter])
 
-    let frameId: number
-    const start = prevValue.current
-    const end = value
-    const duration = 300 // ms
-    const startTime = performance.now()
+  return <>{displayValue}</>
+}
 
-    const animate = (currentTime: number) => {
-      const elapsed = currentTime - startTime
-      const progress = Math.min(elapsed / duration, 1)
+export function AnimatedNumber({ value, formatter, className }: AnimatedNumberProps) {
+  const spring = useSpring(value, {
+    stiffness: 100,
+    damping: 20,
+    mass: 0.5,
+  })
 
-      // Ease out cubic
-      const eased = 1 - Math.pow(1 - progress, 3)
-      const current = start + (end - start) * eased
+  useEffect(() => {
+    spring.set(value)
+  }, [value, spring])
 
-      setDisplayValue(current)
-
-      if (progress < 1) {
-        frameId = requestAnimationFrame(animate)
-      } else {
-        prevValue.current = value
-      }
-    }
-
-    frameId = requestAnimationFrame(animate)
-
-    return () => {
-      cancelAnimationFrame(frameId)
-      prevValue.current = value // Update to final value on cleanup
-    }
-  }, [value])
-
-  return <span className={className}>{formatter(displayValue)}</span>
+  return (
+    <span className={className}>
+      <AnimatedValue motionValue={spring} formatter={formatter} />
+    </span>
+  )
 }
