@@ -214,12 +214,14 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
           </div>
         </div>
         <Select value={state.currency} onValueChange={(v) => updateState({ currency: v as Currency })}>
-          <SelectTrigger className="w-20 h-11" aria-label="Select currency">
-            <SelectValue />
+          <SelectTrigger className="w-24 h-11" aria-label="Select currency">
+            <SelectValue>
+              {CURRENCY_FLAGS[state.currency]} {state.currency}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {CURRENCIES.map((c) => (
-              <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+              <SelectItem key={c.value} value={c.value}>{CURRENCY_FLAGS[c.value]} {c.label}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -555,7 +557,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
             <div className="p-4 space-y-2">
               <div className="flex items-center gap-1.5">
                 <span className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                  {state.currency}
+                  {CURRENCY_FLAGS[state.currency]} {state.currency}
                 </span>
                 <Badge variant="outline" className="text-sm px-1.5 py-0 h-5 hidden sm:inline-flex">Primary</Badge>
               </div>
@@ -615,7 +617,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <span className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                      Also in {displayCurrency}
+                      {CURRENCY_FLAGS[displayCurrency]} {displayCurrency}
                     </span>
                     {state.traderMargin > 0 && (
                       <Badge variant="secondary" className="text-sm px-1 py-0 h-5">
@@ -627,12 +629,14 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                     value={displayCurrency}
                     onValueChange={(v) => updateState({ displayCurrency: v as Currency })}
                   >
-                    <SelectTrigger className="w-20 h-9 text-base px-2" aria-label="Select display currency">
-                      <SelectValue />
+                    <SelectTrigger className="w-24 h-9 text-base px-2" aria-label="Select display currency">
+                      <SelectValue>
+                        {CURRENCY_FLAGS[displayCurrency]} {displayCurrency}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {CURRENCIES.filter(c => c.value !== state.currency).map((c) => (
-                        <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                        <SelectItem key={c.value} value={c.value}>{CURRENCY_FLAGS[c.value]} {c.label}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
