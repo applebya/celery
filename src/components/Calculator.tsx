@@ -148,7 +148,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                   value={titleInput}
                   onChange={(e) => setTitleInput(e.target.value)}
                   placeholder="Scenario name"
-                  className="font-medium h-8 text-sm"
+                  className="font-medium h-10 text-base"
                   autoFocus
                   onKeyDown={(e) => e.key === 'Enter' && handleTitleSave()}
                 />
@@ -184,14 +184,14 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
         <div className="flex gap-2 items-end">
         <div className="flex-1 space-y-1">
           <div className="flex items-center gap-2">
-            <Label htmlFor="mainInput" className="text-xs text-muted-foreground">
+            <Label htmlFor="mainInput" className="text-sm text-muted-foreground">
               {state.calculationMode === 'hourlyToSalary' ? 'Hourly Rate' : 'Target Salary'}
             </Label>
             <button
               onClick={() => updateState({
                 calculationMode: state.calculationMode === 'hourlyToSalary' ? 'salaryToHourly' : 'hourlyToSalary'
               })}
-              className="text-[10px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded border border-transparent hover:border-border transition-colors"
+              className="text-sm text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded border border-transparent hover:border-border transition-colors"
             >
               Switch to {state.calculationMode === 'hourlyToSalary' ? 'salary' : 'rate'}
             </button>
@@ -229,7 +229,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
         <div className="flex justify-end mb-1">
           <button
             onClick={toggleAllSections}
-            className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted/50 transition-colors"
+            className="text-sm text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted/50 transition-colors"
           >
             {allExpanded || openSection === 'all' ? 'Collapse all' : 'Expand all settings'}
           </button>
@@ -475,19 +475,19 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
 
           {/* Tax Estimate */}
           <Collapsible open={openSection === 'tax' || openSection === 'all'} onOpenChange={() => toggleSection('tax')}>
-            <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-colors text-sm border-t">
+            <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-colors text-base border-t">
               <div className="flex items-center gap-2">
-                <ChevronRight className={`h-3.5 w-3.5 transition-transform ${openSection === 'tax' || openSection === 'all' ? 'rotate-90' : ''}`} />
-                <Receipt className="h-3.5 w-3.5 text-muted-foreground" />
+                <ChevronRight className={`h-4 w-4 transition-transform ${openSection === 'tax' || openSection === 'all' ? 'rotate-90' : ''}`} />
+                <Receipt className="h-4 w-4 text-muted-foreground" />
                 <span>Taxes</span>
               </div>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-sm text-muted-foreground">
                 {state.showTaxEstimate ? formatPercent(calculation.taxBreakdown.effectiveRate) : 'Off'}
               </span>
             </CollapsibleTrigger>
             <CollapsibleContent className="px-3 pb-3 space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="showTax" className="text-xs">Show tax estimate</Label>
+                <Label htmlFor="showTax" className="text-base">Show tax estimate</Label>
                 <Switch
                   id="showTax"
                   checked={state.showTaxEstimate}
@@ -496,11 +496,11 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Label htmlFor="selfEmployed" className="text-xs">Self-employed</Label>
+                  <Label htmlFor="selfEmployed" className="text-base">Self-employed</Label>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <HelpCircle className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground cursor-help" />
+                        <HelpCircle className="h-4 w-4 text-muted-foreground hover:text-foreground cursor-help" />
                       </TooltipTrigger>
                       <TooltipContent side="top">
                         <p>Includes self-employment tax (~15.3% in US, CPP in Canada). Turn off if you're a W-2/T4 employee.</p>
@@ -515,7 +515,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                 />
               </div>
               {state.showTaxEstimate && (
-                <div className="space-y-1 text-xs pt-1 border-t">
+                <div className="space-y-1 text-base pt-1 border-t">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Federal</span>
                     <span>{formatCurrency(calculation.taxBreakdown.federal, state.currency, { showCode: false })}</span>
@@ -554,31 +554,31 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
             {/* Main Currency Column */}
             <div className="p-4 space-y-2">
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                <span className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
                   {state.currency}
                 </span>
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 hidden sm:inline-flex">Primary</Badge>
+                <Badge variant="outline" className="text-sm px-1.5 py-0 h-5 hidden sm:inline-flex">Primary</Badge>
               </div>
 
               {state.calculationMode === 'hourlyToSalary' ? (
                 <div className="space-y-1">
                   {state.showTaxEstimate ? (
                     <>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide">Take-home</p>
-                      <p className="text-2xl font-bold tracking-tight leading-none text-green-600 dark:text-green-400">
+                      <p className="text-sm text-muted-foreground uppercase tracking-wide">Take-home</p>
+                      <p className="text-3xl font-bold tracking-tight leading-none text-green-600 dark:text-green-400">
                         <AnimatedNumber
                           value={calculation.netAnnual}
                           formatter={(n) => formatCurrency(n, state.currency, { showCode: false })}
                         />
                       </p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-base text-muted-foreground">
                         {formatCurrency(calculation.grossAnnual, state.currency, { showCode: false })} gross
                       </p>
                     </>
                   ) : (
                     <>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide">Annual</p>
-                      <p className="text-2xl font-bold tracking-tight leading-none">
+                      <p className="text-sm text-muted-foreground uppercase tracking-wide">Annual</p>
+                      <p className="text-3xl font-bold tracking-tight leading-none">
                         <AnimatedNumber
                           value={calculation.grossAnnual}
                           formatter={(n) => formatCurrency(n, state.currency, { showCode: false })}
@@ -586,21 +586,21 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                       </p>
                     </>
                   )}
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     {formatCurrency(state.hourlyRate, state.currency, { showCode: false })}/hr × {calculation.billableHours.toLocaleString()} hrs
                   </p>
                 </div>
               ) : (
                 <div className="space-y-1">
-                  <p className="text-2xl font-bold tracking-tight leading-none">
+                  <p className="text-3xl font-bold tracking-tight leading-none">
                     {formatCurrency(calculation.calculatedHourlyRate, state.currency, { showCode: false })}/hr
                   </p>
-                  <p className="text-base font-medium">
+                  <p className="text-lg font-medium">
                     {formatCurrency(calculation.grossAnnual, state.currency, { showCode: false })}
-                    <span className="text-xs text-muted-foreground ml-1">gross</span>
+                    <span className="text-sm text-muted-foreground ml-1">gross</span>
                   </p>
                   {state.showTaxEstimate && (
-                    <p className="text-sm text-green-600 dark:text-green-400">
+                    <p className="text-base text-green-600 dark:text-green-400">
                       {formatCurrency(calculation.netAnnual, state.currency, { showCode: false })} net
                     </p>
                   )}
@@ -614,11 +614,11 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                 <span className="sr-only">Results in {displayCurrency}</span>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide sm:text-[10px]">
+                    <span className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
                       Also in {displayCurrency}
                     </span>
                     {state.traderMargin > 0 && (
-                      <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4">
+                      <Badge variant="secondary" className="text-sm px-1 py-0 h-5">
                         -{state.traderMargin}%
                       </Badge>
                     )}
@@ -627,7 +627,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                     value={displayCurrency}
                     onValueChange={(v) => updateState({ displayCurrency: v as Currency })}
                   >
-                    <SelectTrigger className="w-20 h-9 text-xs px-2" aria-label="Select display currency">
+                    <SelectTrigger className="w-20 h-9 text-base px-2" aria-label="Select display currency">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -642,37 +642,37 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                   <div className="space-y-1">
                     {state.showTaxEstimate ? (
                       <>
-                        <p className="text-xs text-muted-foreground/60 uppercase tracking-wide">Take-home</p>
-                        <p className="text-2xl font-bold tracking-tight leading-none text-green-600/60 dark:text-green-400/60">
+                        <p className="text-sm text-muted-foreground/60 uppercase tracking-wide">Take-home</p>
+                        <p className="text-3xl font-bold tracking-tight leading-none text-green-600/60 dark:text-green-400/60">
                           {formatCurrency(convertedNet, displayCurrency, { showCode: false })}
                         </p>
-                        <p className="text-sm text-muted-foreground/60">
+                        <p className="text-base text-muted-foreground/60">
                           {formatCurrency(convertedGross, displayCurrency, { showCode: false })} gross
                         </p>
                       </>
                     ) : (
                       <>
-                        <p className="text-xs text-muted-foreground/60 uppercase tracking-wide">Annual</p>
-                        <p className="text-2xl font-bold tracking-tight leading-none text-muted-foreground/80">
+                        <p className="text-sm text-muted-foreground/60 uppercase tracking-wide">Annual</p>
+                        <p className="text-3xl font-bold tracking-tight leading-none text-muted-foreground/80">
                           {formatCurrency(convertedGross, displayCurrency, { showCode: false })}
                         </p>
                       </>
                     )}
-                    <p className="text-xs text-muted-foreground/60">
+                    <p className="text-sm text-muted-foreground/60">
                       {formatCurrency(convertWithMargin(state.hourlyRate, state.currency, displayCurrency, state.traderMargin), displayCurrency, { showCode: false })}/hr × {calculation.billableHours.toLocaleString()} hrs
                     </p>
                   </div>
                 ) : (
                   <div className="space-y-1">
-                    <p className="text-2xl font-bold tracking-tight leading-none text-muted-foreground/80">
+                    <p className="text-3xl font-bold tracking-tight leading-none text-muted-foreground/80">
                       {formatCurrency(convertedHourly, displayCurrency, { showCode: false })}/hr
                     </p>
-                    <p className="text-base font-medium text-muted-foreground/70">
+                    <p className="text-lg font-medium text-muted-foreground/70">
                       {formatCurrency(convertedGross, displayCurrency, { showCode: false })}
-                      <span className="text-xs text-muted-foreground/60 ml-1">gross</span>
+                      <span className="text-sm text-muted-foreground/60 ml-1">gross</span>
                     </p>
                     {state.showTaxEstimate && (
-                      <p className="text-sm text-green-600/60 dark:text-green-400/60">
+                      <p className="text-base text-green-600/60 dark:text-green-400/60">
                         {formatCurrency(convertedNet, displayCurrency, { showCode: false })} net
                       </p>
                     )}
@@ -684,9 +684,9 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
 
           {/* Exchange Rate Footer */}
           {exchangeRates && (
-            <div className="px-4 py-2 border-t bg-muted/5 flex items-center justify-between text-[11px] text-muted-foreground">
+            <div className="px-4 py-2 border-t bg-muted/5 flex items-center justify-between text-sm text-muted-foreground">
               <div className="flex items-center gap-1.5">
-                <ArrowRightLeft className="h-3 w-3" />
+                <ArrowRightLeft className="h-4 w-4" />
                 <span>
                   1 {state.currency} = {rateWithMargin.toFixed(4)} {displayCurrency}
                   {state.traderMargin > 0 && (
@@ -708,9 +708,9 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
       <div className="flex justify-end">
         <button
           onClick={handleShare}
-          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted/50 transition-colors"
+          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted/50 transition-colors"
         >
-          <Share2 className="h-3.5 w-3.5" />
+          <Share2 className="h-4 w-4" />
           {copied ? 'Copied!' : 'Share calculation'}
         </button>
       </div>
