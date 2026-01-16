@@ -11,6 +11,7 @@ const URL_PARAMS = {
   mode: 'm',
   margin: 'mg',
   selfEmployed: 'se',
+  showConversion: 'cc',
 } as const
 
 export function encodeStateToUrl(state: CalculatorState): string {
@@ -40,6 +41,9 @@ export function encodeStateToUrl(state: CalculatorState): string {
   }
   if (state.isSelfEmployed !== DEFAULT_STATE.isSelfEmployed) {
     params.set(URL_PARAMS.selfEmployed, state.isSelfEmployed ? '1' : '0')
+  }
+  if (state.showCurrencyConversion !== DEFAULT_STATE.showCurrencyConversion) {
+    params.set(URL_PARAMS.showConversion, state.showCurrencyConversion ? '1' : '0')
   }
 
   const paramString = params.toString()
@@ -87,6 +91,9 @@ export function decodeUrlToState(search: string): Partial<CalculatorState> {
 
   const selfEmployed = params.get(URL_PARAMS.selfEmployed)
   if (selfEmployed !== null) state.isSelfEmployed = selfEmployed === '1'
+
+  const showConversion = params.get(URL_PARAMS.showConversion)
+  if (showConversion !== null) state.showCurrencyConversion = showConversion === '1'
 
   return state
 }

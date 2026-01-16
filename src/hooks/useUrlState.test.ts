@@ -57,5 +57,24 @@ describe('useUrlState', () => {
       expect(decodeUrlToState('?s=invalid')).toEqual({})
       expect(decodeUrlToState('?mg=notanumber')).toEqual({})
     })
+
+    it('decodes showCurrencyConversion flag', () => {
+      expect(decodeUrlToState('?cc=1')).toEqual({ showCurrencyConversion: true })
+      expect(decodeUrlToState('?cc=0')).toEqual({ showCurrencyConversion: false })
+    })
+  })
+
+  describe('encodeStateToUrl - showCurrencyConversion', () => {
+    it('encodes showCurrencyConversion when different from default', () => {
+      // Default is true, so encoding false should produce cc=0
+      const stateWithFalse = { ...DEFAULT_STATE, showCurrencyConversion: false }
+      expect(encodeStateToUrl(stateWithFalse)).toContain('cc=0')
+    })
+
+    it('does not encode showCurrencyConversion when matching default', () => {
+      // Default is true, so encoding true should not include cc param
+      const stateWithTrue = { ...DEFAULT_STATE, showCurrencyConversion: true }
+      expect(encodeStateToUrl(stateWithTrue)).not.toContain('cc=')
+    })
   })
 })
