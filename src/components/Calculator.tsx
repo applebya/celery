@@ -183,7 +183,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
         )}
 
         {/* Input with Mode Toggle */}
-        <div className="flex gap-2 items-end">
+        <div className="flex gap-3 items-end">
         <div className="flex-1 space-y-1">
           <div className="flex items-center gap-2">
             <Label htmlFor="mainInput" className="text-sm text-muted-foreground">
@@ -193,13 +193,13 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
               onClick={() => updateState({
                 calculationMode: state.calculationMode === 'hourlyToSalary' ? 'salaryToHourly' : 'hourlyToSalary'
               })}
-              className="text-sm text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded border border-transparent hover:border-border transition-colors"
+              className="text-sm text-muted-foreground hover:text-foreground px-2 py-0.5 rounded-full border border-transparent hover:border-border hover:bg-muted/50 transition-all"
             >
               Switch to {state.calculationMode === 'hourlyToSalary' ? 'salary' : 'rate'}
             </button>
           </div>
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xl font-medium">
               $
             </span>
             <Input
@@ -211,19 +211,23 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                 const val = parseFloat(e.target.value) || 0
                 updateState(state.calculationMode === 'hourlyToSalary' ? { hourlyRate: val } : { targetSalary: val })
               }}
-              className="pl-8 text-xl font-semibold h-11"
+              className="pl-9 text-2xl font-bold h-14 tabular-nums border-0 border-b-2 border-muted rounded-none bg-transparent focus-visible:ring-0 focus-visible:border-emerald-500 transition-colors"
             />
           </div>
         </div>
         <Select value={state.currency} onValueChange={(v) => updateState({ currency: v as Currency })}>
-          <SelectTrigger className="w-24 h-11" aria-label="Select currency">
+          <SelectTrigger className="w-auto h-14 px-4 rounded-full border-2 hover:border-muted-foreground/50 transition-colors" aria-label="Select currency">
             <SelectValue>
-              {CURRENCY_FLAGS[state.currency]} {state.currency}
+              <span className="text-xl mr-1">{CURRENCY_FLAGS[state.currency]}</span>
+              <span className="font-medium">{state.currency}</span>
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {CURRENCIES.map((c) => (
-              <SelectItem key={c.value} value={c.value}>{CURRENCY_FLAGS[c.value]} {c.label}</SelectItem>
+              <SelectItem key={c.value} value={c.value}>
+                <span className="text-lg mr-2">{CURRENCY_FLAGS[c.value]}</span>
+                {c.label}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
