@@ -238,12 +238,12 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
             {allExpanded || openSection === 'all' ? 'Collapse all' : 'Expand all settings'}
           </button>
         </div>
-        <div className="space-y-px rounded-lg border bg-card/50 overflow-hidden">
+        <div className="rounded-lg border bg-card/50 backdrop-blur-sm overflow-hidden">
           {/* Currency Settings */}
           <Collapsible open={openSection === 'currency' || openSection === 'all'} onOpenChange={() => toggleSection('currency')}>
-            <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-colors text-base">
+            <CollapsibleTrigger className={`flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-all text-base ${openSection === 'currency' || openSection === 'all' ? 'border-l-2 border-l-emerald-500' : 'border-l-2 border-l-transparent'}`}>
               <div className="flex items-center gap-2">
-                <ChevronRight className={`h-4 w-4 transition-transform ${openSection === 'currency' || openSection === 'all' ? 'rotate-90' : ''}`} />
+                <ChevronRight className={`h-4 w-4 transition-transform duration-200 ${openSection === 'currency' || openSection === 'all' ? 'rotate-90' : ''}`} />
                 <ArrowRightLeft className="h-4 w-4 text-muted-foreground" />
                 <span>Currency Settings</span>
               </div>
@@ -347,9 +347,9 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
 
           {/* Work Schedule - Consolidated */}
           <Collapsible open={openSection === 'schedule' || openSection === 'all'} onOpenChange={() => toggleSection('schedule')}>
-            <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-colors text-base border-t">
+            <CollapsibleTrigger className={`flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-all text-base ${openSection === 'schedule' || openSection === 'all' ? 'border-l-2 border-l-emerald-500' : 'border-l-2 border-l-transparent'}`}>
               <div className="flex items-center gap-2">
-                <ChevronRight className={`h-4 w-4 transition-transform ${openSection === 'schedule' || openSection === 'all' ? 'rotate-90' : ''}`} />
+                <ChevronRight className={`h-4 w-4 transition-transform duration-200 ${openSection === 'schedule' || openSection === 'all' ? 'rotate-90' : ''}`} />
                 <Calendar className="h-4 w-4 text-muted-foreground" />
                 <span>Work Schedule</span>
               </div>
@@ -479,9 +479,9 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
 
           {/* Tax Estimate */}
           <Collapsible open={openSection === 'tax' || openSection === 'all'} onOpenChange={() => toggleSection('tax')}>
-            <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-colors text-base border-t">
+            <CollapsibleTrigger className={`flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-all text-base ${openSection === 'tax' || openSection === 'all' ? 'border-l-2 border-l-emerald-500' : 'border-l-2 border-l-transparent'}`}>
               <div className="flex items-center gap-2">
-                <ChevronRight className={`h-4 w-4 transition-transform ${openSection === 'tax' || openSection === 'all' ? 'rotate-90' : ''}`} />
+                <ChevronRight className={`h-4 w-4 transition-transform duration-200 ${openSection === 'tax' || openSection === 'all' ? 'rotate-90' : ''}`} />
                 <Receipt className="h-4 w-4 text-muted-foreground" />
                 <span>Taxes</span>
               </div>
