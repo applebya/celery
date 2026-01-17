@@ -136,6 +136,7 @@ function App() {
             rightState={rightState}
             onLeftChange={handleStateChange}
             onRightChange={setRightState}
+            scenarios={scenarios}
           />
         </main>
 
