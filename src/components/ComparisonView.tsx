@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
-import { ArrowLeftRight } from 'lucide-react'
+import { ArrowLeftRight, ChevronRight, ChevronLeft, Minus } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { Card, CardContent } from '@/components/ui/card'
 import {
   Select,
@@ -214,10 +215,13 @@ export function ComparisonView({
             label="Take-home (Net)"
             leftValue={formatCurrency(leftCalc.netAnnual, leftCompareState.currency)}
             rightValue={formatCurrency(rightCalc.netAnnual, rightCompareState.currency)}
+            leftRawValue={leftCalc.netAnnual}
+            rightRawValue={rightCalc.netAnnual}
             leftBarWidth={getBarWidth(leftCalc.netAnnual, maxNet)}
             rightBarWidth={getBarWidth(rightCalc.netAnnual, maxNet)}
             winner={winner}
             percentDiff={netPercentChange}
+            currency={leftCompareState.currency}
             isHero
           />
 
@@ -226,10 +230,13 @@ export function ComparisonView({
             label="Gross Annual"
             leftValue={formatCurrency(leftCalc.grossAnnual, leftCompareState.currency)}
             rightValue={formatCurrency(rightCalc.grossAnnual, rightCompareState.currency)}
+            leftRawValue={leftCalc.grossAnnual}
+            rightRawValue={rightCalc.grossAnnual}
             leftBarWidth={getBarWidth(leftCalc.grossAnnual, maxGross)}
             rightBarWidth={getBarWidth(rightCalc.grossAnnual, maxGross)}
             winner={leftCalc.grossAnnual > rightCalc.grossAnnual ? 'left' : leftCalc.grossAnnual < rightCalc.grossAnnual ? 'right' : null}
             percentDiff={leftCalc.grossAnnual > 0 ? ((rightCalc.grossAnnual - leftCalc.grossAnnual) / leftCalc.grossAnnual) * 100 : 0}
+            currency={leftCompareState.currency}
           />
 
           {/* Effective Hourly Row */}
@@ -237,10 +244,13 @@ export function ComparisonView({
             label="Effective Hourly"
             leftValue={`${formatCurrency(leftEffectiveHourly, leftCompareState.currency)}/hr`}
             rightValue={`${formatCurrency(rightEffectiveHourly, rightCompareState.currency)}/hr`}
+            leftRawValue={leftEffectiveHourly}
+            rightRawValue={rightEffectiveHourly}
             leftBarWidth={getBarWidth(leftEffectiveHourly, maxHourly)}
             rightBarWidth={getBarWidth(rightEffectiveHourly, maxHourly)}
             winner={effectiveHourlyWinner}
             percentDiff={leftEffectiveHourly > 0 ? ((rightEffectiveHourly - leftEffectiveHourly) / leftEffectiveHourly) * 100 : 0}
+            currency={leftCompareState.currency}
           />
 
           {/* Hours/Year Row - inverted (less is better) */}
@@ -248,11 +258,15 @@ export function ComparisonView({
             label="Hours/Year"
             leftValue={leftCalc.billableHours.toLocaleString()}
             rightValue={rightCalc.billableHours.toLocaleString()}
+            leftRawValue={leftCalc.billableHours}
+            rightRawValue={rightCalc.billableHours}
             leftBarWidth={getBarWidth(leftCalc.billableHours, maxHours)}
             rightBarWidth={getBarWidth(rightCalc.billableHours, maxHours)}
             winner={leftCalc.billableHours < rightCalc.billableHours ? 'left' : leftCalc.billableHours > rightCalc.billableHours ? 'right' : null}
             percentDiff={hoursPercentChange}
+            currency={leftCompareState.currency}
             invertColors
+            isCurrency={false}
           />
 
           {/* Verdict Card */}
@@ -291,24 +305,32 @@ interface ComparisonRowProps {
   label: string
   leftValue: string
   rightValue: string
+  leftRawValue: number
+  rightRawValue: number
   leftBarWidth: number
   rightBarWidth: number
   winner: 'left' | 'right' | null
   percentDiff: number
+  currency: Currency
   isHero?: boolean
   invertColors?: boolean
+  isCurrency?: boolean
 }
 
 function ComparisonRow({
   label,
   leftValue,
   rightValue,
+  leftRawValue,
+  rightRawValue,
   leftBarWidth,
   rightBarWidth,
   winner,
   percentDiff,
+  currency,
   isHero = false,
   invertColors = false,
+  isCurrency = true,
 }: ComparisonRowProps) {
   const valueClass = isHero ? 'text-2xl sm:text-3xl font-bold' : 'text-lg sm:text-xl font-semibold'
   const leftWins = winner === 'left'
@@ -316,48 +338,122 @@ function ComparisonRow({
 
   // For inverted rows (like hours), positive diff is bad
   const diffIsGood = invertColors ? percentDiff < 0 : percentDiff > 0
-  const diffColor = diffIsGood ? 'text-emerald-600 dark:text-emerald-400' : percentDiff === 0 ? 'text-muted-foreground' : 'text-red-500'
+  const diffBgColor = diffIsGood
+    ? 'bg-emerald-500/15 border-emerald-500/30'
+    : percentDiff === 0
+      ? 'bg-muted/50 border-border'
+      : 'bg-red-500/10 border-red-500/20'
+  const diffTextColor = diffIsGood
+    ? 'text-emerald-600 dark:text-emerald-400'
+    : percentDiff === 0
+      ? 'text-muted-foreground'
+      : 'text-red-500'
+
+  // Calculate absolute difference
+  const absDiff = Math.abs(rightRawValue - leftRawValue)
+  const formattedAbsDiff = isCurrency ? formatCurrency(absDiff, currency) : absDiff.toLocaleString()
 
   return (
-    <div className="py-3 border-b border-border/50">
-      <p className="text-sm text-muted-foreground text-center mb-2">{label}</p>
-      <div className="grid grid-cols-[1fr,auto,1fr] gap-2 items-center">
+    <motion.div
+      className="py-4 border-b border-border/50"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2 }}
+    >
+      <p className="text-sm text-muted-foreground text-center mb-3">{label}</p>
+      <div className="grid grid-cols-[1fr,auto,1fr] gap-3 items-center">
         {/* Left value */}
-        <div className={`text-center rounded-lg py-2 ${leftWins ? 'bg-emerald-500/10 border-l-4 border-emerald-500' : ''}`}>
-          <p className={`${valueClass} tabular-nums ${leftWins ? 'text-emerald-700 dark:text-emerald-400' : ''}`}>
+        <motion.div
+          className={`text-center rounded-xl py-3 px-2 transition-all duration-200 ${
+            leftWins
+              ? 'bg-gradient-to-br from-emerald-500/15 to-teal-500/10 border-l-4 border-emerald-500 shadow-lg shadow-emerald-500/10'
+              : 'bg-muted/30'
+          }`}
+          animate={{ scale: leftWins ? 1.02 : 1 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        >
+          <p className={`${valueClass} tabular-nums ${leftWins ? 'text-emerald-600 dark:text-emerald-400' : ''}`}>
             {leftValue}
           </p>
           {/* Mini bar */}
-          <div className="mt-2 mx-4 h-1.5 bg-muted rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all duration-300 ${leftWins ? 'bg-emerald-500' : 'bg-muted-foreground/30'}`}
-              style={{ width: `${leftBarWidth}%` }}
+          <div className="mt-2 mx-4 h-2 bg-muted rounded-full overflow-hidden">
+            <motion.div
+              className={`h-full rounded-full ${leftWins ? 'bg-gradient-to-r from-emerald-500 to-teal-500' : 'bg-muted-foreground/30'}`}
+              initial={{ width: 0 }}
+              animate={{ width: `${leftBarWidth}%` }}
+              transition={{ duration: 0.5, ease: 'easeOut' }}
             />
           </div>
-        </div>
+        </motion.div>
 
-        {/* Difference badge */}
-        <div className="w-20 text-center">
-          <span className={`text-sm font-medium ${diffColor}`}>
-            {percentDiff >= 0 ? '+' : ''}{percentDiff.toFixed(1)}%
-          </span>
+        {/* Delta Display - Center Column */}
+        <div className="w-28 flex flex-col items-center gap-1">
+          {/* Arrow indicator */}
+          <div className="flex items-center justify-center h-6">
+            {winner === 'left' && (
+              <motion.div
+                initial={{ x: 10, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                className="text-emerald-500"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </motion.div>
+            )}
+            {winner === 'right' && (
+              <motion.div
+                initial={{ x: -10, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                className="text-emerald-500"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </motion.div>
+            )}
+            {!winner && <Minus className="h-4 w-4 text-muted-foreground" />}
+          </div>
+
+          {/* Delta badge */}
+          <motion.div
+            className={`px-3 py-1.5 rounded-lg border ${diffBgColor}`}
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+          >
+            <p className={`text-sm font-bold ${diffTextColor} tabular-nums`}>
+              {percentDiff >= 0 ? '+' : ''}{percentDiff.toFixed(1)}%
+            </p>
+            {absDiff > 0 && (
+              <p className={`text-xs ${diffTextColor} tabular-nums opacity-75`}>
+                {percentDiff >= 0 ? '+' : '-'}{formattedAbsDiff}
+              </p>
+            )}
+          </motion.div>
         </div>
 
         {/* Right value */}
-        <div className={`text-center rounded-lg py-2 ${rightWins ? 'bg-emerald-500/10 border-l-4 border-emerald-500' : ''}`}>
-          <p className={`${valueClass} tabular-nums ${rightWins ? 'text-emerald-700 dark:text-emerald-400' : ''}`}>
+        <motion.div
+          className={`text-center rounded-xl py-3 px-2 transition-all duration-200 ${
+            rightWins
+              ? 'bg-gradient-to-br from-emerald-500/15 to-teal-500/10 border-l-4 border-emerald-500 shadow-lg shadow-emerald-500/10'
+              : 'bg-muted/30'
+          }`}
+          animate={{ scale: rightWins ? 1.02 : 1 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        >
+          <p className={`${valueClass} tabular-nums ${rightWins ? 'text-emerald-600 dark:text-emerald-400' : ''}`}>
             {rightValue}
           </p>
           {/* Mini bar */}
-          <div className="mt-2 mx-4 h-1.5 bg-muted rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all duration-300 ${rightWins ? 'bg-emerald-500' : 'bg-muted-foreground/30'}`}
-              style={{ width: `${rightBarWidth}%` }}
+          <div className="mt-2 mx-4 h-2 bg-muted rounded-full overflow-hidden">
+            <motion.div
+              className={`h-full rounded-full ${rightWins ? 'bg-gradient-to-r from-emerald-500 to-teal-500' : 'bg-muted-foreground/30'}`}
+              initial={{ width: 0 }}
+              animate={{ width: `${rightBarWidth}%` }}
+              transition={{ duration: 0.5, ease: 'easeOut' }}
             />
           </div>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   )
 }
 

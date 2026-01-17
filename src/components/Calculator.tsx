@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { ChevronRight, Calendar, Receipt, Pencil, Check, ArrowRightLeft, HelpCircle, Share2 } from 'lucide-react'
+import { ChevronRight, Calendar, Receipt, Pencil, Check, ArrowRightLeft, HelpCircle, Share2, Building2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -12,11 +12,13 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { AnimatedNumber } from './AnimatedNumber'
 import { ExchangeRateDisplay } from './ExchangeRateDisplay'
 import { countries, getCountry, getHolidayCount } from '@/data/holidays-2026'
+import { getCorpTaxRate, getDividendTaxRate } from '@/data/tax-brackets-2026'
 import { useCalculation } from '@/hooks/useCalculation'
 import { useExchangeRate } from '@/hooks/useExchangeRate'
 import { useUrlState } from '@/hooks/useUrlState'
 import { formatCurrency, formatPercent } from '@/lib/calculate'
-import type { CalculatorState, Currency } from '@/types'
+import type { CalculatorState, Currency, EmploymentType } from '@/types'
+import { isSelfEmployedFromType, isContractorType } from '@/types'
 
 const CURRENCIES: { value: Currency; label: string; symbol: string }[] = [
   { value: 'CAD', label: 'CAD', symbol: 'C$' },
@@ -39,6 +41,33 @@ const MARGIN_PRESETS = [
   { label: 'Bank', value: 2.5 },
   { label: 'PayPal', value: 3.5 },
 ] as const
+
+const EMPLOYMENT_TYPES: { value: EmploymentType; label: string; shortLabel: string; tooltip: string }[] = [
+  {
+    value: 'contractor-hourly',
+    label: 'Contractor (hourly)',
+    shortLabel: 'Hourly',
+    tooltip: 'Self-employed, bill by the hour. You handle your own taxes, benefits, and time off.',
+  },
+  {
+    value: 'contractor-retainer',
+    label: 'Contractor (retainer)',
+    shortLabel: 'Retainer',
+    tooltip: 'Fixed monthly fee regardless of hours. Common for ongoing client relationships.',
+  },
+  {
+    value: 'employee-hourly',
+    label: 'Employee (hourly)',
+    shortLabel: 'Hourly',
+    tooltip: 'W-2/T4 employee paid by the hour. Employer handles tax withholding.',
+  },
+  {
+    value: 'employee-salary',
+    label: 'Employee (salary)',
+    shortLabel: 'Salary',
+    tooltip: 'W-2/T4 employee with fixed annual salary. Employer handles tax withholding.',
+  },
+]
 
 interface CalculatorProps {
   state: CalculatorState
@@ -97,6 +126,31 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
       updateState({ region, holidaysPerYear: holidays })
     },
     [state.country, updateState]
+  )
+
+  const handleEmploymentTypeChange = useCallback(
+    (employmentType: EmploymentType) => {
+      const isSelfEmployed = isSelfEmployedFromType(employmentType)
+      const isContractor = isContractorType(employmentType)
+
+      // Map employment type to calculation mode
+      let calculationMode = state.calculationMode
+      if (employmentType === 'employee-salary') {
+        calculationMode = 'salaryToHourly'
+      } else if (employmentType === 'contractor-hourly' || employmentType === 'employee-hourly') {
+        calculationMode = 'hourlyToSalary'
+      }
+      // contractor-retainer keeps its own mode (uses monthlyRetainer)
+
+      updateState({
+        employmentType,
+        isSelfEmployed,
+        calculationMode,
+        // Reset corp settings when switching to employee
+        isIncorporated: isContractor ? state.isIncorporated : false,
+      })
+    },
+    [state.calculationMode, state.isIncorporated, updateState]
   )
 
   const toggleSection = (section: string) => {
@@ -203,56 +257,150 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
           </div>
         )}
 
-        {/* Input with Mode Toggle */}
-        <div className="flex gap-3 items-end" data-tour="rate-input">
-        <div className="flex-1 space-y-1">
+        {/* Employment Type Selector */}
+        <div className="space-y-2" data-tour="employment-type">
           <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">I am a</span>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-xs">
+                  <p>This determines how taxes are calculated. Contractors pay self-employment tax and can incorporate for tax optimization.</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {EMPLOYMENT_TYPES.map((type) => {
+              const isContractor = type.value.startsWith('contractor')
+              const isSelected = state.employmentType === type.value
+              return (
+                <TooltipProvider key={type.value}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => handleEmploymentTypeChange(type.value)}
+                        className={`px-3 py-1.5 text-sm rounded-full border transition-all duration-150 hover:scale-[1.02] active:scale-[0.98] ${
+                          isSelected
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'bg-muted/50 hover:bg-muted border-transparent'
+                        } ${isContractor ? '' : 'ml-2 first:ml-0'}`}
+                      >
+                        <span className="hidden sm:inline">{type.label}</span>
+                        <span className="sm:hidden">{isContractor ? '📝' : '🏢'} {type.shortLabel}</span>
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">
+                      <p>{type.tooltip}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Rate/Salary Input */}
+        <div className="flex gap-3 items-end" data-tour="rate-input">
+          <div className="flex-1 space-y-1">
             <Label htmlFor="mainInput" className="text-sm text-muted-foreground">
-              {state.calculationMode === 'hourlyToSalary' ? 'Hourly Rate' : 'Target Salary'}
+              {state.employmentType === 'contractor-retainer'
+                ? 'Monthly Retainer'
+                : state.employmentType === 'employee-salary'
+                  ? 'Annual Salary'
+                  : 'Hourly Rate'
+              }
             </Label>
-            <button
-              onClick={() => updateState({
-                calculationMode: state.calculationMode === 'hourlyToSalary' ? 'salaryToHourly' : 'hourlyToSalary'
-              })}
-              className="text-sm text-muted-foreground hover:text-foreground px-2 py-0.5 rounded-full border border-transparent hover:border-border hover:bg-muted/50 transition-all"
-            >
-              Switch to {state.calculationMode === 'hourlyToSalary' ? 'salary' : 'rate'}
-            </button>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xl font-medium">
+                $
+              </span>
+              <Input
+                id="mainInput"
+                type="number"
+                min={0}
+                value={
+                  state.employmentType === 'contractor-retainer'
+                    ? (state.monthlyRetainer || '')
+                    : state.employmentType === 'employee-salary'
+                      ? (state.targetSalary || '')
+                      : (state.hourlyRate || '')
+                }
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value) || 0
+                  if (state.employmentType === 'contractor-retainer') {
+                    updateState({ monthlyRetainer: val })
+                  } else if (state.employmentType === 'employee-salary') {
+                    updateState({ targetSalary: val })
+                  } else {
+                    updateState({ hourlyRate: val })
+                  }
+                }}
+                className="pl-9 text-2xl font-bold h-14 tabular-nums border-0 border-b-2 border-muted rounded-none bg-transparent focus-visible:ring-0 focus-visible:border-emerald-500 transition-colors"
+              />
+              {state.employmentType === 'contractor-retainer' && (
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                  /month
+                </span>
+              )}
+              {state.employmentType === 'employee-salary' && (
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                  /year
+                </span>
+              )}
+            </div>
           </div>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xl font-medium">
-              $
-            </span>
-            <Input
-              id="mainInput"
-              type="number"
-              min={0}
-              value={state.calculationMode === 'hourlyToSalary' ? (state.hourlyRate || '') : (state.targetSalary || '')}
-              onChange={(e) => {
-                const val = parseFloat(e.target.value) || 0
-                updateState(state.calculationMode === 'hourlyToSalary' ? { hourlyRate: val } : { targetSalary: val })
-              }}
-              className="pl-9 text-2xl font-bold h-14 tabular-nums border-0 border-b-2 border-muted rounded-none bg-transparent focus-visible:ring-0 focus-visible:border-emerald-500 transition-colors"
-            />
+          <Select value={state.currency} onValueChange={(v) => updateState({ currency: v as Currency })}>
+            <SelectTrigger className="w-auto h-14 px-4 rounded-full border-2 hover:border-muted-foreground/50 transition-colors" aria-label="Select currency" data-tour="currency-select">
+              <SelectValue>
+                <span className="text-xl mr-1">{CURRENCY_FLAGS[state.currency]}</span>
+                <span className="font-medium">{state.currency}</span>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {CURRENCIES.map((c) => (
+                <SelectItem key={c.value} value={c.value}>
+                  <span className="text-lg mr-2">{CURRENCY_FLAGS[c.value]}</span>
+                  {c.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Hours Range for Retainer Mode */}
+        {state.employmentType === 'contractor-retainer' && (
+          <div className="flex items-center gap-3">
+            <Label className="text-sm text-muted-foreground whitespace-nowrap">Expected hours</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                min={1}
+                max={300}
+                value={state.expectedHoursMin || ''}
+                onChange={(e) => updateState({ expectedHoursMin: parseInt(e.target.value) || 0 })}
+                className="w-16 h-9 text-center"
+              />
+              <span className="text-muted-foreground">to</span>
+              <Input
+                type="number"
+                min={1}
+                max={300}
+                value={state.expectedHoursMax || ''}
+                onChange={(e) => updateState({ expectedHoursMax: parseInt(e.target.value) || 0 })}
+                className="w-16 h-9 text-center"
+              />
+              <span className="text-sm text-muted-foreground">/month</span>
+            </div>
+            {state.monthlyRetainer > 0 && state.expectedHoursMin > 0 && (
+              <span className="text-sm text-muted-foreground">
+                = ${Math.round(state.monthlyRetainer / state.expectedHoursMax)}-${Math.round(state.monthlyRetainer / state.expectedHoursMin)}/hr
+              </span>
+            )}
           </div>
-        </div>
-        <Select value={state.currency} onValueChange={(v) => updateState({ currency: v as Currency })}>
-          <SelectTrigger className="w-auto h-14 px-4 rounded-full border-2 hover:border-muted-foreground/50 transition-colors" aria-label="Select currency" data-tour="currency-select">
-            <SelectValue>
-              <span className="text-xl mr-1">{CURRENCY_FLAGS[state.currency]}</span>
-              <span className="font-medium">{state.currency}</span>
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {CURRENCIES.map((c) => (
-              <SelectItem key={c.value} value={c.value}>
-                <span className="text-lg mr-2">{CURRENCY_FLAGS[c.value]}</span>
-                {c.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        </div>
+        )}
       </div>
 
       {/* Bottom Left - Settings */}
@@ -504,6 +652,213 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
             </CollapsibleContent>
           </Collapsible>
 
+          {/* Corporation Settings - Only for Contractors */}
+          {isContractorType(state.employmentType) && (
+            <Collapsible open={openSection === 'corp' || openSection === 'all'} onOpenChange={() => toggleSection('corp')}>
+              <CollapsibleTrigger className={`flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-all text-base ${openSection === 'corp' || openSection === 'all' ? 'border-l-2 border-l-emerald-500' : 'border-l-2 border-l-transparent'}`}>
+                <div className="flex items-center gap-2">
+                  <ChevronRight className={`h-4 w-4 transition-transform duration-200 ${openSection === 'corp' || openSection === 'all' ? 'rotate-90' : ''}`} />
+                  <Building2 className="h-4 w-4 text-muted-foreground" />
+                  <span>Corporation</span>
+                </div>
+                <span className="text-sm text-muted-foreground">
+                  {state.isIncorporated
+                    ? state.country === 'US'
+                      ? `S-Corp · ${state.dividendVsSalaryPercent}% dist.`
+                      : `CCPC · ${state.corpRetentionPercent}% retained`
+                    : 'Not incorporated'}
+                </span>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="px-3 pt-3 pb-3 space-y-3">
+                {/* Incorporated Toggle */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="isIncorporated" className="text-base">Incorporated</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-4 w-4 text-muted-foreground hover:text-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-xs">
+                          <p>
+                            {state.country === 'US'
+                              ? 'S-Corp: Pass-through entity. Main benefit is avoiding 15.3% self-employment tax on distributions (requires "reasonable salary").'
+                              : 'CCPC: Canadian-Controlled Private Corporation. Can retain earnings at lower corporate tax rates and optimize salary/dividend mix.'}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <Switch
+                    id="isIncorporated"
+                    checked={state.isIncorporated}
+                    onCheckedChange={(checked) => updateState({ isIncorporated: checked })}
+                  />
+                </div>
+
+                {state.isIncorporated && (
+                  <>
+                    {/* Canada: Corp Retention + Dividend/Salary Split */}
+                    {state.country === 'CA' && (
+                      <>
+                        {/* Corp Retention */}
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Label className="text-sm text-muted-foreground">Corp Retention</Label>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <HelpCircle className="h-4 w-4 text-muted-foreground hover:text-foreground cursor-help" />
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="max-w-xs">
+                                  <p>Money kept in the corporation is taxed at the small business rate (~{(getCorpTaxRate('CA', state.region) * 100).toFixed(1)}% in {state.region}). Can be used for business expenses, investments, or deferred personal income.</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Slider
+                              value={[state.corpRetentionPercent]}
+                              onValueChange={([value]) => updateState({ corpRetentionPercent: value })}
+                              max={50}
+                              step={5}
+                              className="flex-1"
+                            />
+                            <span className="text-base font-medium tabular-nums w-12 text-right">{state.corpRetentionPercent}%</span>
+                          </div>
+                        </div>
+
+                        {/* Dividend vs Salary Split */}
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Label className="text-sm text-muted-foreground">Personal Draw: Dividend vs Salary</Label>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <HelpCircle className="h-4 w-4 text-muted-foreground hover:text-foreground cursor-help" />
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="max-w-xs">
+                                  <p>Salary is deductible to corp but fully taxed as income. Non-eligible dividends from CCPCs have different tax treatment (~{(getDividendTaxRate('CA', state.region) * 100).toFixed(0)}% effective in {state.region}). Optimal split depends on your income bracket.</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs text-muted-foreground">Salary</span>
+                            <Slider
+                              value={[state.dividendVsSalaryPercent]}
+                              onValueChange={([value]) => updateState({ dividendVsSalaryPercent: value })}
+                              max={100}
+                              step={10}
+                              className="flex-1"
+                            />
+                            <span className="text-xs text-muted-foreground">Dividend</span>
+                            <span className="text-sm font-medium tabular-nums w-16 text-right">{100 - state.dividendVsSalaryPercent}/{state.dividendVsSalaryPercent}</span>
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {/* US: S-Corp Salary vs Distribution Split */}
+                    {state.country === 'US' && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Label className="text-sm text-muted-foreground">Salary vs Distribution</Label>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <HelpCircle className="h-4 w-4 text-muted-foreground hover:text-foreground cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="max-w-xs">
+                                <p>IRS requires "reasonable compensation" as salary - too low risks audit. Distributions avoid 15.3% self-employment tax (12.4% SS + 2.9% Medicare). Typical range: 40-60% as salary.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs text-muted-foreground">Salary</span>
+                          <Slider
+                            value={[100 - state.dividendVsSalaryPercent]}
+                            onValueChange={([value]) => updateState({ dividendVsSalaryPercent: 100 - value })}
+                            max={100}
+                            min={30}
+                            step={5}
+                            className="flex-1"
+                          />
+                          <span className="text-xs text-muted-foreground">Dist.</span>
+                          <span className="text-sm font-medium tabular-nums w-16 text-right">{100 - state.dividendVsSalaryPercent}/{state.dividendVsSalaryPercent}</span>
+                        </div>
+                        <p className="text-xs text-amber-600 dark:text-amber-400">
+                          ⚠️ IRS scrutinizes S-Corps with less than ~40% salary
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Rate Overrides */}
+                    <div className="pt-2 border-t space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">
+                          {state.country === 'US' ? 'S-Corp tax rate' : 'Corp tax rate'}
+                        </span>
+                        <span className="font-medium tabular-nums">
+                          {state.corpTaxRateOverride !== undefined
+                            ? `${(state.corpTaxRateOverride * 100).toFixed(1)}%`
+                            : state.country === 'US'
+                              ? '0% (pass-through)'
+                              : `${(getCorpTaxRate('CA', state.region) * 100).toFixed(1)}%`
+                          }
+                          <span className="text-muted-foreground ml-1">({state.region})</span>
+                        </span>
+                      </div>
+                      {state.country === 'CA' && (
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Dividend tax rate</span>
+                          <span className="font-medium tabular-nums">
+                            ~{state.dividendTaxRateOverride !== undefined
+                              ? `${(state.dividendTaxRateOverride * 100).toFixed(0)}%`
+                              : `${(getDividendTaxRate('CA', state.region) * 100).toFixed(0)}%`
+                            }
+                            <span className="text-muted-foreground ml-1">(effective)</span>
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Assumptions Disclaimer */}
+                    <div className="pt-2 border-t">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <p className="text-xs text-muted-foreground cursor-help underline decoration-dotted">
+                              View assumptions →
+                            </p>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-sm">
+                            {state.country === 'CA' ? (
+                              <ul className="text-xs space-y-1">
+                                <li>• Small business deduction applies (first $500k active business income)</li>
+                                <li>• Non-eligible dividends assumed (from small business)</li>
+                                <li>• Dividend tax uses gross-up/credit approximation</li>
+                                <li>• Does not account for TOSI, passive income limits, or integration timing</li>
+                              </ul>
+                            ) : (
+                              <ul className="text-xs space-y-1">
+                                <li>• Pass-through entity - no corporate-level tax</li>
+                                <li>• IRS requires "reasonable compensation" as salary</li>
+                                <li>• Distributions avoid 15.3% SE tax (12.4% SS + 2.9% Medicare)</li>
+                                <li>• Does not account for state-specific S-Corp rules or QBID</li>
+                              </ul>
+                            )}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  </>
+                )}
+              </CollapsibleContent>
+            </Collapsible>
+          )}
+
           {/* Tax Estimate */}
           <Collapsible open={openSection === 'tax' || openSection === 'all'} onOpenChange={() => toggleSection('tax')}>
             <CollapsibleTrigger className={`flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-all text-base ${openSection === 'tax' || openSection === 'all' ? 'border-l-2 border-l-emerald-500' : 'border-l-2 border-l-transparent'}`}>
@@ -527,23 +882,29 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Label htmlFor="selfEmployed" className="text-base">Self-employed</Label>
+                  <Label htmlFor="selfEmployed" className="text-base text-muted-foreground">Self-employed</Label>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <HelpCircle className="h-4 w-4 text-muted-foreground hover:text-foreground cursor-help" />
                       </TooltipTrigger>
                       <TooltipContent side="top">
-                        <p>Includes self-employment tax (~15.3% in US, CPP in Canada). Turn off if you're a W-2/T4 employee.</p>
+                        <p>Controlled by employment type above. Contractors pay self-employment tax (~15.3% in US, CPP in Canada).</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 </div>
-                <Switch
-                  id="selfEmployed"
-                  checked={state.isSelfEmployed}
-                  onCheckedChange={(checked) => updateState({ isSelfEmployed: checked })}
-                />
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">
+                    {state.isSelfEmployed ? 'Yes' : 'No'}
+                  </span>
+                  <Switch
+                    id="selfEmployed"
+                    checked={state.isSelfEmployed}
+                    disabled
+                    className="opacity-50"
+                  />
+                </div>
               </div>
               {state.showTaxEstimate && (
                 <div className="space-y-1 text-base pt-1 border-t">
@@ -632,7 +993,114 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
             )}
 
             {/* Results Rows */}
-            {state.calculationMode === 'hourlyToSalary' ? (
+            {/* Corporation Breakdown (when incorporated) */}
+            {calculation.corpBreakdown && state.showTaxEstimate && (
+              <div className="space-y-3">
+                {/* Total Net Worth (Hero) */}
+                <div className="py-2 border-b border-border/30">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                    Total Net Worth
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-3 w-3 inline ml-1 cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-xs">
+                          <p>Personal take-home plus money retained in your corporation (after corp tax).</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </p>
+                  <p className="text-3xl sm:text-4xl font-bold tracking-tight leading-none text-green-600 dark:text-green-400 tabular-nums">
+                    <AnimatedNumber
+                      value={calculation.corpBreakdown.totalNet}
+                      formatter={(n) => formatCurrency(n, state.currency, { showCode: false })}
+                    />
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {formatPercent(1 - calculation.corpBreakdown.effectiveTaxRate)} kept · {formatPercent(calculation.corpBreakdown.effectiveTaxRate)} effective tax
+                  </p>
+                </div>
+
+                {/* Personal Section */}
+                <div className="py-2 border-b border-border/30 space-y-1.5">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Personal</p>
+                  <div className="flex justify-between items-baseline">
+                    <span className="text-sm text-muted-foreground">Take-home</span>
+                    <span className="text-xl font-bold tabular-nums text-green-600 dark:text-green-400">
+                      {formatCurrency(calculation.corpBreakdown.personalNet, state.currency, { showCode: false })}
+                    </span>
+                  </div>
+                  <div className="pl-3 space-y-0.5 text-sm">
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>Salary portion</span>
+                      <span className="tabular-nums">{formatCurrency(calculation.corpBreakdown.salaryPortion, state.currency, { showCode: false })}</span>
+                    </div>
+                    <div className="flex justify-between text-red-500">
+                      <span>Income tax</span>
+                      <span className="tabular-nums">−{formatCurrency(calculation.corpBreakdown.salaryTax, state.currency, { showCode: false })}</span>
+                    </div>
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>{state.country === 'US' ? 'Distribution' : 'Dividend'}</span>
+                      <span className="tabular-nums">{formatCurrency(calculation.corpBreakdown.dividendPortion, state.currency, { showCode: false })}</span>
+                    </div>
+                    <div className="flex justify-between text-red-500">
+                      <span>{state.country === 'US' ? 'Distribution tax' : 'Dividend tax'}</span>
+                      <span className="tabular-nums">−{formatCurrency(calculation.corpBreakdown.dividendTax, state.currency, { showCode: false })}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Corporation Section (Canada) or S-Corp Savings (US) */}
+                {state.country === 'CA' && calculation.corpBreakdown.corpRetained > 0 && (
+                  <div className="py-2 border-b border-border/30 space-y-1.5">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide">Corporation</p>
+                    <div className="flex justify-between items-baseline">
+                      <span className="text-sm text-muted-foreground">Retained (after tax)</span>
+                      <span className="text-lg font-bold tabular-nums">
+                        {formatCurrency(calculation.corpBreakdown.netInCorp, state.currency, { showCode: false })}
+                      </span>
+                    </div>
+                    <div className="pl-3 space-y-0.5 text-sm">
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>Gross retained</span>
+                        <span className="tabular-nums">{formatCurrency(calculation.corpBreakdown.corpRetained, state.currency, { showCode: false })}</span>
+                      </div>
+                      <div className="flex justify-between text-red-500">
+                        <span>Corp tax ({(getCorpTaxRate('CA', state.region) * 100).toFixed(1)}%)</span>
+                        <span className="tabular-nums">−{formatCurrency(calculation.corpBreakdown.corpTax, state.currency, { showCode: false })}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* US S-Corp SE Tax Savings */}
+                {state.country === 'US' && calculation.corpBreakdown.seTaxSavings > 0 && (
+                  <div className="py-2 border-b border-border/30">
+                    <div className="flex justify-between items-baseline">
+                      <span className="text-sm text-emerald-600 dark:text-emerald-400">SE tax savings</span>
+                      <span className="text-sm font-medium tabular-nums text-emerald-600 dark:text-emerald-400">
+                        +{formatCurrency(calculation.corpBreakdown.seTaxSavings, state.currency, { showCode: false })}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Avoided 15.3% self-employment tax on distributions
+                    </p>
+                  </div>
+                )}
+
+                {/* Gross Revenue */}
+                <div className="py-2 border-b border-border/30">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Gross Revenue</p>
+                  <p className="text-xl font-bold tracking-tight tabular-nums">
+                    {formatCurrency(calculation.corpBreakdown.grossRevenue, state.currency, { showCode: false })}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Standard Results (non-incorporated or taxes off) */}
+            {(!calculation.corpBreakdown || !state.showTaxEstimate) && state.calculationMode === 'hourlyToSalary' ? (
               <div className="space-y-3">
                 {/* Take-home / Net Row (Hero) */}
                 {state.showTaxEstimate && (

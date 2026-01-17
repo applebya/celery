@@ -1,5 +1,11 @@
 export type Currency = 'CAD' | 'USD' | 'EUR' | 'GBP' | 'MXN'
 
+export type EmploymentType =
+  | 'contractor-hourly'    // Self-employed, bill by the hour
+  | 'contractor-retainer'  // Self-employed, fixed monthly fee
+  | 'employee-hourly'      // W-2/T4 employee, paid by hour
+  | 'employee-salary'      // W-2/T4 employee, fixed salary
+
 export interface CalculatorState {
   title: string
   hourlyRate: number
@@ -12,7 +18,7 @@ export interface CalculatorState {
   hoursPerDay: number
   daysPerWeek: number
   showTaxEstimate: boolean
-  isSelfEmployed: boolean
+  isSelfEmployed: boolean // Derived from employmentType, kept for backwards compat
   // New: calculation mode (hourly → salary or salary → hourly)
   calculationMode: 'hourlyToSalary' | 'salaryToHourly'
   targetSalary: number
@@ -24,6 +30,21 @@ export interface CalculatorState {
   displayCurrency: Currency
   // Toggle to show/hide currency conversion column
   showCurrencyConversion: boolean
+
+  // Employment type (determines tax treatment and input mode)
+  employmentType: EmploymentType
+
+  // Retainer mode fields
+  monthlyRetainer: number      // Fixed monthly amount for contractor-retainer
+  expectedHoursMin: number     // Min expected hours/month (for effective rate calc)
+  expectedHoursMax: number     // Max expected hours/month (for effective rate range)
+
+  // Corporation structure (contractors only)
+  isIncorporated: boolean
+  corpRetentionPercent: number      // % of gross kept in corp (0-50), Canada only
+  dividendVsSalaryPercent: number   // % of personal draw as dividend (CA) or distribution (US)
+  corpTaxRateOverride?: number      // Override province/state default
+  dividendTaxRateOverride?: number  // Override calculated dividend tax rate
 }
 
 export interface ExchangeRates {
@@ -63,4 +84,24 @@ export const DEFAULT_STATE: CalculatorState = {
   traderMargin: 0,
   displayCurrency: 'USD',
   showCurrencyConversion: true,
+  // New employment type defaults
+  employmentType: 'contractor-hourly',
+  // Retainer mode defaults
+  monthlyRetainer: 10000,
+  expectedHoursMin: 120,
+  expectedHoursMax: 160,
+  // Corporation defaults
+  isIncorporated: false,
+  corpRetentionPercent: 20,
+  dividendVsSalaryPercent: 50,
+}
+
+// Helper to derive isSelfEmployed from employmentType
+export function isSelfEmployedFromType(type: EmploymentType): boolean {
+  return type === 'contractor-hourly' || type === 'contractor-retainer'
+}
+
+// Helper to check if contractor type
+export function isContractorType(type: EmploymentType): boolean {
+  return type === 'contractor-hourly' || type === 'contractor-retainer'
 }
