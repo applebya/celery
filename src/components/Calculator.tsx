@@ -563,85 +563,28 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
 
       {/* Right Panel - Results */}
       <div className="md:sticky md:top-4 md:self-start space-y-3">
-        {/* Results - 2 Column Layout */}
+        {/* Results Card - Row-based Layout */}
         <Card className="relative overflow-hidden border-0 shadow-xl shadow-black/5 hover:shadow-2xl transition-shadow duration-300" data-tour="result-card">
-        {/* Gradient accent stripe */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500" />
-        <CardContent className="p-0 pt-1">
-          <div className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'grid-cols-1 sm:grid-cols-2 sm:divide-x' : 'grid-cols-1'} divide-y sm:divide-y-0`}>
-            {/* Main Currency Column */}
-            <div className="p-4 space-y-2">
-              <div className="flex items-center gap-1.5">
-                <span className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                  {CURRENCY_FLAGS[state.currency]} {state.currency}
-                </span>
-                <Badge variant="outline" className="text-sm px-1.5 py-0 h-5 hidden sm:inline-flex">Primary</Badge>
-              </div>
-
-              {state.calculationMode === 'hourlyToSalary' ? (
-                <div className="space-y-1">
-                  {state.showTaxEstimate ? (
-                    <>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide">Take-home</p>
-                      <p className="text-5xl font-bold tracking-tight leading-none text-green-600 dark:text-green-400 tabular-nums">
-                        <AnimatedNumber
-                          value={calculation.netAnnual}
-                          formatter={(n) => formatCurrency(n, state.currency, { showCode: false })}
-                        />
-                      </p>
-                      <p className="text-lg text-muted-foreground tabular-nums">
-                        {formatCurrency(calculation.grossAnnual, state.currency, { showCode: false })} gross
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide">Annual</p>
-                      <p className="text-5xl font-bold tracking-tight leading-none tabular-nums">
-                        <AnimatedNumber
-                          value={calculation.grossAnnual}
-                          formatter={(n) => formatCurrency(n, state.currency, { showCode: false })}
-                        />
-                      </p>
-                    </>
-                  )}
-                  <p className="text-sm text-muted-foreground tabular-nums">
-                    {formatCurrency(state.hourlyRate, state.currency, { showCode: false })}/hr × {calculation.billableHours.toLocaleString()} hrs
-                  </p>
+          {/* Gradient accent stripe */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500" />
+          <CardContent className="p-4 pt-5 space-y-4">
+            {/* Currency Headers Row */}
+            {state.showCurrencyConversion && state.currency !== displayCurrency ? (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-lg">{CURRENCY_FLAGS[state.currency]}</span>
+                  <span className="text-sm font-medium text-muted-foreground">{state.currency}</span>
                 </div>
-              ) : (
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Hourly Rate</p>
-                  <p className="text-5xl font-bold tracking-tight leading-none tabular-nums">
-                    {formatCurrency(calculation.calculatedHourlyRate, state.currency, { showCode: false })}/hr
-                  </p>
-                  <p className="text-lg text-muted-foreground tabular-nums">
-                    {formatCurrency(calculation.grossAnnual, state.currency, { showCode: false })}
-                    <span className="text-sm ml-1">gross</span>
-                  </p>
-                  {state.showTaxEstimate && (
-                    <p className="text-base text-green-600 dark:text-green-400 tabular-nums">
-                      {formatCurrency(calculation.netAnnual, state.currency, { showCode: false })} net
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Display Currency Column - only show if enabled */}
-            {state.showCurrencyConversion && state.currency !== displayCurrency && (
-              <div className="p-4 space-y-2 bg-muted/10">
-                <span className="sr-only">Results in {displayCurrency}</span>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                      {CURRENCY_FLAGS[displayCurrency]} {displayCurrency}
-                    </span>
+                    <span className="text-lg">{CURRENCY_FLAGS[displayCurrency]}</span>
+                    <span className="text-sm font-medium text-muted-foreground">{displayCurrency}</span>
                     {state.traderMargin > 0 && (
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Badge variant="secondary" className="text-sm px-1.5 py-0 h-5 cursor-help">
-                              -{state.traderMargin}%
+                            <Badge variant="secondary" className="text-xs px-1.5 py-0 h-5 cursor-help">
+                              −{state.traderMargin}%
                             </Badge>
                           </TooltipTrigger>
                           <TooltipContent>
@@ -655,10 +598,8 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                     value={displayCurrency}
                     onValueChange={(v) => updateState({ displayCurrency: v as Currency })}
                   >
-                    <SelectTrigger className="w-24 h-9 text-base px-2" aria-label="Select display currency">
-                      <SelectValue>
-                        {CURRENCY_FLAGS[displayCurrency]} {displayCurrency}
-                      </SelectValue>
+                    <SelectTrigger className="w-20 h-7 text-xs px-2" aria-label="Select display currency">
+                      <SelectValue>{displayCurrency}</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {CURRENCIES.filter(c => c.value !== state.currency).map((c) => (
@@ -667,76 +608,160 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5">
+                <span className="text-lg">{CURRENCY_FLAGS[state.currency]}</span>
+                <span className="text-sm font-medium text-muted-foreground">{state.currency}</span>
+              </div>
+            )}
 
-                {state.calculationMode === 'hourlyToSalary' ? (
-                  <div className="space-y-1">
-                    {state.showTaxEstimate ? (
-                      <>
-                        <p className="text-xs text-muted-foreground uppercase tracking-wide">Take-home</p>
-                        <p className="text-5xl font-bold tracking-tight leading-none text-green-700 dark:text-green-400 tabular-nums">
-                          {formatCurrency(convertedNet, displayCurrency, { showCode: false })}
-                        </p>
-                        {state.traderMargin > 0 && marginLossNet > 0 && (
-                          <p className="text-sm text-red-500 tabular-nums">
-                            −{formatCurrency(marginLossNet, displayCurrency, { showCode: false })} margin
+            {/* Results Rows */}
+            {state.calculationMode === 'hourlyToSalary' ? (
+              <div className="space-y-3">
+                {/* Take-home / Net Row (Hero) */}
+                {state.showTaxEstimate && (
+                  <div className="py-2 border-b border-border/30">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Take-home</p>
+                    <div className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
+                      <p className="text-4xl font-bold tracking-tight leading-none text-green-600 dark:text-green-400 tabular-nums">
+                        <AnimatedNumber
+                          value={calculation.netAnnual}
+                          formatter={(n) => formatCurrency(n, state.currency, { showCode: false })}
+                        />
+                      </p>
+                      {state.showCurrencyConversion && state.currency !== displayCurrency && (
+                        <div>
+                          <p className="text-4xl font-bold tracking-tight leading-none text-green-700 dark:text-green-400 tabular-nums">
+                            {formatCurrency(convertedNet, displayCurrency, { showCode: false })}
                           </p>
-                        )}
-                        <p className="text-lg text-muted-foreground tabular-nums">
-                          {formatCurrency(convertedGross, displayCurrency, { showCode: false })} gross
-                        </p>
-                      </>
-                    ) : (
-                      <>
-                        <p className="text-xs text-muted-foreground uppercase tracking-wide">Annual</p>
-                        <p className="text-5xl font-bold tracking-tight leading-none tabular-nums">
+                          {state.traderMargin > 0 && marginLossNet > 0 && (
+                            <p className="text-sm text-red-500 tabular-nums mt-0.5">
+                              −{formatCurrency(marginLossNet, displayCurrency, { showCode: false })} margin
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Gross Row */}
+                <div className="py-2 border-b border-border/30">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                    {state.showTaxEstimate ? 'Gross' : 'Annual'}
+                  </p>
+                  <div className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
+                    <p className={`${state.showTaxEstimate ? 'text-2xl' : 'text-4xl'} font-bold tracking-tight leading-none tabular-nums`}>
+                      <AnimatedNumber
+                        value={calculation.grossAnnual}
+                        formatter={(n) => formatCurrency(n, state.currency, { showCode: false })}
+                      />
+                    </p>
+                    {state.showCurrencyConversion && state.currency !== displayCurrency && (
+                      <div>
+                        <p className={`${state.showTaxEstimate ? 'text-2xl' : 'text-4xl'} font-bold tracking-tight leading-none tabular-nums`}>
                           {formatCurrency(convertedGross, displayCurrency, { showCode: false })}
                         </p>
-                        {state.traderMargin > 0 && marginLossGross > 0 && (
-                          <p className="text-sm text-red-500 tabular-nums">
+                        {!state.showTaxEstimate && state.traderMargin > 0 && marginLossGross > 0 && (
+                          <p className="text-sm text-red-500 tabular-nums mt-0.5">
                             −{formatCurrency(marginLossGross, displayCurrency, { showCode: false })} margin
                           </p>
                         )}
-                      </>
+                      </div>
                     )}
-                    <p className="text-sm text-muted-foreground tabular-nums">
-                      {formatCurrency(convertWithMargin(state.hourlyRate, state.currency, displayCurrency, state.traderMargin), displayCurrency, { showCode: false })}/hr × {calculation.billableHours.toLocaleString()} hrs
-                    </p>
                   </div>
-                ) : (
-                  <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide">Hourly Rate</p>
-                    <p className="text-5xl font-bold tracking-tight leading-none tabular-nums">
-                      {formatCurrency(convertedHourly, displayCurrency, { showCode: false })}/hr
+                </div>
+
+                {/* Hourly Breakdown Row */}
+                <div className="py-1">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Hourly</p>
+                  <div className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
+                    <p className="text-lg font-medium tabular-nums text-muted-foreground">
+                      {formatCurrency(state.hourlyRate, state.currency, { showCode: false })}/hr
                     </p>
-                    <p className="text-lg text-muted-foreground tabular-nums">
-                      {formatCurrency(convertedGross, displayCurrency, { showCode: false })}
-                      <span className="text-sm ml-1">gross</span>
-                    </p>
-                    {state.showTaxEstimate && (
-                      <p className="text-lg text-green-700 dark:text-green-400 tabular-nums">
-                        {formatCurrency(convertedNet, displayCurrency, { showCode: false })} net
-                        {state.traderMargin > 0 && marginLossNet > 0 && (
-                          <span className="text-sm text-red-500 ml-2">
-                            (−{formatCurrency(marginLossNet, displayCurrency, { showCode: false })})
-                          </span>
-                        )}
+                    {state.showCurrencyConversion && state.currency !== displayCurrency && (
+                      <p className="text-lg font-medium tabular-nums text-muted-foreground">
+                        {formatCurrency(convertWithMargin(state.hourlyRate, state.currency, displayCurrency, state.traderMargin), displayCurrency, { showCode: false })}/hr
                       </p>
                     )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* Salary to Hourly Mode */
+              <div className="space-y-3">
+                {/* Calculated Hourly Rate Row (Hero) */}
+                <div className="py-2 border-b border-border/30">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Hourly Rate</p>
+                  <div className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
+                    <p className="text-4xl font-bold tracking-tight leading-none tabular-nums">
+                      {formatCurrency(calculation.calculatedHourlyRate, state.currency, { showCode: false })}/hr
+                    </p>
+                    {state.showCurrencyConversion && state.currency !== displayCurrency && (
+                      <p className="text-4xl font-bold tracking-tight leading-none tabular-nums">
+                        {formatCurrency(convertedHourly, displayCurrency, { showCode: false })}/hr
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Gross Row */}
+                <div className="py-2 border-b border-border/30">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Gross Annual</p>
+                  <div className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
+                    <p className="text-2xl font-bold tracking-tight leading-none tabular-nums">
+                      {formatCurrency(calculation.grossAnnual, state.currency, { showCode: false })}
+                    </p>
+                    {state.showCurrencyConversion && state.currency !== displayCurrency && (
+                      <p className="text-2xl font-bold tracking-tight leading-none tabular-nums">
+                        {formatCurrency(convertedGross, displayCurrency, { showCode: false })}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Net Row */}
+                {state.showTaxEstimate && (
+                  <div className="py-2 border-b border-border/30">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Take-home</p>
+                    <div className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
+                      <p className="text-2xl font-bold tracking-tight leading-none text-green-600 dark:text-green-400 tabular-nums">
+                        {formatCurrency(calculation.netAnnual, state.currency, { showCode: false })}
+                      </p>
+                      {state.showCurrencyConversion && state.currency !== displayCurrency && (
+                        <div>
+                          <p className="text-2xl font-bold tracking-tight leading-none text-green-700 dark:text-green-400 tabular-nums">
+                            {formatCurrency(convertedNet, displayCurrency, { showCode: false })}
+                          </p>
+                          {state.traderMargin > 0 && marginLossNet > 0 && (
+                            <p className="text-sm text-red-500 tabular-nums mt-0.5">
+                              −{formatCurrency(marginLossNet, displayCurrency, { showCode: false })} margin
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
             )}
-          </div>
+
+            {/* Hours Summary */}
+            <div className="text-sm text-muted-foreground text-center pt-1">
+              {calculation.billableHours.toLocaleString()} hrs/year
+            </div>
+          </CardContent>
 
           {/* Exchange Rate Footer */}
-          {exchangeRates && (
-            <div className="px-4 py-2 border-t bg-muted/5 flex items-center justify-between text-sm text-muted-foreground">
+          {exchangeRates && state.showCurrencyConversion && state.currency !== displayCurrency && (
+            <div className="px-4 py-2 border-t bg-muted/5 flex items-center justify-center text-sm text-muted-foreground">
               <div className="flex items-center gap-1.5">
-                <ArrowRightLeft className="h-4 w-4" />
+                <ArrowRightLeft className="h-3.5 w-3.5" />
                 <span>
                   1 {state.currency} = {rateWithMargin.toFixed(4)} {displayCurrency}
                   {state.traderMargin > 0 && (
-                    <span className="opacity-60"> ({state.traderMargin}% margin)</span>
+                    <span className="opacity-60"> (−{state.traderMargin}%)</span>
                   )}
                 </span>
                 {error && (
@@ -745,11 +770,9 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                   </span>
                 )}
               </div>
-              <span>{calculation.billableHours.toLocaleString()} hrs/yr</span>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </Card>
 
       <div className="flex justify-end">
         <button
