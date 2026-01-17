@@ -146,6 +146,19 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
     ? (calculation.grossAnnual * effectiveRate) - convertedGross
     : 0
 
+  // Period breakdowns (based on primary display - net if taxes shown, gross otherwise)
+  const primaryAnnual = state.showTaxEstimate ? calculation.netAnnual : calculation.grossAnnual
+  const primaryConverted = state.showTaxEstimate ? convertedNet : convertedGross
+  const billableDays = calculation.billableHours / state.hoursPerDay
+
+  const monthly = primaryAnnual / 12
+  const biweekly = primaryAnnual / 26
+  const daily = primaryAnnual / billableDays
+
+  const monthlyConverted = primaryConverted / 12
+  const biweeklyConverted = primaryConverted / 26
+  const dailyConverted = primaryConverted / billableDays
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[1fr,380px] lg:grid-rows-[auto,1fr] gap-4 lg:gap-6">
       {/* Top Left - Rate Input */}
@@ -675,18 +688,66 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                   </div>
                 </div>
 
-                {/* Hourly Breakdown Row */}
-                <div className="py-1">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Hourly</p>
-                  <div className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
-                    <p className="text-lg font-medium tabular-nums text-muted-foreground">
-                      {formatCurrency(state.hourlyRate, state.currency, { showCode: false })}/hr
-                    </p>
-                    {state.showCurrencyConversion && state.currency !== displayCurrency && (
-                      <p className="text-lg font-medium tabular-nums text-muted-foreground">
-                        {formatCurrency(convertWithMargin(state.hourlyRate, state.currency, displayCurrency, state.traderMargin), displayCurrency, { showCode: false })}/hr
-                      </p>
-                    )}
+                {/* Period Breakdowns */}
+                <div className="pt-2 border-t border-border/30 space-y-2">
+                  {/* Monthly */}
+                  <div className="flex justify-between items-baseline">
+                    <span className="text-sm text-muted-foreground">Monthly</span>
+                    <div className={`flex ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'gap-4' : ''}`}>
+                      <span className="text-sm font-medium tabular-nums">
+                        {formatCurrency(monthly, state.currency, { showCode: false })}
+                      </span>
+                      {state.showCurrencyConversion && state.currency !== displayCurrency && (
+                        <span className="text-sm font-medium tabular-nums text-muted-foreground">
+                          {formatCurrency(monthlyConverted, displayCurrency, { showCode: false })}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Bi-weekly */}
+                  <div className="flex justify-between items-baseline">
+                    <span className="text-sm text-muted-foreground">Bi-weekly</span>
+                    <div className={`flex ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'gap-4' : ''}`}>
+                      <span className="text-sm font-medium tabular-nums">
+                        {formatCurrency(biweekly, state.currency, { showCode: false })}
+                      </span>
+                      {state.showCurrencyConversion && state.currency !== displayCurrency && (
+                        <span className="text-sm font-medium tabular-nums text-muted-foreground">
+                          {formatCurrency(biweeklyConverted, displayCurrency, { showCode: false })}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Daily */}
+                  <div className="flex justify-between items-baseline">
+                    <span className="text-sm text-muted-foreground">Daily</span>
+                    <div className={`flex ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'gap-4' : ''}`}>
+                      <span className="text-sm font-medium tabular-nums">
+                        {formatCurrency(daily, state.currency, { showCode: false })}
+                      </span>
+                      {state.showCurrencyConversion && state.currency !== displayCurrency && (
+                        <span className="text-sm font-medium tabular-nums text-muted-foreground">
+                          {formatCurrency(dailyConverted, displayCurrency, { showCode: false })}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Hourly */}
+                  <div className="flex justify-between items-baseline">
+                    <span className="text-sm text-muted-foreground">Hourly</span>
+                    <div className={`flex ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'gap-4' : ''}`}>
+                      <span className="text-sm font-medium tabular-nums">
+                        {formatCurrency(state.hourlyRate, state.currency, { showCode: false })}
+                      </span>
+                      {state.showCurrencyConversion && state.currency !== displayCurrency && (
+                        <span className="text-sm font-medium tabular-nums text-muted-foreground">
+                          {formatCurrency(convertWithMargin(state.hourlyRate, state.currency, displayCurrency, state.traderMargin), displayCurrency, { showCode: false })}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -746,6 +807,69 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                     </div>
                   </div>
                 )}
+
+                {/* Period Breakdowns */}
+                <div className="pt-2 border-t border-border/30 space-y-2">
+                  {/* Monthly */}
+                  <div className="flex justify-between items-baseline">
+                    <span className="text-sm text-muted-foreground">Monthly</span>
+                    <div className={`flex ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'gap-4' : ''}`}>
+                      <span className="text-sm font-medium tabular-nums">
+                        {formatCurrency(monthly, state.currency, { showCode: false })}
+                      </span>
+                      {state.showCurrencyConversion && state.currency !== displayCurrency && (
+                        <span className="text-sm font-medium tabular-nums text-muted-foreground">
+                          {formatCurrency(monthlyConverted, displayCurrency, { showCode: false })}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Bi-weekly */}
+                  <div className="flex justify-between items-baseline">
+                    <span className="text-sm text-muted-foreground">Bi-weekly</span>
+                    <div className={`flex ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'gap-4' : ''}`}>
+                      <span className="text-sm font-medium tabular-nums">
+                        {formatCurrency(biweekly, state.currency, { showCode: false })}
+                      </span>
+                      {state.showCurrencyConversion && state.currency !== displayCurrency && (
+                        <span className="text-sm font-medium tabular-nums text-muted-foreground">
+                          {formatCurrency(biweeklyConverted, displayCurrency, { showCode: false })}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Daily */}
+                  <div className="flex justify-between items-baseline">
+                    <span className="text-sm text-muted-foreground">Daily</span>
+                    <div className={`flex ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'gap-4' : ''}`}>
+                      <span className="text-sm font-medium tabular-nums">
+                        {formatCurrency(daily, state.currency, { showCode: false })}
+                      </span>
+                      {state.showCurrencyConversion && state.currency !== displayCurrency && (
+                        <span className="text-sm font-medium tabular-nums text-muted-foreground">
+                          {formatCurrency(dailyConverted, displayCurrency, { showCode: false })}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Hourly */}
+                  <div className="flex justify-between items-baseline">
+                    <span className="text-sm text-muted-foreground">Hourly</span>
+                    <div className={`flex ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'gap-4' : ''}`}>
+                      <span className="text-sm font-medium tabular-nums">
+                        {formatCurrency(calculation.calculatedHourlyRate, state.currency, { showCode: false })}
+                      </span>
+                      {state.showCurrencyConversion && state.currency !== displayCurrency && (
+                        <span className="text-sm font-medium tabular-nums text-muted-foreground">
+                          {formatCurrency(convertedHourly, displayCurrency, { showCode: false })}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
