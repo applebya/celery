@@ -147,8 +147,8 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
     : 0
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1fr,380px] gap-4 lg:gap-6">
-      {/* Left Column - Settings */}
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr,380px] lg:grid-rows-[auto,1fr] gap-4 lg:gap-6">
+      {/* Top Left - Rate Input */}
       <div className="space-y-3 order-2 lg:order-1">
         {showTitle && (
           <div className="flex items-center gap-2">
@@ -240,8 +240,10 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
           </SelectContent>
         </Select>
         </div>
+      </div>
 
-        {/* Settings Sections */}
+      {/* Bottom Left - Settings */}
+      <div className="order-3 lg:order-2">
         <div className="flex justify-end mb-1">
           <button
             onClick={toggleAllSections}
@@ -265,7 +267,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                   : 'Disabled'}
               </span>
             </CollapsibleTrigger>
-            <CollapsibleContent className="px-3 pb-3 space-y-3">
+            <CollapsibleContent className="px-3 pt-3 pb-3 space-y-3">
               {/* Master Toggle */}
               <div className="flex items-center justify-between">
                 <Label htmlFor="showConversion" className="text-base">Show currency conversion</Label>
@@ -369,7 +371,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                 {currentCountry?.flag} {state.region} · {state.holidaysPerYear + (state.unlimitedPTO ? 0 : state.ptoDays + state.sickDays)} days off
               </span>
             </CollapsibleTrigger>
-            <CollapsibleContent className="px-3 pb-3 space-y-4">
+            <CollapsibleContent className="px-3 pt-3 pb-3 space-y-4">
               {/* Location Row */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
@@ -501,7 +503,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                 {state.showTaxEstimate ? formatPercent(calculation.taxBreakdown.effectiveRate) : 'Off'}
               </span>
             </CollapsibleTrigger>
-            <CollapsibleContent className="px-3 pb-3 space-y-2">
+            <CollapsibleContent className="px-3 pt-3 pb-3 space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="showTax" className="text-base">Show tax estimate</Label>
                 <Switch
@@ -561,8 +563,8 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
         </div>
       </div>
 
-      {/* Right Column - Results (shows first on mobile) */}
-      <div className="lg:sticky lg:top-4 lg:self-start space-y-3 order-1 lg:order-2">
+      {/* Right Column - Results (shows first on mobile, spans both rows on desktop) */}
+      <div className="lg:sticky lg:top-4 lg:self-start space-y-3 order-1 lg:order-3 lg:row-span-2">
         {/* Results Card - Row-based Layout */}
         <Card className="relative overflow-hidden border-0 shadow-xl shadow-black/5 hover:shadow-2xl transition-shadow duration-300" data-tour="result-card">
           {/* Gradient accent stripe */}
