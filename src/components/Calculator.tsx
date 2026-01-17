@@ -656,7 +656,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                     {state.showTaxEstimate ? (
                       <>
                         <p className="text-xs text-muted-foreground uppercase tracking-wide">Take-home</p>
-                        <p className="text-4xl font-bold tracking-tight leading-none text-green-600/80 dark:text-green-400/80 tabular-nums">
+                        <p className="text-4xl font-bold tracking-tight leading-none text-green-700 dark:text-green-400 tabular-nums">
                           {formatCurrency(convertedNet, displayCurrency, { showCode: false })}
                         </p>
                         <p className="text-base text-muted-foreground tabular-nums">
@@ -686,7 +686,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                       <span className="text-sm ml-1">gross</span>
                     </p>
                     {state.showTaxEstimate && (
-                      <p className="text-base text-green-600/80 dark:text-green-400/80 tabular-nums">
+                      <p className="text-base text-green-700 dark:text-green-400 tabular-nums">
                         {formatCurrency(convertedNet, displayCurrency, { showCode: false })} net
                       </p>
                     )}
