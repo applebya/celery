@@ -147,9 +147,9 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
     : 0
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-[1fr,1.2fr] gap-4 md:gap-6">
-      {/* Left Panel - Inputs */}
-      <div className="space-y-3">
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr,380px] gap-4 lg:gap-6">
+      {/* Left Column - Settings */}
+      <div className="space-y-3 order-2 lg:order-1">
         {showTitle && (
           <div className="flex items-center gap-2">
             {editingTitle ? (
@@ -561,8 +561,8 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
         </div>
       </div>
 
-      {/* Right Panel - Results */}
-      <div className="md:sticky md:top-4 md:self-start space-y-3">
+      {/* Right Column - Results (shows first on mobile) */}
+      <div className="lg:sticky lg:top-4 lg:self-start space-y-3 order-1 lg:order-2">
         {/* Results Card - Row-based Layout */}
         <Card className="relative overflow-hidden border-0 shadow-xl shadow-black/5 hover:shadow-2xl transition-shadow duration-300" data-tour="result-card">
           {/* Gradient accent stripe */}
