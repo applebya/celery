@@ -3,6 +3,7 @@ import { ComparisonView } from '@/components/ComparisonView'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { OnboardingTour } from '@/components/OnboardingTour'
 import { ScenarioSwitcher } from '@/components/ScenarioSwitcher'
+import { FooterContent } from '@/components/FooterContent'
 import { useScenarios } from '@/hooks/useScenarios'
 import { DEFAULT_STATE, type CalculatorState } from '@/types'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -140,8 +141,11 @@ function App() {
           />
         </main>
 
+        {/* Below-the-fold SEO content */}
+        <FooterContent />
+
         {/* Footer */}
-        <footer className="text-center mt-6 text-[10px] text-muted-foreground">
+        <footer className="text-center mt-8 pb-4 text-[10px] text-muted-foreground">
           <p>2026 tax rates · Estimates only · Saved locally</p>
         </footer>
       </div>
