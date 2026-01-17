@@ -36,6 +36,14 @@ export interface HistoricalRate {
   rate: number
 }
 
+export interface SavedScenario {
+  id: string
+  name: string
+  state: CalculatorState
+  createdAt: number
+  updatedAt: number
+}
+
 export const DEFAULT_STATE: CalculatorState = {
   title: '',
   hourlyRate: 100,
