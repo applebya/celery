@@ -61,10 +61,10 @@ export function ComparisonView({
             showTitle={false}
           />
         </div>
-        <div className="flex justify-center">
+        <div className="flex justify-center" data-tour="compare-button">
           <button
             onClick={addScenario}
-            className="flex items-center gap-2 px-4 py-2 text-base font-medium text-primary border border-primary/30 hover:bg-primary/10 rounded-lg transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-base font-medium text-primary border border-primary/30 hover:bg-primary/10 rounded-lg transition-all duration-150 hover:scale-[1.02] active:scale-[0.98]"
           >
             <Plus className="h-4 w-4" />
             Compare Job Offers

@@ -183,7 +183,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
         )}
 
         {/* Input with Mode Toggle */}
-        <div className="flex gap-3 items-end">
+        <div className="flex gap-3 items-end" data-tour="rate-input">
         <div className="flex-1 space-y-1">
           <div className="flex items-center gap-2">
             <Label htmlFor="mainInput" className="text-sm text-muted-foreground">
@@ -216,7 +216,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
           </div>
         </div>
         <Select value={state.currency} onValueChange={(v) => updateState({ currency: v as Currency })}>
-          <SelectTrigger className="w-auto h-14 px-4 rounded-full border-2 hover:border-muted-foreground/50 transition-colors" aria-label="Select currency">
+          <SelectTrigger className="w-auto h-14 px-4 rounded-full border-2 hover:border-muted-foreground/50 transition-colors" aria-label="Select currency" data-tour="currency-select">
             <SelectValue>
               <span className="text-xl mr-1">{CURRENCY_FLAGS[state.currency]}</span>
               <span className="font-medium">{state.currency}</span>
@@ -242,7 +242,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
             {allExpanded || openSection === 'all' ? 'Collapse all' : 'Expand all settings'}
           </button>
         </div>
-        <div className="rounded-lg border bg-card/50 backdrop-blur-sm overflow-hidden">
+        <div className="rounded-lg border bg-card/50 backdrop-blur-sm overflow-hidden" data-tour="settings-panel">
           {/* Currency Settings */}
           <Collapsible open={openSection === 'currency' || openSection === 'all'} onOpenChange={() => toggleSection('currency')}>
             <CollapsibleTrigger className={`flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-all text-base ${openSection === 'currency' || openSection === 'all' ? 'border-l-2 border-l-emerald-500' : 'border-l-2 border-l-transparent'}`}>
@@ -556,7 +556,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
       {/* Right Panel - Results */}
       <div className="md:sticky md:top-4 md:self-start space-y-3">
         {/* Results - 2 Column Layout */}
-        <Card className="relative overflow-hidden border-0 shadow-xl shadow-black/5 hover:shadow-2xl transition-shadow duration-300">
+        <Card className="relative overflow-hidden border-0 shadow-xl shadow-black/5 hover:shadow-2xl transition-shadow duration-300" data-tour="result-card">
         {/* Gradient accent stripe */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500" />
         <CardContent className="p-0 pt-1">
