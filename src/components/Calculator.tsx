@@ -582,10 +582,10 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
         <Card className="relative overflow-hidden border-0 shadow-xl shadow-black/5 hover:shadow-2xl transition-shadow duration-300" data-tour="result-card">
           {/* Gradient accent stripe */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500" />
-          <CardContent className="p-4 pt-5 space-y-4">
-            {/* Currency Headers Row */}
+          <CardContent className="p-3 sm:p-4 pt-4 sm:pt-5 space-y-3 sm:space-y-4">
+            {/* Currency Headers Row - hidden on mobile since flags show inline */}
             {state.showCurrencyConversion && state.currency !== displayCurrency ? (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="hidden sm:grid grid-cols-2 gap-4">
                 <div className="flex items-center gap-1.5">
                   <span className="text-lg">{CURRENCY_FLAGS[state.currency]}</span>
                   <span className="text-sm font-medium text-muted-foreground">{state.currency}</span>
@@ -625,7 +625,7 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                 </div>
               </div>
             ) : (
-              <div className="flex items-center gap-1.5">
+              <div className="hidden sm:flex items-center gap-1.5">
                 <span className="text-lg">{CURRENCY_FLAGS[state.currency]}</span>
                 <span className="text-sm font-medium text-muted-foreground">{state.currency}</span>
               </div>
@@ -638,23 +638,29 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                 {state.showTaxEstimate && (
                   <div className="py-2 border-b border-border/30">
                     <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Take-home</p>
-                    <div className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
-                      <p className="text-4xl font-bold tracking-tight leading-none text-green-600 dark:text-green-400 tabular-nums">
-                        <AnimatedNumber
-                          value={calculation.netAnnual}
-                          formatter={(n) => formatCurrency(n, state.currency, { showCode: false })}
-                        />
-                      </p>
+                    <div className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'} gap-1 sm:gap-4`}>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-sm text-muted-foreground sm:hidden">{CURRENCY_FLAGS[state.currency]}</span>
+                        <p className="text-3xl sm:text-4xl font-bold tracking-tight leading-none text-green-600 dark:text-green-400 tabular-nums">
+                          <AnimatedNumber
+                            value={calculation.netAnnual}
+                            formatter={(n) => formatCurrency(n, state.currency, { showCode: false })}
+                          />
+                        </p>
+                      </div>
                       {state.showCurrencyConversion && state.currency !== displayCurrency && (
-                        <div>
-                          <p className="text-4xl font-bold tracking-tight leading-none text-green-700 dark:text-green-400 tabular-nums">
-                            {formatCurrency(convertedNet, displayCurrency, { showCode: false })}
-                          </p>
-                          {state.traderMargin > 0 && marginLossNet > 0 && (
-                            <p className="text-sm text-red-500 tabular-nums mt-0.5">
-                              −{formatCurrency(marginLossNet, displayCurrency, { showCode: false })} margin
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-sm text-muted-foreground sm:hidden">{CURRENCY_FLAGS[displayCurrency]}</span>
+                          <div>
+                            <p className="text-2xl sm:text-4xl font-bold tracking-tight leading-none text-green-700 dark:text-green-400 tabular-nums">
+                              {formatCurrency(convertedNet, displayCurrency, { showCode: false })}
                             </p>
-                          )}
+                            {state.traderMargin > 0 && marginLossNet > 0 && (
+                              <p className="text-xs sm:text-sm text-red-500 tabular-nums mt-0.5">
+                                −{formatCurrency(marginLossNet, displayCurrency, { showCode: false })} margin
+                              </p>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -666,39 +672,45 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                   <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
                     {state.showTaxEstimate ? 'Gross' : 'Annual'}
                   </p>
-                  <div className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
-                    <p className={`${state.showTaxEstimate ? 'text-2xl' : 'text-4xl'} font-bold tracking-tight leading-none tabular-nums`}>
-                      <AnimatedNumber
-                        value={calculation.grossAnnual}
-                        formatter={(n) => formatCurrency(n, state.currency, { showCode: false })}
-                      />
-                    </p>
+                  <div className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'} gap-1 sm:gap-4`}>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-sm text-muted-foreground sm:hidden">{CURRENCY_FLAGS[state.currency]}</span>
+                      <p className={`${state.showTaxEstimate ? 'text-xl sm:text-2xl' : 'text-3xl sm:text-4xl'} font-bold tracking-tight leading-none tabular-nums`}>
+                        <AnimatedNumber
+                          value={calculation.grossAnnual}
+                          formatter={(n) => formatCurrency(n, state.currency, { showCode: false })}
+                        />
+                      </p>
+                    </div>
                     {state.showCurrencyConversion && state.currency !== displayCurrency && (
-                      <div>
-                        <p className={`${state.showTaxEstimate ? 'text-2xl' : 'text-4xl'} font-bold tracking-tight leading-none tabular-nums`}>
-                          {formatCurrency(convertedGross, displayCurrency, { showCode: false })}
-                        </p>
-                        {!state.showTaxEstimate && state.traderMargin > 0 && marginLossGross > 0 && (
-                          <p className="text-sm text-red-500 tabular-nums mt-0.5">
-                            −{formatCurrency(marginLossGross, displayCurrency, { showCode: false })} margin
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-sm text-muted-foreground sm:hidden">{CURRENCY_FLAGS[displayCurrency]}</span>
+                        <div>
+                          <p className={`${state.showTaxEstimate ? 'text-lg sm:text-2xl' : 'text-2xl sm:text-4xl'} font-bold tracking-tight leading-none tabular-nums`}>
+                            {formatCurrency(convertedGross, displayCurrency, { showCode: false })}
                           </p>
-                        )}
+                          {!state.showTaxEstimate && state.traderMargin > 0 && marginLossGross > 0 && (
+                            <p className="text-xs sm:text-sm text-red-500 tabular-nums mt-0.5">
+                              −{formatCurrency(marginLossGross, displayCurrency, { showCode: false })} margin
+                            </p>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
                 </div>
 
                 {/* Period Breakdowns */}
-                <div className="pt-2 border-t border-border/30 space-y-2">
+                <div className="pt-2 border-t border-border/30 space-y-1.5 sm:space-y-2">
                   {/* Monthly */}
                   <div className="flex justify-between items-baseline">
-                    <span className="text-sm text-muted-foreground">Monthly</span>
-                    <div className={`flex ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'gap-4' : ''}`}>
-                      <span className="text-sm font-medium tabular-nums">
+                    <span className="text-xs sm:text-sm text-muted-foreground">Monthly</span>
+                    <div className={`text-right ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'flex flex-col sm:flex-row sm:gap-3' : ''}`}>
+                      <span className="text-xs sm:text-sm font-medium tabular-nums">
                         {formatCurrency(monthly, state.currency, { showCode: false })}
                       </span>
                       {state.showCurrencyConversion && state.currency !== displayCurrency && (
-                        <span className="text-sm font-medium tabular-nums text-muted-foreground">
+                        <span className="text-xs sm:text-sm font-medium tabular-nums text-muted-foreground">
                           {formatCurrency(monthlyConverted, displayCurrency, { showCode: false })}
                         </span>
                       )}
@@ -707,13 +719,13 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
 
                   {/* Bi-weekly */}
                   <div className="flex justify-between items-baseline">
-                    <span className="text-sm text-muted-foreground">Bi-weekly</span>
-                    <div className={`flex ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'gap-4' : ''}`}>
-                      <span className="text-sm font-medium tabular-nums">
+                    <span className="text-xs sm:text-sm text-muted-foreground">Bi-weekly</span>
+                    <div className={`text-right ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'flex flex-col sm:flex-row sm:gap-3' : ''}`}>
+                      <span className="text-xs sm:text-sm font-medium tabular-nums">
                         {formatCurrency(biweekly, state.currency, { showCode: false })}
                       </span>
                       {state.showCurrencyConversion && state.currency !== displayCurrency && (
-                        <span className="text-sm font-medium tabular-nums text-muted-foreground">
+                        <span className="text-xs sm:text-sm font-medium tabular-nums text-muted-foreground">
                           {formatCurrency(biweeklyConverted, displayCurrency, { showCode: false })}
                         </span>
                       )}
@@ -722,13 +734,13 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
 
                   {/* Daily */}
                   <div className="flex justify-between items-baseline">
-                    <span className="text-sm text-muted-foreground">Daily</span>
-                    <div className={`flex ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'gap-4' : ''}`}>
-                      <span className="text-sm font-medium tabular-nums">
+                    <span className="text-xs sm:text-sm text-muted-foreground">Daily</span>
+                    <div className={`text-right ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'flex flex-col sm:flex-row sm:gap-3' : ''}`}>
+                      <span className="text-xs sm:text-sm font-medium tabular-nums">
                         {formatCurrency(daily, state.currency, { showCode: false })}
                       </span>
                       {state.showCurrencyConversion && state.currency !== displayCurrency && (
-                        <span className="text-sm font-medium tabular-nums text-muted-foreground">
+                        <span className="text-xs sm:text-sm font-medium tabular-nums text-muted-foreground">
                           {formatCurrency(dailyConverted, displayCurrency, { showCode: false })}
                         </span>
                       )}
@@ -737,13 +749,13 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
 
                   {/* Hourly */}
                   <div className="flex justify-between items-baseline">
-                    <span className="text-sm text-muted-foreground">Hourly</span>
-                    <div className={`flex ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'gap-4' : ''}`}>
-                      <span className="text-sm font-medium tabular-nums">
+                    <span className="text-xs sm:text-sm text-muted-foreground">Hourly</span>
+                    <div className={`text-right ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'flex flex-col sm:flex-row sm:gap-3' : ''}`}>
+                      <span className="text-xs sm:text-sm font-medium tabular-nums">
                         {formatCurrency(state.hourlyRate, state.currency, { showCode: false })}
                       </span>
                       {state.showCurrencyConversion && state.currency !== displayCurrency && (
-                        <span className="text-sm font-medium tabular-nums text-muted-foreground">
+                        <span className="text-xs sm:text-sm font-medium tabular-nums text-muted-foreground">
                           {formatCurrency(convertWithMargin(state.hourlyRate, state.currency, displayCurrency, state.traderMargin), displayCurrency, { showCode: false })}
                         </span>
                       )}
@@ -757,14 +769,20 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                 {/* Calculated Hourly Rate Row (Hero) */}
                 <div className="py-2 border-b border-border/30">
                   <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Hourly Rate</p>
-                  <div className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
-                    <p className="text-4xl font-bold tracking-tight leading-none tabular-nums">
-                      {formatCurrency(calculation.calculatedHourlyRate, state.currency, { showCode: false })}/hr
-                    </p>
-                    {state.showCurrencyConversion && state.currency !== displayCurrency && (
-                      <p className="text-4xl font-bold tracking-tight leading-none tabular-nums">
-                        {formatCurrency(convertedHourly, displayCurrency, { showCode: false })}/hr
+                  <div className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'} gap-1 sm:gap-4`}>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-sm text-muted-foreground sm:hidden">{CURRENCY_FLAGS[state.currency]}</span>
+                      <p className="text-3xl sm:text-4xl font-bold tracking-tight leading-none tabular-nums">
+                        {formatCurrency(calculation.calculatedHourlyRate, state.currency, { showCode: false })}/hr
                       </p>
+                    </div>
+                    {state.showCurrencyConversion && state.currency !== displayCurrency && (
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-sm text-muted-foreground sm:hidden">{CURRENCY_FLAGS[displayCurrency]}</span>
+                        <p className="text-2xl sm:text-4xl font-bold tracking-tight leading-none tabular-nums">
+                          {formatCurrency(convertedHourly, displayCurrency, { showCode: false })}/hr
+                        </p>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -772,14 +790,20 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                 {/* Gross Row */}
                 <div className="py-2 border-b border-border/30">
                   <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Gross Annual</p>
-                  <div className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
-                    <p className="text-2xl font-bold tracking-tight leading-none tabular-nums">
-                      {formatCurrency(calculation.grossAnnual, state.currency, { showCode: false })}
-                    </p>
-                    {state.showCurrencyConversion && state.currency !== displayCurrency && (
-                      <p className="text-2xl font-bold tracking-tight leading-none tabular-nums">
-                        {formatCurrency(convertedGross, displayCurrency, { showCode: false })}
+                  <div className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'} gap-1 sm:gap-4`}>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-sm text-muted-foreground sm:hidden">{CURRENCY_FLAGS[state.currency]}</span>
+                      <p className="text-xl sm:text-2xl font-bold tracking-tight leading-none tabular-nums">
+                        {formatCurrency(calculation.grossAnnual, state.currency, { showCode: false })}
                       </p>
+                    </div>
+                    {state.showCurrencyConversion && state.currency !== displayCurrency && (
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-sm text-muted-foreground sm:hidden">{CURRENCY_FLAGS[displayCurrency]}</span>
+                        <p className="text-lg sm:text-2xl font-bold tracking-tight leading-none tabular-nums">
+                          {formatCurrency(convertedGross, displayCurrency, { showCode: false })}
+                        </p>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -788,20 +812,26 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                 {state.showTaxEstimate && (
                   <div className="py-2 border-b border-border/30">
                     <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Take-home</p>
-                    <div className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
-                      <p className="text-2xl font-bold tracking-tight leading-none text-green-600 dark:text-green-400 tabular-nums">
-                        {formatCurrency(calculation.netAnnual, state.currency, { showCode: false })}
-                      </p>
+                    <div className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'} gap-1 sm:gap-4`}>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-sm text-muted-foreground sm:hidden">{CURRENCY_FLAGS[state.currency]}</span>
+                        <p className="text-xl sm:text-2xl font-bold tracking-tight leading-none text-green-600 dark:text-green-400 tabular-nums">
+                          {formatCurrency(calculation.netAnnual, state.currency, { showCode: false })}
+                        </p>
+                      </div>
                       {state.showCurrencyConversion && state.currency !== displayCurrency && (
-                        <div>
-                          <p className="text-2xl font-bold tracking-tight leading-none text-green-700 dark:text-green-400 tabular-nums">
-                            {formatCurrency(convertedNet, displayCurrency, { showCode: false })}
-                          </p>
-                          {state.traderMargin > 0 && marginLossNet > 0 && (
-                            <p className="text-sm text-red-500 tabular-nums mt-0.5">
-                              −{formatCurrency(marginLossNet, displayCurrency, { showCode: false })} margin
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-sm text-muted-foreground sm:hidden">{CURRENCY_FLAGS[displayCurrency]}</span>
+                          <div>
+                            <p className="text-lg sm:text-2xl font-bold tracking-tight leading-none text-green-700 dark:text-green-400 tabular-nums">
+                              {formatCurrency(convertedNet, displayCurrency, { showCode: false })}
                             </p>
-                          )}
+                            {state.traderMargin > 0 && marginLossNet > 0 && (
+                              <p className="text-xs sm:text-sm text-red-500 tabular-nums mt-0.5">
+                                −{formatCurrency(marginLossNet, displayCurrency, { showCode: false })} margin
+                              </p>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -809,16 +839,16 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                 )}
 
                 {/* Period Breakdowns */}
-                <div className="pt-2 border-t border-border/30 space-y-2">
+                <div className="pt-2 border-t border-border/30 space-y-1.5 sm:space-y-2">
                   {/* Monthly */}
                   <div className="flex justify-between items-baseline">
-                    <span className="text-sm text-muted-foreground">Monthly</span>
-                    <div className={`flex ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'gap-4' : ''}`}>
-                      <span className="text-sm font-medium tabular-nums">
+                    <span className="text-xs sm:text-sm text-muted-foreground">Monthly</span>
+                    <div className={`text-right ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'flex flex-col sm:flex-row sm:gap-3' : ''}`}>
+                      <span className="text-xs sm:text-sm font-medium tabular-nums">
                         {formatCurrency(monthly, state.currency, { showCode: false })}
                       </span>
                       {state.showCurrencyConversion && state.currency !== displayCurrency && (
-                        <span className="text-sm font-medium tabular-nums text-muted-foreground">
+                        <span className="text-xs sm:text-sm font-medium tabular-nums text-muted-foreground">
                           {formatCurrency(monthlyConverted, displayCurrency, { showCode: false })}
                         </span>
                       )}
@@ -827,13 +857,13 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
 
                   {/* Bi-weekly */}
                   <div className="flex justify-between items-baseline">
-                    <span className="text-sm text-muted-foreground">Bi-weekly</span>
-                    <div className={`flex ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'gap-4' : ''}`}>
-                      <span className="text-sm font-medium tabular-nums">
+                    <span className="text-xs sm:text-sm text-muted-foreground">Bi-weekly</span>
+                    <div className={`text-right ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'flex flex-col sm:flex-row sm:gap-3' : ''}`}>
+                      <span className="text-xs sm:text-sm font-medium tabular-nums">
                         {formatCurrency(biweekly, state.currency, { showCode: false })}
                       </span>
                       {state.showCurrencyConversion && state.currency !== displayCurrency && (
-                        <span className="text-sm font-medium tabular-nums text-muted-foreground">
+                        <span className="text-xs sm:text-sm font-medium tabular-nums text-muted-foreground">
                           {formatCurrency(biweeklyConverted, displayCurrency, { showCode: false })}
                         </span>
                       )}
@@ -842,13 +872,13 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
 
                   {/* Daily */}
                   <div className="flex justify-between items-baseline">
-                    <span className="text-sm text-muted-foreground">Daily</span>
-                    <div className={`flex ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'gap-4' : ''}`}>
-                      <span className="text-sm font-medium tabular-nums">
+                    <span className="text-xs sm:text-sm text-muted-foreground">Daily</span>
+                    <div className={`text-right ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'flex flex-col sm:flex-row sm:gap-3' : ''}`}>
+                      <span className="text-xs sm:text-sm font-medium tabular-nums">
                         {formatCurrency(daily, state.currency, { showCode: false })}
                       </span>
                       {state.showCurrencyConversion && state.currency !== displayCurrency && (
-                        <span className="text-sm font-medium tabular-nums text-muted-foreground">
+                        <span className="text-xs sm:text-sm font-medium tabular-nums text-muted-foreground">
                           {formatCurrency(dailyConverted, displayCurrency, { showCode: false })}
                         </span>
                       )}
@@ -857,13 +887,13 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
 
                   {/* Hourly */}
                   <div className="flex justify-between items-baseline">
-                    <span className="text-sm text-muted-foreground">Hourly</span>
-                    <div className={`flex ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'gap-4' : ''}`}>
-                      <span className="text-sm font-medium tabular-nums">
+                    <span className="text-xs sm:text-sm text-muted-foreground">Hourly</span>
+                    <div className={`text-right ${state.showCurrencyConversion && state.currency !== displayCurrency ? 'flex flex-col sm:flex-row sm:gap-3' : ''}`}>
+                      <span className="text-xs sm:text-sm font-medium tabular-nums">
                         {formatCurrency(calculation.calculatedHourlyRate, state.currency, { showCode: false })}
                       </span>
                       {state.showCurrencyConversion && state.currency !== displayCurrency && (
-                        <span className="text-sm font-medium tabular-nums text-muted-foreground">
+                        <span className="text-xs sm:text-sm font-medium tabular-nums text-muted-foreground">
                           {formatCurrency(convertedHourly, displayCurrency, { showCode: false })}
                         </span>
                       )}
