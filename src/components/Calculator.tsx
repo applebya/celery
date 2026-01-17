@@ -138,6 +138,14 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
   const effectiveRate = getRate(state.currency, displayCurrency)
   const rateWithMargin = effectiveRate * (1 - state.traderMargin / 100)
 
+  // Calculate margin loss amounts (what you lose to the trader margin)
+  const marginLossNet = state.traderMargin > 0
+    ? (calculation.netAnnual * effectiveRate) - convertedNet
+    : 0
+  const marginLossGross = state.traderMargin > 0
+    ? (calculation.grossAnnual * effectiveRate) - convertedGross
+    : 0
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-[1fr,1.2fr] gap-4 md:gap-6">
       {/* Left Panel - Inputs */}
@@ -629,9 +637,18 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                       {CURRENCY_FLAGS[displayCurrency]} {displayCurrency}
                     </span>
                     {state.traderMargin > 0 && (
-                      <Badge variant="secondary" className="text-sm px-1 py-0 h-5">
-                        -{state.traderMargin}%
-                      </Badge>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Badge variant="secondary" className="text-sm px-1.5 py-0 h-5 cursor-help">
+                              -{state.traderMargin}%
+                            </Badge>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Forex margin: ~{formatCurrency(marginLossNet, displayCurrency, { showCode: false })} lost annually</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     )}
                   </div>
                   <Select
@@ -656,19 +673,29 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                     {state.showTaxEstimate ? (
                       <>
                         <p className="text-xs text-muted-foreground uppercase tracking-wide">Take-home</p>
-                        <p className="text-4xl font-bold tracking-tight leading-none text-green-700 dark:text-green-400 tabular-nums">
+                        <p className="text-5xl font-bold tracking-tight leading-none text-green-700 dark:text-green-400 tabular-nums">
                           {formatCurrency(convertedNet, displayCurrency, { showCode: false })}
                         </p>
-                        <p className="text-base text-muted-foreground tabular-nums">
+                        {state.traderMargin > 0 && marginLossNet > 0 && (
+                          <p className="text-sm text-red-500 tabular-nums">
+                            −{formatCurrency(marginLossNet, displayCurrency, { showCode: false })} margin
+                          </p>
+                        )}
+                        <p className="text-lg text-muted-foreground tabular-nums">
                           {formatCurrency(convertedGross, displayCurrency, { showCode: false })} gross
                         </p>
                       </>
                     ) : (
                       <>
                         <p className="text-xs text-muted-foreground uppercase tracking-wide">Annual</p>
-                        <p className="text-4xl font-bold tracking-tight leading-none text-muted-foreground tabular-nums">
+                        <p className="text-5xl font-bold tracking-tight leading-none tabular-nums">
                           {formatCurrency(convertedGross, displayCurrency, { showCode: false })}
                         </p>
+                        {state.traderMargin > 0 && marginLossGross > 0 && (
+                          <p className="text-sm text-red-500 tabular-nums">
+                            −{formatCurrency(marginLossGross, displayCurrency, { showCode: false })} margin
+                          </p>
+                        )}
                       </>
                     )}
                     <p className="text-sm text-muted-foreground tabular-nums">
@@ -678,16 +705,21 @@ export function Calculator({ state, onChange, showTitle = false }: CalculatorPro
                 ) : (
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground uppercase tracking-wide">Hourly Rate</p>
-                    <p className="text-4xl font-bold tracking-tight leading-none text-muted-foreground tabular-nums">
+                    <p className="text-5xl font-bold tracking-tight leading-none tabular-nums">
                       {formatCurrency(convertedHourly, displayCurrency, { showCode: false })}/hr
                     </p>
-                    <p className="text-base text-muted-foreground tabular-nums">
+                    <p className="text-lg text-muted-foreground tabular-nums">
                       {formatCurrency(convertedGross, displayCurrency, { showCode: false })}
                       <span className="text-sm ml-1">gross</span>
                     </p>
                     {state.showTaxEstimate && (
-                      <p className="text-base text-green-700 dark:text-green-400 tabular-nums">
+                      <p className="text-lg text-green-700 dark:text-green-400 tabular-nums">
                         {formatCurrency(convertedNet, displayCurrency, { showCode: false })} net
+                        {state.traderMargin > 0 && marginLossNet > 0 && (
+                          <span className="text-sm text-red-500 ml-2">
+                            (−{formatCurrency(marginLossNet, displayCurrency, { showCode: false })})
+                          </span>
+                        )}
                       </p>
                     )}
                   </div>
