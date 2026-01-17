@@ -114,13 +114,11 @@ export function ComparisonView({
   if (!isCompareMode) {
     return (
       <div className="space-y-4">
-        <div className="max-w-md mx-auto">
-          <Calculator
-            state={leftState}
-            onChange={onLeftChange}
-            showTitle={false}
-          />
-        </div>
+        <Calculator
+          state={leftState}
+          onChange={onLeftChange}
+          showTitle={false}
+        />
         <div className="flex justify-center" data-tour="compare-button">
           <button
             onClick={enterCompareMode}
@@ -138,13 +136,11 @@ export function ComparisonView({
   if (scenarios.length < 2) {
     return (
       <div className="space-y-4">
-        <div className="max-w-md mx-auto">
-          <Calculator
-            state={leftState}
-            onChange={onLeftChange}
-            showTitle={false}
-          />
-        </div>
+        <Calculator
+          state={leftState}
+          onChange={onLeftChange}
+          showTitle={false}
+        />
         <Card className="max-w-md mx-auto bg-muted/30">
           <CardContent className="py-6 text-center space-y-3">
             <ArrowLeftRight className="h-8 w-8 mx-auto text-muted-foreground" />
