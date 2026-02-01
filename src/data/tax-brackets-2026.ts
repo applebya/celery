@@ -1,20 +1,20 @@
 export interface TaxBracket {
-  min: number
-  max: number | null // null = no upper limit
-  rate: number // decimal, e.g., 0.15 = 15%
+  min: number;
+  max: number | null; // null = no upper limit
+  rate: number; // decimal, e.g., 0.15 = 15%
 }
 
 export interface SelfEmploymentTax {
-  rate: number
-  maxEarnings: number | null // null = no cap
-  name: string
+  rate: number;
+  maxEarnings: number | null; // null = no cap
+  name: string;
 }
 
 export interface TaxConfig {
-  federal: TaxBracket[]
-  selfEmployment: SelfEmploymentTax[]
-  provinces?: Record<string, TaxBracket[]> // CA provinces
-  states?: Record<string, TaxBracket[]> // US states
+  federal: TaxBracket[];
+  selfEmployment: SelfEmploymentTax[];
+  provinces?: Record<string, TaxBracket[]>; // CA provinces
+  states?: Record<string, TaxBracket[]>; // US states
 }
 
 // Canada 2026 Tax Brackets
@@ -27,11 +27,11 @@ export const canadaTax: TaxConfig = {
     { min: 246752, max: null, rate: 0.33 },
   ],
   selfEmployment: [
-    { name: 'CPP', rate: 0.119, maxEarnings: 68500 }, // Both employee + employer portions
+    { name: "CPP", rate: 0.119, maxEarnings: 68500 }, // Both employee + employer portions
   ],
   provinces: {
     AB: [
-      { min: 0, max: 148269, rate: 0.10 },
+      { min: 0, max: 148269, rate: 0.1 },
       { min: 148269, max: 177922, rate: 0.12 },
       { min: 177922, max: 237230, rate: 0.13 },
       { min: 237230, max: 355845, rate: 0.14 },
@@ -119,12 +119,12 @@ export const canadaTax: TaxConfig = {
       { min: 500000, max: null, rate: 0.15 },
     ],
   },
-}
+};
 
 // US 2026 Tax Brackets (Single Filer)
 export const usTax: TaxConfig = {
   federal: [
-    { min: 0, max: 11925, rate: 0.10 },
+    { min: 0, max: 11925, rate: 0.1 },
     { min: 11925, max: 48475, rate: 0.12 },
     { min: 48475, max: 103350, rate: 0.22 },
     { min: 103350, max: 197300, rate: 0.24 },
@@ -133,9 +133,9 @@ export const usTax: TaxConfig = {
     { min: 626350, max: null, rate: 0.37 },
   ],
   selfEmployment: [
-    { name: 'Social Security', rate: 0.124, maxEarnings: 168600 }, // 6.2% x 2
-    { name: 'Medicare', rate: 0.029, maxEarnings: null }, // 1.45% x 2
-    { name: 'Additional Medicare', rate: 0.009, maxEarnings: null }, // Over $200k, threshold handled in calc
+    { name: "Social Security", rate: 0.124, maxEarnings: 168600 }, // 6.2% x 2
+    { name: "Medicare", rate: 0.029, maxEarnings: null }, // 1.45% x 2
+    { name: "Additional Medicare", rate: 0.009, maxEarnings: null }, // Over $200k, threshold handled in calc
   ],
   states: {
     // States with no income tax
@@ -222,115 +222,8 @@ export const usTax: TaxConfig = {
     WI: [{ min: 0, max: null, rate: 0.0765 }],
     DC: [{ min: 0, max: null, rate: 0.0975 }],
   },
-}
+};
 
-export function getTaxConfig(country: 'CA' | 'US'): TaxConfig {
-  return country === 'CA' ? canadaTax : usTax
-}
-
-// ============================================================================
-// CORPORATION TAX RATES
-// ============================================================================
-
-/**
- * Canadian Small Business Corporate Tax Rates (CCPC - Canadian-Controlled Private Corporation)
- * Combined federal (9%) + provincial rates for active business income up to $500k
- * Source: CRA and provincial finance ministries, 2026 projections
- */
-export const canadaCorpTaxRates: Record<string, number> = {
-  AB: 0.11,   // 9% federal + 2% provincial
-  BC: 0.11,   // 9% federal + 2% provincial
-  MB: 0.09,   // 9% federal + 0% provincial (Manitoba has 0% small biz rate)
-  NB: 0.115,  // 9% federal + 2.5% provincial
-  NL: 0.12,   // 9% federal + 3% provincial
-  NS: 0.115,  // 9% federal + 2.5% provincial
-  NT: 0.11,   // 9% federal + 2% territorial
-  NU: 0.12,   // 9% federal + 3% territorial
-  ON: 0.122,  // 9% federal + 3.2% provincial
-  PE: 0.10,   // 9% federal + 1% provincial
-  QC: 0.123,  // 9% federal + 3.3% provincial (with small biz deduction)
-  SK: 0.10,   // 9% federal + 1% provincial
-  YT: 0.11,   // 9% federal + 2% territorial
-}
-
-/**
- * Canadian Dividend Tax Rates (Non-Eligible Dividends from CCPCs)
- * These are effective rates after the gross-up and tax credit system.
- * Non-eligible dividends apply to income from the small business deduction.
- * Rates vary significantly by province and income bracket - these are mid-bracket estimates.
- */
-export const canadaDividendTaxRates: Record<string, number> = {
-  AB: 0.34,   // Lower due to flat provincial rate
-  BC: 0.36,
-  MB: 0.37,
-  NB: 0.38,
-  NL: 0.38,
-  NS: 0.41,   // Higher provincial rates
-  NT: 0.29,   // Lower territorial rates
-  NU: 0.28,
-  ON: 0.35,
-  PE: 0.37,
-  QC: 0.40,   // Higher provincial rates
-  SK: 0.33,
-  YT: 0.29,
-}
-
-/**
- * US S-Corp Distribution Tax Info
- * S-Corps are pass-through entities - no corporate-level tax.
- * The main benefit is avoiding self-employment tax on distributions.
- * SE tax rate: 15.3% (12.4% SS up to $168,600 + 2.9% Medicare uncapped)
- */
-export const usSCorpConfig = {
-  // S-Corps don't pay corporate tax (pass-through)
-  corporateTaxRate: 0,
-  // SE tax rate that distributions avoid
-  selfEmploymentTaxRate: 0.153,
-  // SS wage base for 2026
-  socialSecurityWageBase: 168600,
-  // Medicare additional tax threshold
-  medicareAdditionalThreshold: 200000,
-  // Medicare additional tax rate
-  medicareAdditionalRate: 0.009,
-}
-
-/**
- * Get corporate tax rate for a region
- */
-export function getCorpTaxRate(country: 'CA' | 'US', region: string): number {
-  if (country === 'US') {
-    // US S-Corps are pass-through - no corporate tax
-    return 0
-  }
-  return canadaCorpTaxRates[region] ?? 0.12 // Default 12% if region unknown
-}
-
-/**
- * Get dividend/distribution tax rate for a region
- */
-export function getDividendTaxRate(country: 'CA' | 'US', region: string): number {
-  if (country === 'US') {
-    // US distributions are taxed as ordinary income, no special rate
-    // But they avoid SE tax - that's the benefit
-    return 0 // Will be taxed via regular income brackets
-  }
-  return canadaDividendTaxRates[region] ?? 0.35 // Default 35% if region unknown
-}
-
-/**
- * Calculate SE tax savings from S-Corp distributions (US only)
- */
-export function calculateSEtaxSavings(distributionAmount: number): number {
-  // SE tax is 15.3% on first ~$168k (SS portion), then 2.9% after (Medicare only)
-  const ssMax = usSCorpConfig.socialSecurityWageBase
-  const ssRate = 0.124 // 12.4%
-  const medicareRate = 0.029 // 2.9%
-
-  if (distributionAmount <= ssMax) {
-    return distributionAmount * (ssRate + medicareRate)
-  } else {
-    const ssSavings = ssMax * ssRate
-    const medicareSavings = distributionAmount * medicareRate
-    return ssSavings + medicareSavings
-  }
+export function getTaxConfig(country: "CA" | "US"): TaxConfig {
+  return country === "CA" ? canadaTax : usTax;
 }
