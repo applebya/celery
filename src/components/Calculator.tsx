@@ -328,8 +328,8 @@ export function Calculator({
                 <TooltipContent side="top" className="max-w-xs">
                   <p>
                     This determines how taxes are calculated. Contractors pay
-                    self-employment tax and can incorporate for tax
-                    optimization.
+                    self-employment tax (CPP/EI in Canada, Social
+                    Security/Medicare in US).
                   </p>
                 </TooltipContent>
               </Tooltip>
