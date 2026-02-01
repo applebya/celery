@@ -54,35 +54,35 @@
 
 ## Traceability
 
-| Requirement | Phase | Status  |
-| ----------- | ----- | ------- |
-| SCOPE-01    | TBD   | Pending |
-| SCOPE-02    | TBD   | Pending |
-| DESK-01     | TBD   | Pending |
-| DESK-02     | TBD   | Pending |
-| DESK-03     | TBD   | Pending |
-| DESK-04     | TBD   | Pending |
-| MOB-01      | TBD   | Pending |
-| MOB-02      | TBD   | Pending |
-| MOB-03      | TBD   | Pending |
-| MOB-04      | TBD   | Pending |
-| VIS-01      | TBD   | Pending |
-| VIS-02      | TBD   | Pending |
-| VIS-03      | TBD   | Pending |
-| VIS-04      | TBD   | Pending |
-| VIS-05      | TBD   | Pending |
-| BRAND-01    | TBD   | Pending |
-| BRAND-02    | TBD   | Pending |
-| BRAND-03    | TBD   | Pending |
-| BRAND-04    | TBD   | Pending |
+| Requirement | Phase   | Status  |
+| ----------- | ------- | ------- |
+| SCOPE-01    | Phase 1 | Pending |
+| SCOPE-02    | Phase 1 | Pending |
+| DESK-01     | Phase 2 | Pending |
+| DESK-02     | Phase 2 | Pending |
+| DESK-03     | Phase 2 | Pending |
+| DESK-04     | Phase 2 | Pending |
+| MOB-01      | Phase 3 | Pending |
+| MOB-02      | Phase 3 | Pending |
+| MOB-03      | Phase 3 | Pending |
+| MOB-04      | Phase 3 | Pending |
+| VIS-01      | Phase 4 | Pending |
+| VIS-02      | Phase 4 | Pending |
+| VIS-03      | Phase 4 | Pending |
+| VIS-04      | Phase 4 | Pending |
+| VIS-05      | Phase 4 | Pending |
+| BRAND-01    | Phase 5 | Pending |
+| BRAND-02    | Phase 5 | Pending |
+| BRAND-03    | Phase 5 | Pending |
+| BRAND-04    | Phase 5 | Pending |
 
 **Coverage:**
 
 - v1 requirements: 19 total
-- Mapped to phases: 0
-- Unmapped: 19 (will be mapped during roadmap creation)
+- Mapped to phases: 19
+- Unmapped: 0
 
 ---
 
 _Requirements defined: 2026-02-01_
-_Last updated: 2026-02-01 after initial definition_
+_Last updated: 2026-02-01 after roadmap creation_
