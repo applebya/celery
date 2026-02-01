@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-01)
 
 **Core value:** Quick, accurate salary conversion with tax estimates that's actually pleasant to use.
-**Current focus:** Phase 1 - Scope Simplification
+**Current focus:** Phase 2 - Desktop Polish
 
 ## Current Position
 
-Phase: 1 of 5 (Scope Simplification)
-Plan: 1 of 3 in current phase
-Status: In progress
-Last activity: 2026-02-01 — Completed 01-01-PLAN.md (Remove corporation type)
+Phase: 2 of 5 (Desktop Polish)
+Plan: 0 of TBD in current phase
+Status: Ready to plan
+Last activity: 2026-02-01 — Phase 1 complete, verified
 
-Progress: [█░░░░░░░░░] 10%
+Progress: [██░░░░░░░░] 20%
 
 ## Performance Metrics
 
@@ -44,7 +44,7 @@ _Updated after each plan completion_
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- Remove corporation type: Simplify scope, focus on income taxes (Completed - 01-01)
+- Remove corporation type: Simplify scope, focus on income taxes (Complete - Phase 1)
 - Literal celery+money logo: User preference, can iterate later (Pending)
 - Polish over features: User wants to be proud to share the link (Pending)
 
@@ -58,6 +58,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-01 (Plan 01-01 execution)
-Stopped at: Completed 01-01-PLAN.md - Corporation type removed
+Last session: 2026-02-01 (Phase 1 execution)
+Stopped at: Phase 1 complete, ready for Phase 2 planning
 Resume file: None

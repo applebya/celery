@@ -7,8 +7,8 @@
 
 ### Scope Simplification
 
-- [ ] **SCOPE-01**: Remove corporation employment type from UI and calculations
-- [ ] **SCOPE-02**: Update any references/labels that mention corporation
+- [x] **SCOPE-01**: Remove corporation employment type from UI and calculations
+- [x] **SCOPE-02**: Update any references/labels that mention corporation
 
 ### Desktop Experience
 
@@ -54,27 +54,27 @@
 
 ## Traceability
 
-| Requirement | Phase   | Status  |
-| ----------- | ------- | ------- |
-| SCOPE-01    | Phase 1 | Pending |
-| SCOPE-02    | Phase 1 | Pending |
-| DESK-01     | Phase 2 | Pending |
-| DESK-02     | Phase 2 | Pending |
-| DESK-03     | Phase 2 | Pending |
-| DESK-04     | Phase 2 | Pending |
-| MOB-01      | Phase 3 | Pending |
-| MOB-02      | Phase 3 | Pending |
-| MOB-03      | Phase 3 | Pending |
-| MOB-04      | Phase 3 | Pending |
-| VIS-01      | Phase 4 | Pending |
-| VIS-02      | Phase 4 | Pending |
-| VIS-03      | Phase 4 | Pending |
-| VIS-04      | Phase 4 | Pending |
-| VIS-05      | Phase 4 | Pending |
-| BRAND-01    | Phase 5 | Pending |
-| BRAND-02    | Phase 5 | Pending |
-| BRAND-03    | Phase 5 | Pending |
-| BRAND-04    | Phase 5 | Pending |
+| Requirement | Phase   | Status   |
+| ----------- | ------- | -------- |
+| SCOPE-01    | Phase 1 | Complete |
+| SCOPE-02    | Phase 1 | Complete |
+| DESK-01     | Phase 2 | Pending  |
+| DESK-02     | Phase 2 | Pending  |
+| DESK-03     | Phase 2 | Pending  |
+| DESK-04     | Phase 2 | Pending  |
+| MOB-01      | Phase 3 | Pending  |
+| MOB-02      | Phase 3 | Pending  |
+| MOB-03      | Phase 3 | Pending  |
+| MOB-04      | Phase 3 | Pending  |
+| VIS-01      | Phase 4 | Pending  |
+| VIS-02      | Phase 4 | Pending  |
+| VIS-03      | Phase 4 | Pending  |
+| VIS-04      | Phase 4 | Pending  |
+| VIS-05      | Phase 4 | Pending  |
+| BRAND-01    | Phase 5 | Pending  |
+| BRAND-02    | Phase 5 | Pending  |
+| BRAND-03    | Phase 5 | Pending  |
+| BRAND-04    | Phase 5 | Pending  |
 
 **Coverage:**
 
@@ -85,4 +85,4 @@
 ---
 
 _Requirements defined: 2026-02-01_
-_Last updated: 2026-02-01 after roadmap creation_
+_Last updated: 2026-02-01 after Phase 1 completion_

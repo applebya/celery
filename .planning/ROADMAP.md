@@ -13,7 +13,7 @@ This milestone transforms Celery from functional to delightful. We start by simp
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Scope Simplification** - Remove corporation employment type
+- [x] **Phase 1: Scope Simplification** - Remove corporation employment type
 - [ ] **Phase 2: Desktop Polish** - Spacious, professional desktop layout
 - [ ] **Phase 3: Mobile Polish** - Clean, touch-friendly mobile experience
 - [ ] **Phase 4: Visual Refinement** - Typography, spacing, modern aesthetics
@@ -37,7 +37,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 Plans:
 
-- [ ] 01-01-PLAN.md - Remove corporation types, calculation logic, tax data, and UI
+- [x] 01-01-PLAN.md - Remove corporation types, calculation logic, tax data, and UI
 
 ### Phase 2: Desktop Polish
 
@@ -120,10 +120,10 @@ Plans:
 **Execution Order:**
 Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
-| Phase                   | Plans Complete | Status      | Completed |
-| ----------------------- | -------------- | ----------- | --------- |
-| 1. Scope Simplification | 0/1            | Planned     | -         |
-| 2. Desktop Polish       | 0/TBD          | Not started | -         |
-| 3. Mobile Polish        | 0/TBD          | Not started | -         |
-| 4. Visual Refinement    | 0/TBD          | Not started | -         |
-| 5. Brand Assets         | 0/TBD          | Not started | -         |
+| Phase                   | Plans Complete | Status      | Completed  |
+| ----------------------- | -------------- | ----------- | ---------- |
+| 1. Scope Simplification | 1/1            | Complete    | 2026-02-01 |
+| 2. Desktop Polish       | 0/TBD          | Not started | -          |
+| 3. Mobile Polish        | 0/TBD          | Not started | -          |
+| 4. Visual Refinement    | 0/TBD          | Not started | -          |
+| 5. Brand Assets         | 0/TBD          | Not started | -          |
