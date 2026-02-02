@@ -44,7 +44,7 @@ Plans:
 **Goal**: Desktop layout feels spacious, professional, and easy to read
 **Depends on**: Phase 1
 **Requirements**: DESK-01, DESK-02, DESK-03, DESK-04
-**Plans:** TBD
+**Plans:** 1 plan
 
 **Success Criteria** (what must be TRUE):
 
@@ -56,7 +56,7 @@ Plans:
 
 Plans:
 
-- [ ] TBD during planning
+- [ ] 02-01-PLAN.md - Desktop layout polish with two-column grid, spacing, and visual hierarchy
 
 ### Phase 3: Mobile Polish
 
@@ -123,7 +123,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | Phase                   | Plans Complete | Status      | Completed  |
 | ----------------------- | -------------- | ----------- | ---------- |
 | 1. Scope Simplification | 1/1            | Complete    | 2026-02-01 |
-| 2. Desktop Polish       | 0/TBD          | Not started | -          |
+| 2. Desktop Polish       | 0/1            | Not started | -          |
 | 3. Mobile Polish        | 0/TBD          | Not started | -          |
 | 4. Visual Refinement    | 0/TBD          | Not started | -          |
 | 5. Brand Assets         | 0/TBD          | Not started | -          |
