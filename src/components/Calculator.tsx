@@ -495,7 +495,7 @@ export function Calculator({
 
       {/* Bottom Left - Settings */}
       <div className="order-3 lg:order-2">
-        <div className="flex justify-end mb-1">
+        <div className="flex justify-end mb-2 lg:mb-3">
           <button
             onClick={toggleAllSections}
             className="text-sm text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted/50 transition-colors"
@@ -515,7 +515,7 @@ export function Calculator({
             onOpenChange={() => toggleSection("currency")}
           >
             <CollapsibleTrigger
-              className={`flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-all text-base ${openSection === "currency" || openSection === "all" ? "border-l-2 border-l-emerald-500" : "border-l-2 border-l-transparent"}`}
+              className={`flex items-center justify-between w-full px-3 py-2.5 lg:px-4 lg:py-3 hover:bg-muted/50 transition-all text-base ${openSection === "currency" || openSection === "all" ? "border-l-2 border-l-emerald-500" : "border-l-2 border-l-transparent"}`}
             >
               <div className="flex items-center gap-2">
                 <ChevronRight
@@ -530,7 +530,7 @@ export function Calculator({
                   : "Disabled"}
               </span>
             </CollapsibleTrigger>
-            <CollapsibleContent className="px-3 pt-3 pb-3 space-y-3">
+            <CollapsibleContent className="px-3 pt-3 pb-3 lg:px-4 lg:pt-4 lg:pb-4 space-y-3 lg:space-y-4">
               {/* Master Toggle */}
               <div className="flex items-center justify-between">
                 <Label htmlFor="showConversion" className="text-base">
@@ -652,7 +652,7 @@ export function Calculator({
             onOpenChange={() => toggleSection("schedule")}
           >
             <CollapsibleTrigger
-              className={`flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-all text-base ${openSection === "schedule" || openSection === "all" ? "border-l-2 border-l-emerald-500" : "border-l-2 border-l-transparent"}`}
+              className={`flex items-center justify-between w-full px-3 py-2.5 lg:px-4 lg:py-3 hover:bg-muted/50 transition-all text-base ${openSection === "schedule" || openSection === "all" ? "border-l-2 border-l-emerald-500" : "border-l-2 border-l-transparent"}`}
             >
               <div className="flex items-center gap-2">
                 <ChevronRight
@@ -670,7 +670,7 @@ export function Calculator({
                 days off
               </span>
             </CollapsibleTrigger>
-            <CollapsibleContent className="px-3 pt-3 pb-3 space-y-4">
+            <CollapsibleContent className="px-3 pt-3 pb-3 lg:px-4 lg:pt-4 lg:pb-4 space-y-4 lg:space-y-5">
               {/* Location Row */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
@@ -838,7 +838,7 @@ export function Calculator({
             onOpenChange={() => toggleSection("tax")}
           >
             <CollapsibleTrigger
-              className={`flex items-center justify-between w-full px-3 py-2.5 hover:bg-muted/50 transition-all text-base ${openSection === "tax" || openSection === "all" ? "border-l-2 border-l-emerald-500" : "border-l-2 border-l-transparent"}`}
+              className={`flex items-center justify-between w-full px-3 py-2.5 lg:px-4 lg:py-3 hover:bg-muted/50 transition-all text-base ${openSection === "tax" || openSection === "all" ? "border-l-2 border-l-emerald-500" : "border-l-2 border-l-transparent"}`}
             >
               <div className="flex items-center gap-2">
                 <ChevronRight
@@ -853,7 +853,7 @@ export function Calculator({
                   : "Off"}
               </span>
             </CollapsibleTrigger>
-            <CollapsibleContent className="px-3 pt-3 pb-3 space-y-2">
+            <CollapsibleContent className="px-3 pt-3 pb-3 lg:px-4 lg:pt-4 lg:pb-4 space-y-2 lg:space-y-3">
               <div className="flex items-center justify-between">
                 <Label htmlFor="showTax" className="text-base">
                   Show tax estimate
@@ -956,7 +956,7 @@ export function Calculator({
       </div>
 
       {/* Right Column - Results (shows first on mobile, spans both rows on desktop) */}
-      <div className="lg:sticky lg:top-4 lg:self-start space-y-3 order-1 lg:order-3 lg:row-span-2">
+      <div className="lg:sticky lg:top-4 lg:self-start space-y-3 lg:space-y-4 order-1 lg:order-3 lg:row-span-2">
         {/* Results Card - Row-based Layout */}
         <Card
           className="relative overflow-hidden border-0 shadow-xl shadow-black/5 hover:shadow-2xl transition-shadow duration-300"
@@ -964,7 +964,7 @@ export function Calculator({
         >
           {/* Gradient accent stripe */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500" />
-          <CardContent className="p-3 sm:p-4 pt-4 sm:pt-5 space-y-3 sm:space-y-4">
+          <CardContent className="p-4 sm:p-5 lg:p-6 pt-5 sm:pt-6 lg:pt-7 space-y-4 lg:space-y-5">
             {/* Currency Headers Row - hidden on mobile since flags show inline */}
             {state.showCurrencyConversion &&
             state.currency !== displayCurrency ? (
@@ -1160,7 +1160,7 @@ export function Calculator({
                 </div>
 
                 {/* Period Breakdowns */}
-                <div className="pt-2 border-t border-border/30 space-y-1.5 sm:space-y-2">
+                <div className="pt-2 border-t border-border/30 space-y-1.5 sm:space-y-2 lg:space-y-3">
                   {/* Monthly */}
                   <div className="flex justify-between items-baseline">
                     <span className="text-xs sm:text-sm text-muted-foreground">
@@ -1169,14 +1169,14 @@ export function Calculator({
                     <div
                       className={`text-right ${state.showCurrencyConversion && state.currency !== displayCurrency ? "flex flex-col sm:flex-row sm:gap-3" : ""}`}
                     >
-                      <span className="text-xs sm:text-sm font-medium tabular-nums">
+                      <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums">
                         {formatCurrency(monthly, state.currency, {
                           showCode: false,
                         })}
                       </span>
                       {state.showCurrencyConversion &&
                         state.currency !== displayCurrency && (
-                          <span className="text-xs sm:text-sm font-medium tabular-nums text-muted-foreground">
+                          <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums text-muted-foreground">
                             {formatCurrency(monthlyConverted, displayCurrency, {
                               showCode: false,
                             })}
@@ -1193,14 +1193,14 @@ export function Calculator({
                     <div
                       className={`text-right ${state.showCurrencyConversion && state.currency !== displayCurrency ? "flex flex-col sm:flex-row sm:gap-3" : ""}`}
                     >
-                      <span className="text-xs sm:text-sm font-medium tabular-nums">
+                      <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums">
                         {formatCurrency(biweekly, state.currency, {
                           showCode: false,
                         })}
                       </span>
                       {state.showCurrencyConversion &&
                         state.currency !== displayCurrency && (
-                          <span className="text-xs sm:text-sm font-medium tabular-nums text-muted-foreground">
+                          <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums text-muted-foreground">
                             {formatCurrency(
                               biweeklyConverted,
                               displayCurrency,
@@ -1219,14 +1219,14 @@ export function Calculator({
                     <div
                       className={`text-right ${state.showCurrencyConversion && state.currency !== displayCurrency ? "flex flex-col sm:flex-row sm:gap-3" : ""}`}
                     >
-                      <span className="text-xs sm:text-sm font-medium tabular-nums">
+                      <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums">
                         {formatCurrency(daily, state.currency, {
                           showCode: false,
                         })}
                       </span>
                       {state.showCurrencyConversion &&
                         state.currency !== displayCurrency && (
-                          <span className="text-xs sm:text-sm font-medium tabular-nums text-muted-foreground">
+                          <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums text-muted-foreground">
                             {formatCurrency(dailyConverted, displayCurrency, {
                               showCode: false,
                             })}
@@ -1243,14 +1243,14 @@ export function Calculator({
                     <div
                       className={`text-right ${state.showCurrencyConversion && state.currency !== displayCurrency ? "flex flex-col sm:flex-row sm:gap-3" : ""}`}
                     >
-                      <span className="text-xs sm:text-sm font-medium tabular-nums">
+                      <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums">
                         {formatCurrency(state.hourlyRate, state.currency, {
                           showCode: false,
                         })}
                       </span>
                       {state.showCurrencyConversion &&
                         state.currency !== displayCurrency && (
-                          <span className="text-xs sm:text-sm font-medium tabular-nums text-muted-foreground">
+                          <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums text-muted-foreground">
                             {formatCurrency(
                               convertWithMargin(
                                 state.hourlyRate,
@@ -1396,7 +1396,7 @@ export function Calculator({
                 )}
 
                 {/* Period Breakdowns */}
-                <div className="pt-2 border-t border-border/30 space-y-1.5 sm:space-y-2">
+                <div className="pt-2 border-t border-border/30 space-y-1.5 sm:space-y-2 lg:space-y-3">
                   {/* Monthly */}
                   <div className="flex justify-between items-baseline">
                     <span className="text-xs sm:text-sm text-muted-foreground">
@@ -1405,14 +1405,14 @@ export function Calculator({
                     <div
                       className={`text-right ${state.showCurrencyConversion && state.currency !== displayCurrency ? "flex flex-col sm:flex-row sm:gap-3" : ""}`}
                     >
-                      <span className="text-xs sm:text-sm font-medium tabular-nums">
+                      <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums">
                         {formatCurrency(monthly, state.currency, {
                           showCode: false,
                         })}
                       </span>
                       {state.showCurrencyConversion &&
                         state.currency !== displayCurrency && (
-                          <span className="text-xs sm:text-sm font-medium tabular-nums text-muted-foreground">
+                          <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums text-muted-foreground">
                             {formatCurrency(monthlyConverted, displayCurrency, {
                               showCode: false,
                             })}
@@ -1429,14 +1429,14 @@ export function Calculator({
                     <div
                       className={`text-right ${state.showCurrencyConversion && state.currency !== displayCurrency ? "flex flex-col sm:flex-row sm:gap-3" : ""}`}
                     >
-                      <span className="text-xs sm:text-sm font-medium tabular-nums">
+                      <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums">
                         {formatCurrency(biweekly, state.currency, {
                           showCode: false,
                         })}
                       </span>
                       {state.showCurrencyConversion &&
                         state.currency !== displayCurrency && (
-                          <span className="text-xs sm:text-sm font-medium tabular-nums text-muted-foreground">
+                          <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums text-muted-foreground">
                             {formatCurrency(
                               biweeklyConverted,
                               displayCurrency,
@@ -1455,14 +1455,14 @@ export function Calculator({
                     <div
                       className={`text-right ${state.showCurrencyConversion && state.currency !== displayCurrency ? "flex flex-col sm:flex-row sm:gap-3" : ""}`}
                     >
-                      <span className="text-xs sm:text-sm font-medium tabular-nums">
+                      <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums">
                         {formatCurrency(daily, state.currency, {
                           showCode: false,
                         })}
                       </span>
                       {state.showCurrencyConversion &&
                         state.currency !== displayCurrency && (
-                          <span className="text-xs sm:text-sm font-medium tabular-nums text-muted-foreground">
+                          <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums text-muted-foreground">
                             {formatCurrency(dailyConverted, displayCurrency, {
                               showCode: false,
                             })}
@@ -1479,7 +1479,7 @@ export function Calculator({
                     <div
                       className={`text-right ${state.showCurrencyConversion && state.currency !== displayCurrency ? "flex flex-col sm:flex-row sm:gap-3" : ""}`}
                     >
-                      <span className="text-xs sm:text-sm font-medium tabular-nums">
+                      <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums">
                         {formatCurrency(
                           calculation.calculatedHourlyRate,
                           state.currency,
@@ -1488,7 +1488,7 @@ export function Calculator({
                       </span>
                       {state.showCurrencyConversion &&
                         state.currency !== displayCurrency && (
-                          <span className="text-xs sm:text-sm font-medium tabular-nums text-muted-foreground">
+                          <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums text-muted-foreground">
                             {formatCurrency(convertedHourly, displayCurrency, {
                               showCode: false,
                             })}
