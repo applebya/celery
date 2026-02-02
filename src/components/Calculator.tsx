@@ -275,9 +275,9 @@ export function Calculator({
   const dailyConverted = primaryConverted / billableDays;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1fr,380px] lg:grid-rows-[auto,1fr] gap-4 lg:gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr,400px] gap-6 lg:gap-8">
       {/* Top Left - Rate Input */}
-      <div className="space-y-3 order-2 lg:order-1">
+      <div className="space-y-4 lg:space-y-6 order-2 lg:order-1">
         {showTitle && (
           <div className="flex items-center gap-2">
             {editingTitle ? (
