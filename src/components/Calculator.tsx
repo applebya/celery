@@ -275,7 +275,7 @@ export function Calculator({
   const dailyConverted = primaryConverted / billableDays;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 lg:items-start">
+    <div className="grid grid-cols-1 lg:grid-cols-[minmax(380px,1fr),minmax(360px,420px)] gap-6 lg:gap-8 xl:gap-12 lg:items-start">
       {/* Left Column - Inputs + Settings */}
       <div className="space-y-4 lg:space-y-6 order-2 lg:order-1">
         {showTitle && (
@@ -335,35 +335,67 @@ export function Calculator({
               </Tooltip>
             </TooltipProvider>
           </div>
-          <div className="flex flex-wrap gap-1.5">
-            {EMPLOYMENT_TYPES.map((type) => {
-              const isContractor = type.value.startsWith("contractor");
-              const isSelected = state.employmentType === type.value;
-              return (
-                <TooltipProvider key={type.value}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        onClick={() => handleEmploymentTypeChange(type.value)}
-                        className={`px-3 py-1.5 text-sm rounded-full border transition-all duration-150 hover:scale-[1.02] active:scale-[0.98] ${
-                          isSelected
-                            ? "bg-primary text-primary-foreground border-primary"
-                            : "bg-muted/50 hover:bg-muted border-transparent"
-                        } ${isContractor ? "" : "ml-2 first:ml-0"}`}
-                      >
-                        <span className="hidden sm:inline">{type.label}</span>
-                        <span className="sm:hidden">
-                          {isContractor ? "📝" : "🏢"} {type.shortLabel}
-                        </span>
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom">
-                      <p>{type.tooltip}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              );
-            })}
+          <div className="flex flex-col sm:flex-row gap-2">
+            {/* Contractor options */}
+            <div className="flex gap-1.5">
+              {EMPLOYMENT_TYPES.filter((t) =>
+                t.value.startsWith("contractor"),
+              ).map((type) => {
+                const isSelected = state.employmentType === type.value;
+                return (
+                  <TooltipProvider key={type.value}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => handleEmploymentTypeChange(type.value)}
+                          className={`px-3 py-1.5 text-sm rounded-full border transition-all duration-150 hover:scale-[1.02] active:scale-[0.98] ${
+                            isSelected
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "bg-muted/50 hover:bg-muted border-transparent"
+                          }`}
+                        >
+                          <span className="hidden sm:inline">{type.label}</span>
+                          <span className="sm:hidden">{type.shortLabel}</span>
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom">
+                        <p>{type.tooltip}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                );
+              })}
+            </div>
+            {/* Employee options */}
+            <div className="flex gap-1.5">
+              {EMPLOYMENT_TYPES.filter((t) =>
+                t.value.startsWith("employee"),
+              ).map((type) => {
+                const isSelected = state.employmentType === type.value;
+                return (
+                  <TooltipProvider key={type.value}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => handleEmploymentTypeChange(type.value)}
+                          className={`px-3 py-1.5 text-sm rounded-full border transition-all duration-150 hover:scale-[1.02] active:scale-[0.98] ${
+                            isSelected
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "bg-muted/50 hover:bg-muted border-transparent"
+                          }`}
+                        >
+                          <span className="hidden sm:inline">{type.label}</span>
+                          <span className="sm:hidden">{type.shortLabel}</span>
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom">
+                        <p>{type.tooltip}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                );
+              })}
+            </div>
           </div>
         </div>
 
@@ -1045,12 +1077,72 @@ export function Calculator({
             {/* Results Rows */}
             {state.calculationMode === "hourlyToSalary" ? (
               <div className="space-y-3">
-                {/* Take-home / Net Row (Hero) */}
+                {/* Gross Row (Before Tax) - show first when taxes enabled */}
                 {state.showTaxEstimate && (
                   <div className="py-2 border-b border-border/30">
                     <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-                      Take-home
+                      Gross <span className="normal-case">(before tax)</span>
                     </p>
+                    <div
+                      className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"} gap-1 sm:gap-4`}
+                    >
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-sm text-muted-foreground sm:hidden">
+                          {CURRENCY_FLAGS[state.currency]}
+                        </span>
+                        <p className="text-xl sm:text-2xl font-bold tracking-tight leading-none tabular-nums">
+                          <AnimatedNumber
+                            value={calculation.grossAnnual}
+                            formatter={(n) =>
+                              formatCurrency(n, state.currency, {
+                                showCode: false,
+                              })
+                            }
+                          />
+                        </p>
+                      </div>
+                      {state.showCurrencyConversion &&
+                        state.currency !== displayCurrency && (
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-sm text-muted-foreground sm:hidden">
+                              {CURRENCY_FLAGS[displayCurrency]}
+                            </span>
+                            <p className="text-lg sm:text-2xl font-bold tracking-tight leading-none tabular-nums">
+                              {formatCurrency(convertedGross, displayCurrency, {
+                                showCode: false,
+                              })}
+                            </p>
+                          </div>
+                        )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Take-home Row (After Tax) - Hero when taxes enabled */}
+                {state.showTaxEstimate && (
+                  <div className="py-2 border-b border-border/30">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide">
+                        Take-home{" "}
+                        <span className="normal-case">(after tax)</span>
+                      </p>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <HelpCircle className="h-3 w-3 text-muted-foreground hover:text-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-xs">
+                            <p>
+                              This is your estimated income after federal and{" "}
+                              {state.country === "CA" ? "provincial" : "state"}{" "}
+                              taxes. It does not account for other deductions
+                              like health insurance, retirement contributions,
+                              or business expenses.
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
                     <div
                       className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"} gap-1 sm:gap-4`}
                     >
@@ -1099,63 +1191,64 @@ export function Calculator({
                   </div>
                 )}
 
-                {/* Gross Row */}
-                <div className="py-2 border-b border-border/30">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-                    {state.showTaxEstimate ? "Gross" : "Annual"}
-                  </p>
-                  <div
-                    className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"} gap-1 sm:gap-4`}
-                  >
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-sm text-muted-foreground sm:hidden">
-                        {CURRENCY_FLAGS[state.currency]}
-                      </span>
-                      <p
-                        className={`${state.showTaxEstimate ? "text-xl sm:text-2xl" : "text-3xl sm:text-4xl"} font-bold tracking-tight leading-none tabular-nums`}
-                      >
-                        <AnimatedNumber
-                          value={calculation.grossAnnual}
-                          formatter={(n) =>
-                            formatCurrency(n, state.currency, {
-                              showCode: false,
-                            })
-                          }
-                        />
-                      </p>
-                    </div>
-                    {state.showCurrencyConversion &&
-                      state.currency !== displayCurrency && (
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-sm text-muted-foreground sm:hidden">
-                            {CURRENCY_FLAGS[displayCurrency]}
-                          </span>
-                          <div>
-                            <p
-                              className={`${state.showTaxEstimate ? "text-lg sm:text-2xl" : "text-2xl sm:text-4xl"} font-bold tracking-tight leading-none tabular-nums`}
-                            >
-                              {formatCurrency(convertedGross, displayCurrency, {
+                {/* Annual Row (only when taxes not shown) */}
+                {!state.showTaxEstimate && (
+                  <div className="py-2 border-b border-border/30">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                      Annual
+                    </p>
+                    <div
+                      className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"} gap-1 sm:gap-4`}
+                    >
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-sm text-muted-foreground sm:hidden">
+                          {CURRENCY_FLAGS[state.currency]}
+                        </span>
+                        <p className="text-3xl sm:text-4xl font-bold tracking-tight leading-none tabular-nums">
+                          <AnimatedNumber
+                            value={calculation.grossAnnual}
+                            formatter={(n) =>
+                              formatCurrency(n, state.currency, {
                                 showCode: false,
-                              })}
-                            </p>
-                            {!state.showTaxEstimate &&
-                              state.traderMargin > 0 &&
-                              marginLossGross > 0 && (
-                                <p className="text-xs sm:text-sm text-red-500 tabular-nums mt-0.5">
-                                  −
-                                  {formatCurrency(
-                                    marginLossGross,
-                                    displayCurrency,
-                                    { showCode: false },
-                                  )}{" "}
-                                  margin
-                                </p>
-                              )}
+                              })
+                            }
+                          />
+                        </p>
+                      </div>
+                      {state.showCurrencyConversion &&
+                        state.currency !== displayCurrency && (
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-sm text-muted-foreground sm:hidden">
+                              {CURRENCY_FLAGS[displayCurrency]}
+                            </span>
+                            <div>
+                              <p className="text-2xl sm:text-4xl font-bold tracking-tight leading-none tabular-nums">
+                                {formatCurrency(
+                                  convertedGross,
+                                  displayCurrency,
+                                  {
+                                    showCode: false,
+                                  },
+                                )}
+                              </p>
+                              {state.traderMargin > 0 &&
+                                marginLossGross > 0 && (
+                                  <p className="text-xs sm:text-sm text-red-500 tabular-nums mt-0.5">
+                                    -
+                                    {formatCurrency(
+                                      marginLossGross,
+                                      displayCurrency,
+                                      { showCode: false },
+                                    )}{" "}
+                                    margin
+                                  </p>
+                                )}
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Period Breakdowns */}
                 <div className="pt-2 border-t border-border/30 space-y-1.5 sm:space-y-2 lg:space-y-3">
@@ -1306,10 +1399,16 @@ export function Calculator({
                   </div>
                 </div>
 
-                {/* Gross Row */}
+                {/* Gross Row (Before Tax) */}
                 <div className="py-2 border-b border-border/30">
                   <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-                    Gross Annual
+                    {state.showTaxEstimate ? (
+                      <>
+                        Gross <span className="normal-case">(before tax)</span>
+                      </>
+                    ) : (
+                      "Annual"
+                    )}
                   </p>
                   <div
                     className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"} gap-1 sm:gap-4`}
@@ -1342,12 +1441,31 @@ export function Calculator({
                   </div>
                 </div>
 
-                {/* Net Row */}
+                {/* Take-home Row (After Tax) */}
                 {state.showTaxEstimate && (
                   <div className="py-2 border-b border-border/30">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-                      Take-home
-                    </p>
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide">
+                        Take-home{" "}
+                        <span className="normal-case">(after tax)</span>
+                      </p>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <HelpCircle className="h-3 w-3 text-muted-foreground hover:text-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-xs">
+                            <p>
+                              This is your estimated income after federal and{" "}
+                              {state.country === "CA" ? "provincial" : "state"}{" "}
+                              taxes. It does not account for other deductions
+                              like health insurance, retirement contributions,
+                              or business expenses.
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
                     <div
                       className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"} gap-1 sm:gap-4`}
                     >
@@ -1499,8 +1617,18 @@ export function Calculator({
             )}
 
             {/* Hours Summary */}
-            <div className="text-sm text-muted-foreground text-center pt-1">
-              {calculation.billableHours.toLocaleString()} hrs/year
+            <div className="flex justify-center gap-3 text-sm text-muted-foreground pt-1">
+              <span>
+                {(state.hoursPerDay * state.daysPerWeek).toLocaleString()}{" "}
+                hrs/wk
+              </span>
+              <span className="text-border">|</span>
+              <span>
+                {Math.round(calculation.billableHours / 12).toLocaleString()}{" "}
+                hrs/mo
+              </span>
+              <span className="text-border">|</span>
+              <span>{calculation.billableHours.toLocaleString()} hrs/yr</span>
             </div>
           </CardContent>
 
