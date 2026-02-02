@@ -60,7 +60,7 @@ export interface SavedScenario {
 
 export const DEFAULT_STATE: CalculatorState = {
   title: "",
-  hourlyRate: 100,
+  hourlyRate: 25,
   currency: "CAD",
   country: "CA",
   region: "ON",

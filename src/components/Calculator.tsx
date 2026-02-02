@@ -275,8 +275,8 @@ export function Calculator({
   const dailyConverted = primaryConverted / billableDays;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1fr,400px] gap-6 lg:gap-8">
-      {/* Top Left - Rate Input */}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 lg:items-start">
+      {/* Left Column - Inputs + Settings */}
       <div className="space-y-4 lg:space-y-6 order-2 lg:order-1">
         {showTitle && (
           <div className="flex items-center gap-2">
@@ -381,7 +381,7 @@ export function Calculator({
                   : "Hourly Rate"}
             </Label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xl font-medium">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg">
                 $
               </span>
               <Input
@@ -405,7 +405,7 @@ export function Calculator({
                     updateState({ hourlyRate: val });
                   }
                 }}
-                className="pl-9 text-2xl font-bold h-14 tabular-nums border-0 border-b-2 border-muted rounded-none bg-transparent focus-visible:ring-0 focus-visible:border-emerald-500 transition-colors"
+                className="pl-8 text-xl font-medium h-11 tabular-nums border-0 border-b-2 border-muted rounded-none bg-transparent focus-visible:ring-0 focus-visible:border-emerald-500 transition-colors"
               />
               {state.employmentType === "contractor-retainer" && (
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
@@ -424,15 +424,15 @@ export function Calculator({
             onValueChange={(v) => updateState({ currency: v as Currency })}
           >
             <SelectTrigger
-              className="w-auto h-14 px-4 rounded-full border-2 hover:border-muted-foreground/50 transition-colors"
+              className="w-auto h-11 px-3 rounded-full border-2 hover:border-muted-foreground/50 transition-colors"
               aria-label="Select currency"
               data-tour="currency-select"
             >
               <SelectValue>
-                <span className="text-xl mr-1">
+                <span className="text-base mr-1">
                   {CURRENCY_FLAGS[state.currency]}
                 </span>
-                <span className="font-medium">{state.currency}</span>
+                <span className="font-medium text-sm">{state.currency}</span>
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
@@ -491,10 +491,8 @@ export function Calculator({
             )}
           </div>
         )}
-      </div>
 
-      {/* Bottom Left - Settings */}
-      <div className="order-3 lg:order-2">
+        {/* Settings Panel - within same column */}
         <div className="flex justify-end mb-2 lg:mb-3">
           <button
             onClick={toggleAllSections}
@@ -955,8 +953,8 @@ export function Calculator({
         </div>
       </div>
 
-      {/* Right Column - Results (shows first on mobile, spans both rows on desktop) */}
-      <div className="lg:sticky lg:top-4 lg:self-start space-y-3 lg:space-y-4 order-1 lg:order-3 lg:row-span-2">
+      {/* Right Column - Results (shows first on mobile) */}
+      <div className="lg:sticky lg:top-4 lg:self-start space-y-3 lg:space-y-4 order-1 lg:order-2">
         {/* Results Card - Row-based Layout */}
         <Card
           className="relative overflow-hidden border-0 shadow-xl shadow-black/5 hover:shadow-2xl transition-shadow duration-300"
