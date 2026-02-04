@@ -133,9 +133,10 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
   const countryInfo = getCountry(state.country);
   const homeCurrency: Currency = countryInfo?.currency ?? "CAD";
 
-  // Currency conversion - auto-determine based on home currency
-  // CAD/MXN users see USD, USD users see CAD
+  // Currency conversion - only show if job currency differs from home currency
   const displayCurrency: Currency = state.currency === "USD" ? "CAD" : "USD";
+  const shouldShowConversion =
+    state.showCurrencyConversion && state.currency !== homeCurrency;
 
   const convertedGross = convertWithMargin(
     calculation.grossAnnual,
@@ -518,52 +519,70 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
           >
             <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 hover:bg-muted/50 transition-colors border-t">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">
-                  Taxes (before expenses)
+                <span className="text-sm font-medium">Taxes</span>
+                <span className="text-xs text-muted-foreground">
+                  {formatPercent(calculation.taxBreakdown.effectiveRate)}
                 </span>
-                {state.showTaxEstimate && (
-                  <span className="text-xs text-muted-foreground">
-                    {formatPercent(calculation.taxBreakdown.effectiveRate)}
-                  </span>
-                )}
               </div>
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={state.showTaxEstimate}
-                  onCheckedChange={(checked) => {
-                    updateState({ showTaxEstimate: checked });
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                />
-                <ChevronRight
-                  className={`h-4 w-4 text-muted-foreground transition-transform ${openSection === "tax" ? "rotate-90" : ""}`}
-                />
-              </div>
+              <ChevronRight
+                className={`h-4 w-4 text-muted-foreground transition-transform ${openSection === "tax" ? "rotate-90" : ""}`}
+              />
             </CollapsibleTrigger>
             <CollapsibleContent className="px-4 pb-4 space-y-3">
-              {state.showTaxEstimate && (
-                <div className="space-y-3 text-sm">
-                  {/* Federal brackets */}
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-muted-foreground font-medium">
-                        Federal
-                      </span>
-                      <span className="tabular-nums">
-                        {formatCurrency(
-                          calculation.taxBreakdown.federal,
-                          state.currency,
-                          { showCode: false },
-                        )}
-                      </span>
-                    </div>
+              <div className="space-y-3 text-sm">
+                {/* Federal brackets */}
+                <div>
+                  <div className="flex justify-between mb-1">
+                    <span className="text-muted-foreground font-medium">
+                      Federal
+                    </span>
+                    <span className="tabular-nums">
+                      {formatCurrency(
+                        calculation.taxBreakdown.federal,
+                        state.currency,
+                        { showCode: false },
+                      )}
+                    </span>
+                  </div>
+                  <div className="pl-2 space-y-0.5 text-xs">
+                    {calculation.federalBrackets.map((b, i) => (
+                      <div
+                        key={i}
+                        className="flex justify-between text-muted-foreground"
+                      >
+                        <span>{(b.rate * 100).toFixed(0)}%</span>
+                        <span className="tabular-nums">
+                          {formatCurrency(b.taxAmount, state.currency, {
+                            showCode: false,
+                          })}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Provincial/State brackets */}
+                <div>
+                  <div className="flex justify-between mb-1">
+                    <span className="text-muted-foreground font-medium">
+                      {state.country === "CA" ? "Provincial" : "State"}
+                    </span>
+                    <span className="tabular-nums">
+                      {formatCurrency(
+                        calculation.taxBreakdown.provincialState,
+                        state.currency,
+                        { showCode: false },
+                      )}
+                    </span>
+                  </div>
+                  {calculation.provincialStateBrackets.length > 0 ? (
                     <div className="pl-2 space-y-0.5 text-xs">
-                      {calculation.federalBrackets.map((b, i) => (
+                      {calculation.provincialStateBrackets.map((b, i) => (
                         <div
                           key={i}
                           className="flex justify-between text-muted-foreground"
                         >
-                          <span>{(b.rate * 100).toFixed(0)}%</span>
+                          <span>{(b.rate * 100).toFixed(1)}%</span>
                           <span className="tabular-nums">
                             {formatCurrency(b.taxAmount, state.currency, {
                               showCode: false,
@@ -572,74 +591,41 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                         </div>
                       ))}
                     </div>
-                  </div>
-
-                  {/* Provincial/State brackets */}
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-muted-foreground font-medium">
-                        {state.country === "CA" ? "Provincial" : "State"}
-                      </span>
-                      <span className="tabular-nums">
-                        {formatCurrency(
-                          calculation.taxBreakdown.provincialState,
-                          state.currency,
-                          { showCode: false },
-                        )}
-                      </span>
-                    </div>
-                    {calculation.provincialStateBrackets.length > 0 ? (
-                      <div className="pl-2 space-y-0.5 text-xs">
-                        {calculation.provincialStateBrackets.map((b, i) => (
-                          <div
-                            key={i}
-                            className="flex justify-between text-muted-foreground"
-                          >
-                            <span>{(b.rate * 100).toFixed(1)}%</span>
-                            <span className="tabular-nums">
-                              {formatCurrency(b.taxAmount, state.currency, {
-                                showCode: false,
-                              })}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="pl-2 text-xs text-muted-foreground">
-                        No state income tax
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Self-employment */}
-                  {state.isSelfEmployed && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground font-medium">
-                        {state.country === "CA" ? "CPP" : "Self-Emp"}
-                      </span>
-                      <span className="tabular-nums">
-                        {formatCurrency(
-                          calculation.taxBreakdown.selfEmployment,
-                          state.currency,
-                          { showCode: false },
-                        )}
-                      </span>
+                  ) : (
+                    <div className="pl-2 text-xs text-muted-foreground">
+                      No state income tax
                     </div>
                   )}
+                </div>
 
-                  {/* Total */}
-                  <div className="flex justify-between font-medium pt-2 border-t">
-                    <span>Total tax</span>
+                {/* Self-employment */}
+                {state.isSelfEmployed && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground font-medium">
+                      {state.country === "CA" ? "CPP" : "Self-Emp"}
+                    </span>
                     <span className="tabular-nums">
                       {formatCurrency(
-                        calculation.taxBreakdown.total,
+                        calculation.taxBreakdown.selfEmployment,
                         state.currency,
                         { showCode: false },
                       )}
                     </span>
                   </div>
+                )}
+
+                {/* Total */}
+                <div className="flex justify-between font-medium pt-2 border-t">
+                  <span>Total tax</span>
+                  <span className="tabular-nums">
+                    {formatCurrency(
+                      calculation.taxBreakdown.total,
+                      state.currency,
+                      { showCode: false },
+                    )}
+                  </span>
                 </div>
-              )}
+              </div>
             </CollapsibleContent>
           </Collapsible>
 
@@ -752,7 +738,7 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
           </div>
 
           {/* Gross converted (if currency conversion enabled) */}
-          {state.showCurrencyConversion && (
+          {shouldShowConversion && (
             <div className="flex items-center gap-2 text-muted-foreground">
               <span className="text-lg">→</span>
               <span className="text-xl font-medium tabular-nums text-foreground">
@@ -766,167 +752,148 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
           )}
 
           {/* Deductions section */}
-          {(state.showTaxEstimate ||
-            (state.showCurrencyConversion && state.traderMargin > 0)) && (
-            <div className="py-3 px-4 bg-muted/30 rounded-lg space-y-1.5">
-              {state.showTaxEstimate && (
-                <div className="space-y-2">
-                  <button
-                    onClick={() => setShowTaxBreakdown(!showTaxBreakdown)}
-                    className="w-full flex justify-between items-center text-sm hover:bg-muted/50 -mx-2 px-2 py-1 rounded transition-colors"
-                  >
-                    <span className="text-muted-foreground flex items-center gap-1">
-                      <ChevronRight
-                        className={`h-3 w-3 transition-transform ${showTaxBreakdown ? "rotate-90" : ""}`}
-                      />
-                      Taxes (
-                      {formatPercent(calculation.taxBreakdown.effectiveRate)})
-                    </span>
-                    <span className="tabular-nums text-destructive">
-                      −
-                      {formatCurrency(
-                        calculation.taxBreakdown.total,
-                        homeCurrency,
-                      )}
-                    </span>
-                  </button>
+          <div className="py-3 px-4 bg-muted/30 rounded-lg space-y-1.5">
+            <div className="space-y-2">
+              <button
+                onClick={() => setShowTaxBreakdown(!showTaxBreakdown)}
+                className="w-full flex justify-between items-center text-sm hover:bg-muted/50 -mx-2 px-2 py-1 rounded transition-colors"
+              >
+                <span className="text-muted-foreground flex items-center gap-1">
+                  <ChevronRight
+                    className={`h-3 w-3 transition-transform ${showTaxBreakdown ? "rotate-90" : ""}`}
+                  />
+                  Taxes ({formatPercent(calculation.taxBreakdown.effectiveRate)}
+                  )
+                </span>
+                <span className="tabular-nums text-destructive">
+                  −
+                  {formatCurrency(calculation.taxBreakdown.total, homeCurrency)}
+                </span>
+              </button>
 
-                  {/* Tax bracket breakdown */}
-                  {showTaxBreakdown && (
-                    <div className="pl-4 space-y-2 text-xs border-l-2 border-border/50 ml-1">
-                      {/* Federal brackets */}
-                      {calculation.federalBrackets.length > 0 && (
-                        <div className="space-y-1">
-                          <div className="text-muted-foreground font-medium">
-                            Federal
-                          </div>
-                          {calculation.federalBrackets.map((bracket, i) => (
-                            <div
-                              key={i}
-                              className="flex justify-between text-muted-foreground"
-                            >
-                              <span>
-                                {formatPercent(bracket.rate)} on{" "}
-                                {formatCurrency(
-                                  bracket.taxableAmount,
-                                  state.currency,
-                                  { showCode: false },
-                                )}
-                              </span>
-                              <span className="tabular-nums">
-                                {formatCurrency(
-                                  bracket.taxAmount,
-                                  state.currency,
-                                  { showCode: false },
-                                )}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Provincial/State brackets */}
-                      {calculation.provincialStateBrackets.length > 0 && (
-                        <div className="space-y-1">
-                          <div className="text-muted-foreground font-medium">
-                            {state.country === "CA" ? "Provincial" : "State"}
-                          </div>
-                          {calculation.provincialStateBrackets.map(
-                            (bracket, i) => (
-                              <div
-                                key={i}
-                                className="flex justify-between text-muted-foreground"
-                              >
-                                <span>
-                                  {formatPercent(bracket.rate)} on{" "}
-                                  {formatCurrency(
-                                    bracket.taxableAmount,
-                                    state.currency,
-                                    { showCode: false },
-                                  )}
-                                </span>
-                                <span className="tabular-nums">
-                                  {formatCurrency(
-                                    bracket.taxAmount,
-                                    state.currency,
-                                    { showCode: false },
-                                  )}
-                                </span>
-                              </div>
-                            ),
-                          )}
-                        </div>
-                      )}
-
-                      {/* Self-employment tax */}
-                      {calculation.taxBreakdown.selfEmployment > 0 && (
-                        <div className="flex justify-between text-muted-foreground">
-                          <span>Self-employment</span>
-                          <span className="tabular-nums">
+              {/* Tax bracket breakdown */}
+              {showTaxBreakdown && (
+                <div className="pl-4 space-y-2 text-xs border-l-2 border-border/50 ml-1">
+                  {/* Federal brackets */}
+                  {calculation.federalBrackets.length > 0 && (
+                    <div className="space-y-1">
+                      <div className="text-muted-foreground font-medium">
+                        Federal
+                      </div>
+                      {calculation.federalBrackets.map((bracket, i) => (
+                        <div
+                          key={i}
+                          className="flex justify-between text-muted-foreground"
+                        >
+                          <span>
+                            {formatPercent(bracket.rate)} on{" "}
                             {formatCurrency(
-                              calculation.taxBreakdown.selfEmployment,
+                              bracket.taxableAmount,
                               state.currency,
                               { showCode: false },
                             )}
                           </span>
+                          <span className="tabular-nums">
+                            {formatCurrency(bracket.taxAmount, state.currency, {
+                              showCode: false,
+                            })}
+                          </span>
                         </div>
-                      )}
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Provincial/State brackets */}
+                  {calculation.provincialStateBrackets.length > 0 && (
+                    <div className="space-y-1">
+                      <div className="text-muted-foreground font-medium">
+                        {state.country === "CA" ? "Provincial" : "State"}
+                      </div>
+                      {calculation.provincialStateBrackets.map((bracket, i) => (
+                        <div
+                          key={i}
+                          className="flex justify-between text-muted-foreground"
+                        >
+                          <span>
+                            {formatPercent(bracket.rate)} on{" "}
+                            {formatCurrency(
+                              bracket.taxableAmount,
+                              state.currency,
+                              { showCode: false },
+                            )}
+                          </span>
+                          <span className="tabular-nums">
+                            {formatCurrency(bracket.taxAmount, state.currency, {
+                              showCode: false,
+                            })}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Self-employment tax */}
+                  {calculation.taxBreakdown.selfEmployment > 0 && (
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>Self-employment</span>
+                      <span className="tabular-nums">
+                        {formatCurrency(
+                          calculation.taxBreakdown.selfEmployment,
+                          state.currency,
+                          { showCode: false },
+                        )}
+                      </span>
                     </div>
                   )}
                 </div>
               )}
-              {state.showCurrencyConversion && state.traderMargin > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    Conversion fees ({state.traderMargin}%)
-                  </span>
-                  <span className="tabular-nums text-destructive">
-                    −
-                    {formatCurrency(conversionFeeAmount, state.currency, {
-                      showCode: false,
-                    })}
-                  </span>
-                </div>
-              )}
             </div>
-          )}
+            {shouldShowConversion && state.traderMargin > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">
+                  Conversion fees ({state.traderMargin}%)
+                </span>
+                <span className="tabular-nums text-destructive">
+                  −{formatCurrency(conversionFeeAmount, state.currency)}
+                </span>
+              </div>
+            )}
+          </div>
 
           {/* Take-home (primary) */}
-          {state.showTaxEstimate && (
-            <div className="pt-4 border-t">
-              <div className="flex items-center gap-1 mb-1">
-                <span className="text-sm text-muted-foreground">
-                  Take-home (after tax)
-                </span>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="max-w-xs">
-                        After income tax. Doesn't include health insurance,
-                        retirement, or other deductions.
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <div className="text-3xl font-bold tabular-nums text-primary">
-                <span className="mr-1.5">{CURRENCY_FLAGS[state.currency]}</span>
-                <AnimatedNumber
-                  value={calculation.netAnnual}
-                  formatter={(v) => formatCurrency(v, state.currency)}
-                />
-                <span className="text-sm text-muted-foreground font-normal ml-1">
-                  /year
-                </span>
-              </div>
+          <div className="pt-4 border-t">
+            <div className="flex items-center gap-1 mb-1">
+              <span className="text-sm text-muted-foreground">
+                Take-home (after tax)
+              </span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">
+                      After income tax. Doesn't include health insurance,
+                      retirement, or other deductions.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
-          )}
+            <div className="text-3xl font-bold tabular-nums text-primary">
+              <span className="mr-1.5">{CURRENCY_FLAGS[state.currency]}</span>
+              <AnimatedNumber
+                value={calculation.netAnnual}
+                formatter={(v) => formatCurrency(v, state.currency)}
+              />
+              <span className="text-sm text-muted-foreground font-normal ml-1">
+                /year
+              </span>
+            </div>
+          </div>
 
-          {/* Take-home converted (if currency conversion enabled and taxes shown) */}
-          {state.showCurrencyConversion && state.showTaxEstimate && (
+          {/* Take-home converted (if currency conversion enabled) */}
+          {shouldShowConversion && (
             <div className="flex items-center gap-2 text-muted-foreground">
               <span className="text-lg">→</span>
               <span className="text-xl font-medium tabular-nums text-foreground">
