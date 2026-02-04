@@ -5,13 +5,21 @@ import {
   calcGrossAnnual,
   calcNetAnnual,
 } from "@/lib/calculate";
-import { getTaxBreakdown, type TaxBreakdown } from "@/lib/tax";
+import {
+  getTaxBreakdown,
+  getFederalBracketDetails,
+  getProvincialStateBracketDetails,
+  type TaxBreakdown,
+  type BracketDetail,
+} from "@/lib/tax";
 
 export interface CalculationResult {
   billableHours: number;
   grossAnnual: number;
   netAnnual: number;
   taxBreakdown: TaxBreakdown;
+  federalBrackets: BracketDetail[];
+  provincialStateBrackets: BracketDetail[];
   // For reverse calculation mode
   calculatedHourlyRate: number;
   // Effective hourly rate range (for retainer mode)
@@ -22,15 +30,18 @@ export interface CalculationResult {
 export function useCalculation(state: CalculatorState): CalculationResult {
   return useMemo(() => {
     // Calculate billable hours
+    // If fixed monthly hours is enabled, use that × 12
     // If unlimited PTO, time off doesn't reduce billable hours (paid time off)
-    const billableHours = calcBillableHours(
-      52,
-      state.daysPerWeek,
-      state.hoursPerDay,
-      state.unlimitedPTO ? 0 : state.holidaysPerYear,
-      state.unlimitedPTO ? 0 : state.ptoDays,
-      state.unlimitedPTO ? 0 : state.sickDays,
-    );
+    const billableHours = state.useFixedMonthlyHours
+      ? state.fixedMonthlyHours * 12
+      : calcBillableHours(
+          52,
+          state.daysPerWeek,
+          state.hoursPerDay,
+          state.unlimitedPTO ? 0 : state.holidaysPerYear,
+          state.unlimitedPTO ? 0 : state.ptoDays,
+          state.unlimitedPTO ? 0 : state.sickDays,
+        );
 
     let grossAnnual: number;
     let calculatedHourlyRate: number;
@@ -73,6 +84,17 @@ export function useCalculation(state: CalculatorState): CalculationResult {
       state.isSelfEmployed,
     );
 
+    // Get detailed bracket breakdowns
+    const federalBrackets = getFederalBracketDetails(
+      state.country,
+      grossAnnual,
+    );
+    const provincialStateBrackets = getProvincialStateBracketDetails(
+      state.country,
+      state.region,
+      grossAnnual,
+    );
+
     const netAnnual = calcNetAnnual(grossAnnual, taxBreakdown.total);
 
     return {
@@ -80,6 +102,8 @@ export function useCalculation(state: CalculatorState): CalculationResult {
       grossAnnual,
       netAnnual,
       taxBreakdown,
+      federalBrackets,
+      provincialStateBrackets,
       calculatedHourlyRate,
       effectiveHourlyMin,
       effectiveHourlyMax,
@@ -101,5 +125,7 @@ export function useCalculation(state: CalculatorState): CalculationResult {
     state.monthlyRetainer,
     state.expectedHoursMin,
     state.expectedHoursMax,
+    state.useFixedMonthlyHours,
+    state.fixedMonthlyHours,
   ]);
 }

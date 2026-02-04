@@ -1,14 +1,5 @@
 import { useState, useCallback } from "react";
-import {
-  ChevronRight,
-  Calendar,
-  Receipt,
-  Pencil,
-  Check,
-  ArrowRightLeft,
-  HelpCircle,
-  Share2,
-} from "lucide-react";
+import { ChevronRight, HelpCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -19,13 +10,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import {
   Tooltip,
@@ -34,11 +23,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { AnimatedNumber } from "./AnimatedNumber";
-import { ExchangeRateDisplay } from "./ExchangeRateDisplay";
-import { countries, getCountry, getHolidayCount } from "@/data/holidays-2026";
+import { getCountry } from "@/data/holidays-2026";
 import { useCalculation } from "@/hooks/useCalculation";
 import { useExchangeRate } from "@/hooks/useExchangeRate";
-import { useUrlState } from "@/hooks/useUrlState";
 import { formatCurrency, formatPercent } from "@/lib/calculate";
 import type { CalculatorState, Currency, EmploymentType } from "@/types";
 import { isSelfEmployedFromType } from "@/types";
@@ -74,66 +61,41 @@ const EMPLOYMENT_TYPES: {
   {
     value: "contractor-hourly",
     label: "Contractor (hourly)",
-    shortLabel: "Hourly",
-    tooltip:
-      "Self-employed, bill by the hour. You handle your own taxes, benefits, and time off.",
+    shortLabel: "Contractor",
+    tooltip: "Self-employed, bill by the hour",
   },
   {
     value: "contractor-retainer",
     label: "Contractor (retainer)",
     shortLabel: "Retainer",
-    tooltip:
-      "Fixed monthly fee regardless of hours. Common for ongoing client relationships.",
+    tooltip: "Fixed monthly fee",
   },
   {
     value: "employee-hourly",
     label: "Employee (hourly)",
-    shortLabel: "Hourly",
-    tooltip:
-      "W-2/T4 employee paid by the hour. Employer handles tax withholding.",
+    shortLabel: "Employee",
+    tooltip: "W-2/T4 paid by hour",
   },
   {
     value: "employee-salary",
     label: "Employee (salary)",
     shortLabel: "Salary",
-    tooltip:
-      "W-2/T4 employee with fixed annual salary. Employer handles tax withholding.",
+    tooltip: "W-2/T4 fixed salary",
   },
 ];
 
 interface CalculatorProps {
   state: CalculatorState;
   onChange: (state: CalculatorState) => void;
-  showTitle?: boolean;
+  onRename?: (name: string) => void;
 }
 
-export function Calculator({
-  state,
-  onChange,
-  showTitle = false,
-}: CalculatorProps) {
+export function Calculator({ state, onChange, onRename }: CalculatorProps) {
   const [openSection, setOpenSection] = useState<string | null>(null);
-  const [allExpanded, setAllExpanded] = useState(false);
-  const [editingTitle, setEditingTitle] = useState(false);
-  const [titleInput, setTitleInput] = useState(state.title);
+  const [showTaxBreakdown, setShowTaxBreakdown] = useState(false);
 
   const calculation = useCalculation(state);
-  const { convertWithMargin, exchangeRates, getRate, error } =
-    useExchangeRate();
-  const { getShareUrl } = useUrlState(state, onChange);
-
-  const [copied, setCopied] = useState(false);
-
-  const handleShare = async () => {
-    const url = getShareUrl();
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Silently fail - clipboard API not available
-    }
-  };
+  const { convertWithMargin } = useExchangeRate();
 
   const updateState = useCallback(
     (updates: Partial<CalculatorState>) => {
@@ -142,34 +104,9 @@ export function Calculator({
     [state, onChange],
   );
 
-  const handleCountryChange = useCallback(
-    (country: "CA" | "US") => {
-      const countryData = getCountry(country);
-      const defaultRegion = country === "CA" ? "ON" : "CA";
-      const holidays = getHolidayCount(country, defaultRegion);
-      updateState({
-        country,
-        region: defaultRegion,
-        currency: countryData?.currency ?? "CAD",
-        holidaysPerYear: holidays,
-      });
-    },
-    [updateState],
-  );
-
-  const handleRegionChange = useCallback(
-    (region: string) => {
-      const holidays = getHolidayCount(state.country, region);
-      updateState({ region, holidaysPerYear: holidays });
-    },
-    [state.country, updateState],
-  );
-
   const handleEmploymentTypeChange = useCallback(
     (employmentType: EmploymentType) => {
       const isSelfEmployed = isSelfEmployedFromType(employmentType);
-
-      // Map employment type to calculation mode
       let calculationMode = state.calculationMode;
       if (employmentType === "employee-salary") {
         calculationMode = "salaryToHourly";
@@ -179,8 +116,6 @@ export function Calculator({
       ) {
         calculationMode = "hourlyToSalary";
       }
-      // contractor-retainer keeps its own mode (uses monthlyRetainer)
-
       updateState({
         employmentType,
         isSelfEmployed,
@@ -191,32 +126,10 @@ export function Calculator({
   );
 
   const toggleSection = (section: string) => {
-    if (openSection === "all") {
-      // When all expanded, clicking one collapses to just that one
-      setOpenSection(section);
-      setAllExpanded(false);
-    } else {
-      setOpenSection(openSection === section ? null : section);
-    }
+    setOpenSection(openSection === section ? null : section);
   };
 
-  const toggleAllSections = () => {
-    if (allExpanded) {
-      setOpenSection(null);
-    } else {
-      setOpenSection("all");
-    }
-    setAllExpanded(!allExpanded);
-  };
-
-  const handleTitleSave = () => {
-    updateState({ title: titleInput });
-    setEditingTitle(false);
-  };
-
-  const currentCountry = getCountry(state.country);
-
-  // Auto-select display currency if same as main
+  // Currency conversion
   const displayCurrency =
     state.displayCurrency === state.currency
       ? state.currency === "USD"
@@ -224,200 +137,93 @@ export function Calculator({
         : "USD"
       : state.displayCurrency;
 
-  // Calculate converted amounts with margin
   const convertedGross = convertWithMargin(
     calculation.grossAnnual,
     state.currency,
     displayCurrency,
     state.traderMargin,
   );
+
   const convertedNet = convertWithMargin(
     calculation.netAnnual,
     state.currency,
     displayCurrency,
     state.traderMargin,
   );
-  const convertedHourly = convertWithMargin(
-    calculation.calculatedHourlyRate,
-    state.currency,
-    displayCurrency,
-    state.traderMargin,
-  );
 
-  const effectiveRate = getRate(state.currency, displayCurrency);
-  const rateWithMargin = effectiveRate * (1 - state.traderMargin / 100);
+  // Conversion fee calculation
+  const conversionFeeAmount =
+    (state.showTaxEstimate ? calculation.netAnnual : calculation.grossAnnual) *
+    (state.traderMargin / 100);
 
-  // Calculate margin loss amounts (what you lose to the trader margin)
-  const marginLossNet =
-    state.traderMargin > 0
-      ? calculation.netAnnual * effectiveRate - convertedNet
-      : 0;
-  const marginLossGross =
-    state.traderMargin > 0
-      ? calculation.grossAnnual * effectiveRate - convertedGross
-      : 0;
-
-  // Period breakdowns (based on primary display - net if taxes shown, gross otherwise)
-  const primaryAnnual = state.showTaxEstimate
-    ? calculation.netAnnual
-    : calculation.grossAnnual;
-  const primaryConverted = state.showTaxEstimate
-    ? convertedNet
-    : convertedGross;
+  // Period breakdowns
+  const monthly = calculation.netAnnual / 12;
+  const biweekly = calculation.netAnnual / 26;
+  const weekly = calculation.netAnnual / 52;
   const billableDays = calculation.billableHours / state.hoursPerDay;
+  const daily = calculation.netAnnual / billableDays;
+  const hourly =
+    calculation.billableHours > 0
+      ? calculation.netAnnual / calculation.billableHours
+      : 0;
 
-  const monthly = primaryAnnual / 12;
-  const biweekly = primaryAnnual / 26;
-  const daily = primaryAnnual / billableDays;
-
-  const monthlyConverted = primaryConverted / 12;
-  const biweeklyConverted = primaryConverted / 26;
-  const dailyConverted = primaryConverted / billableDays;
+  // Work schedule summary
+  const hoursPerWeek = state.hoursPerDay * state.daysPerWeek;
+  const hoursPerMonth = Math.round(calculation.billableHours / 12);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[minmax(380px,1fr),minmax(360px,420px)] gap-6 lg:gap-8 xl:gap-12 lg:items-start">
-      {/* Left Column - Inputs + Settings */}
-      <div className="space-y-4 lg:space-y-6 order-2 lg:order-1">
-        {showTitle && (
-          <div className="flex items-center gap-2">
-            {editingTitle ? (
-              <>
-                <Input
-                  value={titleInput}
-                  onChange={(e) => setTitleInput(e.target.value)}
-                  placeholder="Scenario name"
-                  className="font-medium h-10 text-base"
-                  autoFocus
-                  onKeyDown={(e) => e.key === "Enter" && handleTitleSave()}
-                />
-                <button
-                  onClick={handleTitleSave}
-                  className="p-2 hover:bg-muted rounded-md"
-                  aria-label="Save title"
-                >
-                  <Check className="h-4 w-4" />
-                </button>
-              </>
-            ) : (
-              <>
-                <h2 className="font-medium">{state.title || "Untitled"}</h2>
-                <button
-                  onClick={() => {
-                    setTitleInput(state.title);
-                    setEditingTitle(true);
-                  }}
-                  className="p-2 hover:bg-muted rounded-md opacity-50 hover:opacity-100"
-                  aria-label="Edit title"
-                >
-                  <Pencil className="h-4 w-4" />
-                </button>
-              </>
-            )}
-          </div>
-        )}
-
-        {/* Employment Type Selector */}
-        <div className="space-y-2" data-tour="employment-type">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">I am a</span>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <HelpCircle className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent side="top" className="max-w-xs">
-                  <p>
-                    This determines how taxes are calculated. Contractors pay
-                    self-employment tax (CPP/EI in Canada, Social
-                    Security/Medicare in US).
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-2">
-            {/* Contractor options */}
-            <div className="flex gap-1.5">
-              {EMPLOYMENT_TYPES.filter((t) =>
-                t.value.startsWith("contractor"),
-              ).map((type) => {
-                const isSelected = state.employmentType === type.value;
-                return (
-                  <TooltipProvider key={type.value}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          onClick={() => handleEmploymentTypeChange(type.value)}
-                          className={`px-3 py-1.5 text-sm rounded-full border transition-all duration-150 hover:scale-[1.02] active:scale-[0.98] ${
+    <div className="flex flex-col md:flex-row gap-6 md:gap-10">
+      {/* Left Column - Inputs */}
+      <div className="flex-1 space-y-5">
+        {/* Employment Type */}
+        <div className="space-y-3">
+          <Label className="text-sm font-medium">Employment type</Label>
+          <div className="flex flex-wrap gap-2">
+            {EMPLOYMENT_TYPES.map((type) => {
+              const isSelected = state.employmentType === type.value;
+              return (
+                <TooltipProvider key={type.value}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => handleEmploymentTypeChange(type.value)}
+                        className={`
+                          px-3 py-2 text-sm rounded-lg border transition-all
+                          ${
                             isSelected
                               ? "bg-primary text-primary-foreground border-primary"
-                              : "bg-muted/50 hover:bg-muted border-transparent"
-                          }`}
-                        >
-                          <span className="hidden sm:inline">{type.label}</span>
-                          <span className="sm:hidden">{type.shortLabel}</span>
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom">
-                        <p>{type.tooltip}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                );
-              })}
-            </div>
-            {/* Employee options */}
-            <div className="flex gap-1.5">
-              {EMPLOYMENT_TYPES.filter((t) =>
-                t.value.startsWith("employee"),
-              ).map((type) => {
-                const isSelected = state.employmentType === type.value;
-                return (
-                  <TooltipProvider key={type.value}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          onClick={() => handleEmploymentTypeChange(type.value)}
-                          className={`px-3 py-1.5 text-sm rounded-full border transition-all duration-150 hover:scale-[1.02] active:scale-[0.98] ${
-                            isSelected
-                              ? "bg-primary text-primary-foreground border-primary"
-                              : "bg-muted/50 hover:bg-muted border-transparent"
-                          }`}
-                        >
-                          <span className="hidden sm:inline">{type.label}</span>
-                          <span className="sm:hidden">{type.shortLabel}</span>
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom">
-                        <p>{type.tooltip}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                );
-              })}
-            </div>
+                              : "bg-card hover:bg-muted border-border"
+                          }
+                        `}
+                      >
+                        {type.shortLabel}
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">
+                      <p>{type.tooltip}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              );
+            })}
           </div>
         </div>
 
-        {/* Rate/Salary Input */}
-        <div className="flex gap-3 items-end" data-tour="rate-input">
-          <div className="flex-1 space-y-1">
-            <Label
-              htmlFor="mainInput"
-              className="text-sm text-muted-foreground"
-            >
-              {state.employmentType === "contractor-retainer"
-                ? "Monthly Retainer"
-                : state.employmentType === "employee-salary"
-                  ? "Annual Salary"
-                  : "Hourly Rate"}
-            </Label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg">
+        {/* Rate Input */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">
+            {state.employmentType === "contractor-retainer"
+              ? "Monthly retainer"
+              : state.employmentType === "employee-salary"
+                ? "Annual salary"
+                : "Hourly rate"}
+          </Label>
+          <div className="flex gap-2">
+            <div className="relative w-32">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                 $
               </span>
               <Input
-                id="mainInput"
                 type="number"
                 min={0}
                 value={
@@ -435,152 +241,435 @@ export function Calculator({
                     updateState({ targetSalary: val });
                   } else {
                     updateState({ hourlyRate: val });
+                    // Auto-update title if not customized
+                    if (onRename && val > 0) {
+                      const countryData = getCountry(state.country);
+                      const regionData = countryData?.regions.find(
+                        (r) => r.code === state.region,
+                      );
+                      const regionName = regionData?.name ?? state.region;
+                      onRename(`$${val}/hr in ${regionName}`);
+                    }
                   }
                 }}
-                className="pl-8 text-xl font-medium h-11 tabular-nums border-0 border-b-2 border-muted rounded-none bg-transparent focus-visible:ring-0 focus-visible:border-emerald-500 transition-colors"
+                className="pl-7 h-10 text-base tabular-nums"
               />
-              {state.employmentType === "contractor-retainer" && (
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                  /month
-                </span>
-              )}
-              {state.employmentType === "employee-salary" && (
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                  /year
-                </span>
-              )}
             </div>
-          </div>
-          <Select
-            value={state.currency}
-            onValueChange={(v) => updateState({ currency: v as Currency })}
-          >
-            <SelectTrigger
-              className="w-auto h-11 px-3 rounded-full border-2 hover:border-muted-foreground/50 transition-colors"
-              aria-label="Select currency"
-              data-tour="currency-select"
+            <Select
+              value={state.currency}
+              onValueChange={(v) => updateState({ currency: v as Currency })}
             >
-              <SelectValue>
-                <span className="text-base mr-1">
-                  {CURRENCY_FLAGS[state.currency]}
-                </span>
-                <span className="font-medium text-sm">{state.currency}</span>
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {CURRENCIES.map((c) => (
-                <SelectItem key={c.value} value={c.value}>
-                  <span className="text-lg mr-2">
-                    {CURRENCY_FLAGS[c.value]}
-                  </span>
-                  {c.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Hours Range for Retainer Mode */}
-        {state.employmentType === "contractor-retainer" && (
-          <div className="flex items-center gap-3">
-            <Label className="text-sm text-muted-foreground whitespace-nowrap">
-              Expected hours
-            </Label>
-            <div className="flex items-center gap-2">
-              <Input
-                type="number"
-                min={1}
-                max={300}
-                value={state.expectedHoursMin || ""}
-                onChange={(e) =>
-                  updateState({
-                    expectedHoursMin: parseInt(e.target.value) || 0,
-                  })
-                }
-                className="w-16 h-9 text-center"
-              />
-              <span className="text-muted-foreground">to</span>
-              <Input
-                type="number"
-                min={1}
-                max={300}
-                value={state.expectedHoursMax || ""}
-                onChange={(e) =>
-                  updateState({
-                    expectedHoursMax: parseInt(e.target.value) || 0,
-                  })
-                }
-                className="w-16 h-9 text-center"
-              />
-              <span className="text-sm text-muted-foreground">/month</span>
-            </div>
-            {state.monthlyRetainer > 0 && state.expectedHoursMin > 0 && (
-              <span className="text-sm text-muted-foreground">
-                = ${Math.round(state.monthlyRetainer / state.expectedHoursMax)}
-                -${Math.round(state.monthlyRetainer / state.expectedHoursMin)}
-                /hr
-              </span>
-            )}
+              <SelectTrigger className="w-24 h-10">
+                <SelectValue>
+                  <span className="mr-1">{CURRENCY_FLAGS[state.currency]}</span>
+                  <span>{state.currency}</span>
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {CURRENCIES.map((c) => (
+                  <SelectItem key={c.value} value={c.value}>
+                    {CURRENCY_FLAGS[c.value]} {c.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        )}
-
-        {/* Settings Panel - within same column */}
-        <div className="flex justify-end mb-2 lg:mb-3">
-          <button
-            onClick={toggleAllSections}
-            className="text-sm text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted/50 transition-colors"
-          >
-            {allExpanded || openSection === "all"
-              ? "Collapse all"
-              : "Expand all settings"}
-          </button>
         </div>
-        <div
-          className="rounded-lg border bg-card/50 backdrop-blur-sm overflow-hidden"
-          data-tour="settings-panel"
-        >
-          {/* Currency Settings */}
+
+        {/* Schedule Summary (compact) */}
+        <div className="flex items-center justify-between py-3 px-4 bg-muted/50 rounded-lg">
+          <span className="text-sm text-muted-foreground">Schedule</span>
+          <span className="text-sm tabular-nums">
+            {state.employmentType === "contractor-retainer" ? (
+              <>
+                {state.expectedHoursMin}–{state.expectedHoursMax} hrs/mo
+              </>
+            ) : state.useFixedMonthlyHours ? (
+              <>
+                {state.fixedMonthlyHours} hrs/mo ·{" "}
+                {calculation.billableHours.toLocaleString()} hrs/yr
+              </>
+            ) : (
+              <>
+                {hoursPerWeek} hrs/wk · {hoursPerMonth} hrs/mo ·{" "}
+                {calculation.billableHours.toLocaleString()} hrs/yr
+              </>
+            )}
+          </span>
+        </div>
+
+        {/* Collapsible Settings */}
+        <div className="space-y-1 rounded-lg border bg-card overflow-hidden">
+          {/* Schedule Settings */}
           <Collapsible
-            open={openSection === "currency" || openSection === "all"}
+            open={openSection === "schedule"}
+            onOpenChange={() => toggleSection("schedule")}
+          >
+            <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 hover:bg-muted/50 transition-colors">
+              <span className="text-sm font-medium">Work schedule</span>
+              <ChevronRight
+                className={`h-4 w-4 text-muted-foreground transition-transform ${openSection === "schedule" ? "rotate-90" : ""}`}
+              />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="px-4 pb-4 space-y-4">
+              {state.employmentType === "contractor-retainer" ? (
+                /* Retainer: just expected hours range */
+                <div className="space-y-3">
+                  <p className="text-xs text-muted-foreground">
+                    Expected hours per month for this retainer
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">
+                        Min hrs/mo
+                      </Label>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={300}
+                        value={state.expectedHoursMin || ""}
+                        onChange={(e) =>
+                          updateState({
+                            expectedHoursMin: parseInt(e.target.value) || 0,
+                          })
+                        }
+                        className="w-24 h-9 tabular-nums"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">
+                        Max hrs/mo
+                      </Label>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={300}
+                        value={state.expectedHoursMax || ""}
+                        onChange={(e) =>
+                          updateState({
+                            expectedHoursMax: parseInt(e.target.value) || 0,
+                          })
+                        }
+                        className="w-24 h-9 tabular-nums"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Used to calculate your effective hourly rate range
+                  </p>
+                </div>
+              ) : (
+                /* Non-retainer: full schedule details */
+                <>
+                  {/* Fixed monthly hours toggle */}
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="fixedMonthly" className="text-sm">
+                      Fixed monthly hours
+                    </Label>
+                    <Switch
+                      id="fixedMonthly"
+                      checked={state.useFixedMonthlyHours}
+                      onCheckedChange={(checked) =>
+                        updateState({ useFixedMonthlyHours: checked })
+                      }
+                    />
+                  </div>
+
+                  {state.useFixedMonthlyHours ? (
+                    /* Fixed monthly hours mode */
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">
+                        Hours per month
+                      </Label>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={300}
+                        value={state.fixedMonthlyHours || ""}
+                        onChange={(e) =>
+                          updateState({
+                            fixedMonthlyHours: parseInt(e.target.value) || 160,
+                          })
+                        }
+                        className="w-24 h-9 tabular-nums"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        = {(state.fixedMonthlyHours * 12).toLocaleString()}{" "}
+                        hrs/year
+                      </p>
+                    </div>
+                  ) : (
+                    /* Calculated schedule mode */
+                    <>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">
+                            Hours/day
+                          </Label>
+                          <Input
+                            type="number"
+                            min={1}
+                            max={16}
+                            value={state.hoursPerDay || ""}
+                            onChange={(e) =>
+                              updateState({
+                                hoursPerDay: parseInt(e.target.value) || 8,
+                              })
+                            }
+                            className="h-9 tabular-nums"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">
+                            Days/week
+                          </Label>
+                          <Input
+                            type="number"
+                            min={1}
+                            max={7}
+                            value={state.daysPerWeek || ""}
+                            onChange={(e) =>
+                              updateState({
+                                daysPerWeek: parseInt(e.target.value) || 5,
+                              })
+                            }
+                            className="h-9 tabular-nums"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">
+                            Holidays
+                          </Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            max={20}
+                            value={state.holidaysPerYear || ""}
+                            onChange={(e) =>
+                              updateState({
+                                holidaysPerYear: parseInt(e.target.value) || 0,
+                              })
+                            }
+                            className="h-9 tabular-nums"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">
+                            PTO days
+                          </Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            max={60}
+                            value={state.ptoDays || ""}
+                            onChange={(e) =>
+                              updateState({
+                                ptoDays: parseInt(e.target.value) || 0,
+                              })
+                            }
+                            className="h-9 tabular-nums"
+                            disabled={state.unlimitedPTO}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">
+                            Sick days
+                          </Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            max={30}
+                            value={state.sickDays || ""}
+                            onChange={(e) =>
+                              updateState({
+                                sickDays: parseInt(e.target.value) || 0,
+                              })
+                            }
+                            className="h-9 tabular-nums"
+                            disabled={state.unlimitedPTO}
+                          />
+                        </div>
+                        <div />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="unlimitedPTO" className="text-sm">
+                          Paid time off
+                        </Label>
+                        <Switch
+                          id="unlimitedPTO"
+                          checked={state.unlimitedPTO}
+                          onCheckedChange={(checked) =>
+                            updateState({ unlimitedPTO: checked })
+                          }
+                        />
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+            </CollapsibleContent>
+          </Collapsible>
+
+          {/* Tax Settings */}
+          <Collapsible
+            open={openSection === "tax"}
+            onOpenChange={() => toggleSection("tax")}
+          >
+            <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 hover:bg-muted/50 transition-colors border-t">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">
+                  Taxes (before expenses)
+                </span>
+                {state.showTaxEstimate && (
+                  <span className="text-xs text-muted-foreground">
+                    {formatPercent(calculation.taxBreakdown.effectiveRate)}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={state.showTaxEstimate}
+                  onCheckedChange={(checked) => {
+                    updateState({ showTaxEstimate: checked });
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                />
+                <ChevronRight
+                  className={`h-4 w-4 text-muted-foreground transition-transform ${openSection === "tax" ? "rotate-90" : ""}`}
+                />
+              </div>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="px-4 pb-4 space-y-3">
+              {state.showTaxEstimate && (
+                <div className="space-y-3 text-sm">
+                  {/* Federal brackets */}
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-muted-foreground font-medium">
+                        Federal
+                      </span>
+                      <span className="tabular-nums">
+                        {formatCurrency(
+                          calculation.taxBreakdown.federal,
+                          state.currency,
+                          { showCode: false },
+                        )}
+                      </span>
+                    </div>
+                    <div className="pl-2 space-y-0.5 text-xs">
+                      {calculation.federalBrackets.map((b, i) => (
+                        <div
+                          key={i}
+                          className="flex justify-between text-muted-foreground"
+                        >
+                          <span>{(b.rate * 100).toFixed(0)}%</span>
+                          <span className="tabular-nums">
+                            {formatCurrency(b.taxAmount, state.currency, {
+                              showCode: false,
+                            })}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Provincial/State brackets */}
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-muted-foreground font-medium">
+                        {state.country === "CA" ? "Provincial" : "State"}
+                      </span>
+                      <span className="tabular-nums">
+                        {formatCurrency(
+                          calculation.taxBreakdown.provincialState,
+                          state.currency,
+                          { showCode: false },
+                        )}
+                      </span>
+                    </div>
+                    {calculation.provincialStateBrackets.length > 0 ? (
+                      <div className="pl-2 space-y-0.5 text-xs">
+                        {calculation.provincialStateBrackets.map((b, i) => (
+                          <div
+                            key={i}
+                            className="flex justify-between text-muted-foreground"
+                          >
+                            <span>{(b.rate * 100).toFixed(1)}%</span>
+                            <span className="tabular-nums">
+                              {formatCurrency(b.taxAmount, state.currency, {
+                                showCode: false,
+                              })}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="pl-2 text-xs text-muted-foreground">
+                        No state income tax
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Self-employment */}
+                  {state.isSelfEmployed && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground font-medium">
+                        {state.country === "CA" ? "CPP" : "Self-Emp"}
+                      </span>
+                      <span className="tabular-nums">
+                        {formatCurrency(
+                          calculation.taxBreakdown.selfEmployment,
+                          state.currency,
+                          { showCode: false },
+                        )}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Total */}
+                  <div className="flex justify-between font-medium pt-2 border-t">
+                    <span>Total tax</span>
+                    <span className="tabular-nums">
+                      {formatCurrency(
+                        calculation.taxBreakdown.total,
+                        state.currency,
+                        { showCode: false },
+                      )}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </CollapsibleContent>
+          </Collapsible>
+
+          {/* Currency Conversion */}
+          <Collapsible
+            open={openSection === "currency"}
             onOpenChange={() => toggleSection("currency")}
           >
-            <CollapsibleTrigger
-              className={`flex items-center justify-between w-full px-3 py-2.5 lg:px-4 lg:py-3 hover:bg-muted/50 transition-all text-base ${openSection === "currency" || openSection === "all" ? "border-l-2 border-l-emerald-500" : "border-l-2 border-l-transparent"}`}
-            >
+            <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 hover:bg-muted/50 transition-colors border-t">
+              <span className="text-sm font-medium">Currency conversion</span>
               <div className="flex items-center gap-2">
-                <ChevronRight
-                  className={`h-4 w-4 transition-transform duration-200 ${openSection === "currency" || openSection === "all" ? "rotate-90" : ""}`}
-                />
-                <ArrowRightLeft className="h-4 w-4 text-muted-foreground" />
-                <span>Currency Settings</span>
-              </div>
-              <span className="text-sm text-muted-foreground">
-                {state.showCurrencyConversion
-                  ? `${CURRENCY_FLAGS[displayCurrency]} ${displayCurrency} · ${state.traderMargin}%`
-                  : "Disabled"}
-              </span>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="px-3 pt-3 pb-3 lg:px-4 lg:pt-4 lg:pb-4 space-y-3 lg:space-y-4">
-              {/* Master Toggle */}
-              <div className="flex items-center justify-between">
-                <Label htmlFor="showConversion" className="text-base">
-                  Show currency conversion
-                </Label>
                 <Switch
-                  id="showConversion"
                   checked={state.showCurrencyConversion}
                   onCheckedChange={(checked) =>
                     updateState({ showCurrencyConversion: checked })
                   }
+                  onClick={(e) => e.stopPropagation()}
+                />
+                <ChevronRight
+                  className={`h-4 w-4 text-muted-foreground transition-transform ${openSection === "currency" ? "rotate-90" : ""}`}
                 />
               </div>
-
+            </CollapsibleTrigger>
+            <CollapsibleContent className="px-4 pb-4 space-y-4">
               {state.showCurrencyConversion && (
                 <>
-                  {/* Display Currency Selector */}
-                  <div className="space-y-1">
-                    <Label className="text-sm text-muted-foreground">
-                      Display Currency
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">
+                      Display in
                     </Label>
                     <Select
                       value={displayCurrency}
@@ -588,7 +677,7 @@ export function Calculator({
                         updateState({ displayCurrency: v as Currency })
                       }
                     >
-                      <SelectTrigger className="h-10 text-base">
+                      <SelectTrigger className="h-9">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -602,71 +691,57 @@ export function Calculator({
                       </SelectContent>
                     </Select>
                   </div>
-
-                  {/* Conversion Margin */}
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Label className="text-sm text-muted-foreground">
-                        Conversion Margin
+                    <div className="flex items-center gap-1">
+                      <Label className="text-xs text-muted-foreground">
+                        Conversion margin
                       </Label>
                       <TooltipProvider>
                         <Tooltip>
-                          <TooltipTrigger asChild>
-                            <HelpCircle className="h-4 w-4 text-muted-foreground hover:text-foreground cursor-help" />
+                          <TooltipTrigger>
+                            <HelpCircle className="h-3 w-3 text-muted-foreground" />
                           </TooltipTrigger>
-                          <TooltipContent side="top">
-                            <p>
-                              Fee cushion for payment processing, currency
-                              conversion, or client payment delays. Contractors
-                              typically add 2-5%.
+                          <TooltipContent>
+                            <p className="max-w-xs">
+                              Fee charged by your bank or payment provider when
+                              converting currencies
                             </p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     </div>
-
-                    {/* Preset Chips */}
-                    <div className="flex flex-wrap gap-2">
-                      {MARGIN_PRESETS.map((preset) => (
-                        <button
-                          key={preset.label}
-                          onClick={() =>
-                            updateState({ traderMargin: preset.value })
-                          }
-                          className={`px-3 py-1.5 text-sm rounded-full border transition-all duration-150 hover:scale-[1.02] active:scale-[0.98] ${
-                            state.traderMargin === preset.value
-                              ? "bg-primary text-primary-foreground border-primary"
-                              : "bg-muted/50 hover:bg-muted border-transparent"
-                          }`}
-                        >
-                          {preset.label}
-                        </button>
-                      ))}
-                      <button
-                        className={`px-3 py-1.5 text-sm rounded-full border transition-all duration-150 hover:scale-[1.02] active:scale-[0.98] ${
-                          !MARGIN_PRESETS.some(
-                            (p) => p.value === state.traderMargin,
-                          )
-                            ? "bg-primary text-primary-foreground border-primary"
-                            : "bg-muted/50 hover:bg-muted border-transparent"
-                        }`}
-                      >
-                        Custom
-                      </button>
+                    <div className="flex flex-wrap gap-1.5">
+                      {MARGIN_PRESETS.map((preset) => {
+                        const isPresetSelected =
+                          state.traderMargin === preset.value;
+                        return (
+                          <button
+                            key={preset.label}
+                            onClick={() =>
+                              updateState({ traderMargin: preset.value })
+                            }
+                            className={`px-2 py-1 text-xs rounded transition-colors ${
+                              isPresetSelected
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-muted hover:bg-muted/80"
+                            }`}
+                          >
+                            {preset.label} ({preset.value}%)
+                          </button>
+                        );
+                      })}
                     </div>
-
-                    {/* Slider */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       <Slider
                         value={[state.traderMargin]}
                         onValueChange={([value]) =>
                           updateState({ traderMargin: value })
                         }
-                        max={10}
+                        max={25}
                         step={0.5}
-                        className="flex-1"
+                        className="w-32"
                       />
-                      <span className="text-base font-medium tabular-nums w-12 text-right">
+                      <span className="text-sm tabular-nums w-10 text-right">
                         {state.traderMargin}%
                       </span>
                     </div>
@@ -675,1005 +750,258 @@ export function Calculator({
               )}
             </CollapsibleContent>
           </Collapsible>
+        </div>
+      </div>
 
-          {/* Work Schedule - Consolidated */}
-          <Collapsible
-            open={openSection === "schedule" || openSection === "all"}
-            onOpenChange={() => toggleSection("schedule")}
-          >
-            <CollapsibleTrigger
-              className={`flex items-center justify-between w-full px-3 py-2.5 lg:px-4 lg:py-3 hover:bg-muted/50 transition-all text-base ${openSection === "schedule" || openSection === "all" ? "border-l-2 border-l-emerald-500" : "border-l-2 border-l-transparent"}`}
-            >
-              <div className="flex items-center gap-2">
-                <ChevronRight
-                  className={`h-4 w-4 transition-transform duration-200 ${openSection === "schedule" || openSection === "all" ? "rotate-90" : ""}`}
-                />
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span>Work Schedule</span>
-              </div>
-              <span className="text-sm text-muted-foreground">
-                {currentCountry?.flag} {state.region} ·{" "}
-                {state.holidaysPerYear +
-                  (state.unlimitedPTO
-                    ? 0
-                    : state.ptoDays + state.sickDays)}{" "}
-                days off
+      {/* Right Column - Results */}
+      <div className="w-full md:w-[400px] md:flex-shrink-0 md:sticky md:top-6 md:self-start">
+        <div className="rounded-xl border bg-card p-6 space-y-5">
+          {/* Gross in primary currency */}
+          <div>
+            <div className="text-sm text-muted-foreground mb-1">
+              Gross (before tax)
+            </div>
+            <div className="text-2xl font-semibold tabular-nums">
+              <span className="mr-1.5">{CURRENCY_FLAGS[state.currency]}</span>
+              <AnimatedNumber
+                value={calculation.grossAnnual}
+                formatter={(v) => formatCurrency(v, state.currency)}
+              />
+              <span className="text-sm text-muted-foreground font-normal ml-1">
+                /year
               </span>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="px-3 pt-3 pb-3 lg:px-4 lg:pt-4 lg:pb-4 space-y-4 lg:space-y-5">
-              {/* Location Row */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-sm text-muted-foreground">
-                    Country
-                  </Label>
-                  <Select
-                    value={state.country}
-                    onValueChange={handleCountryChange}
-                  >
-                    <SelectTrigger className="h-10 text-base">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {countries.map((c) => (
-                        <SelectItem key={c.code} value={c.code}>
-                          {c.flag} {c.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-sm text-muted-foreground">
-                    Region
-                  </Label>
-                  <Select
-                    value={state.region}
-                    onValueChange={handleRegionChange}
-                  >
-                    <SelectTrigger className="h-10 text-base">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {currentCountry?.regions.map((r) => (
-                        <SelectItem key={r.code} value={r.code}>
-                          {r.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+            </div>
+          </div>
 
-              {/* Time Off Grid */}
-              <div className="grid grid-cols-3 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-sm text-muted-foreground">
-                    Holidays
-                  </Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    max={20}
-                    value={state.holidaysPerYear || ""}
-                    onChange={(e) =>
-                      updateState({
-                        holidaysPerYear: parseInt(e.target.value) || 0,
-                      })
-                    }
-                    className="h-10 text-base"
-                  />
-                  <span className="text-xs text-muted-foreground">public</span>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-sm text-muted-foreground">PTO</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    max={60}
-                    value={state.ptoDays || ""}
-                    onChange={(e) =>
-                      updateState({ ptoDays: parseInt(e.target.value) || 0 })
-                    }
-                    className="h-10 text-base"
-                    disabled={state.unlimitedPTO}
-                  />
-                  <span className="text-xs text-muted-foreground">
-                    vacation
-                  </span>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-sm text-muted-foreground">
-                    Sick Days
-                  </Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    max={30}
-                    value={state.sickDays || ""}
-                    onChange={(e) =>
-                      updateState({ sickDays: parseInt(e.target.value) || 0 })
-                    }
-                    className="h-10 text-base"
-                    disabled={state.unlimitedPTO}
-                  />
-                  <span className="text-xs text-muted-foreground">
-                    personal
-                  </span>
-                </div>
-              </div>
-
-              {/* Paid PTO Toggle */}
-              <div className="flex items-center justify-between">
-                <Label htmlFor="unlimitedPTO" className="text-base">
-                  Employer provides paid time off
-                </Label>
-                <Switch
-                  id="unlimitedPTO"
-                  checked={state.unlimitedPTO}
-                  onCheckedChange={(checked) =>
-                    updateState({ unlimitedPTO: checked })
-                  }
+          {/* Gross converted (if currency conversion enabled) */}
+          {state.showCurrencyConversion && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <span className="text-lg">→</span>
+              <span className="text-xl font-medium tabular-nums text-foreground">
+                {CURRENCY_FLAGS[displayCurrency]}{" "}
+                <AnimatedNumber
+                  value={convertedGross}
+                  formatter={(v) => formatCurrency(v, displayCurrency)}
                 />
-              </div>
-
-              {/* Hours Per Week */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-sm text-muted-foreground">
-                    Hours/Day
-                  </Label>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={16}
-                    value={state.hoursPerDay || ""}
-                    onChange={(e) =>
-                      updateState({
-                        hoursPerDay: parseInt(e.target.value) || 8,
-                      })
-                    }
-                    className="h-10 text-base"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-sm text-muted-foreground">
-                    Days/Week
-                  </Label>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={7}
-                    value={state.daysPerWeek || ""}
-                    onChange={(e) =>
-                      updateState({
-                        daysPerWeek: parseInt(e.target.value) || 5,
-                      })
-                    }
-                    className="h-10 text-base"
-                  />
-                </div>
-              </div>
-
-              {/* Summary */}
-              <div className="pt-2 border-t text-base text-muted-foreground">
-                {calculation.billableHours.toLocaleString()} billable hours/year
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-
-          {/* Tax Estimate */}
-          <Collapsible
-            open={openSection === "tax" || openSection === "all"}
-            onOpenChange={() => toggleSection("tax")}
-          >
-            <CollapsibleTrigger
-              className={`flex items-center justify-between w-full px-3 py-2.5 lg:px-4 lg:py-3 hover:bg-muted/50 transition-all text-base ${openSection === "tax" || openSection === "all" ? "border-l-2 border-l-emerald-500" : "border-l-2 border-l-transparent"}`}
-            >
-              <div className="flex items-center gap-2">
-                <ChevronRight
-                  className={`h-4 w-4 transition-transform duration-200 ${openSection === "tax" || openSection === "all" ? "rotate-90" : ""}`}
-                />
-                <Receipt className="h-4 w-4 text-muted-foreground" />
-                <span>Taxes</span>
-              </div>
-              <span className="text-sm text-muted-foreground">
-                {state.showTaxEstimate
-                  ? formatPercent(calculation.taxBreakdown.effectiveRate)
-                  : "Off"}
               </span>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="px-3 pt-3 pb-3 lg:px-4 lg:pt-4 lg:pb-4 space-y-2 lg:space-y-3">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="showTax" className="text-base">
-                  Show tax estimate
-                </Label>
-                <Switch
-                  id="showTax"
-                  checked={state.showTaxEstimate}
-                  onCheckedChange={(checked) =>
-                    updateState({ showTaxEstimate: checked })
-                  }
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Label
-                    htmlFor="selfEmployed"
-                    className="text-base text-muted-foreground"
-                  >
-                    Self-employed
-                  </Label>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <HelpCircle className="h-4 w-4 text-muted-foreground hover:text-foreground cursor-help" />
-                      </TooltipTrigger>
-                      <TooltipContent side="top">
-                        <p>
-                          Controlled by employment type above. Contractors pay
-                          self-employment tax (~15.3% in US, CPP in Canada).
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">
-                    {state.isSelfEmployed ? "Yes" : "No"}
-                  </span>
-                  <Switch
-                    id="selfEmployed"
-                    checked={state.isSelfEmployed}
-                    disabled
-                    className="opacity-50"
-                  />
-                </div>
-              </div>
+            </div>
+          )}
+
+          {/* Deductions section */}
+          {(state.showTaxEstimate ||
+            (state.showCurrencyConversion && state.traderMargin > 0)) && (
+            <div className="py-3 px-4 bg-muted/30 rounded-lg space-y-1.5">
               {state.showTaxEstimate && (
-                <div className="space-y-1 text-base pt-1 border-t">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Federal</span>
-                    <span>
-                      {formatCurrency(
-                        calculation.taxBreakdown.federal,
-                        state.currency,
-                        { showCode: false },
-                      )}
+                <div className="space-y-2">
+                  <button
+                    onClick={() => setShowTaxBreakdown(!showTaxBreakdown)}
+                    className="w-full flex justify-between items-center text-sm hover:bg-muted/50 -mx-2 px-2 py-1 rounded transition-colors"
+                  >
+                    <span className="text-muted-foreground flex items-center gap-1">
+                      <ChevronRight
+                        className={`h-3 w-3 transition-transform ${showTaxBreakdown ? "rotate-90" : ""}`}
+                      />
+                      Taxes (
+                      {formatPercent(calculation.taxBreakdown.effectiveRate)})
                     </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">
-                      {state.country === "CA" ? "Provincial" : "State"}
-                    </span>
-                    <span>
-                      {formatCurrency(
-                        calculation.taxBreakdown.provincialState,
-                        state.currency,
-                        { showCode: false },
-                      )}
-                    </span>
-                  </div>
-                  {state.isSelfEmployed && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        {state.country === "CA" ? "CPP" : "Self-Emp"}
-                      </span>
-                      <span>
-                        {formatCurrency(
-                          calculation.taxBreakdown.selfEmployment,
-                          state.currency,
-                          { showCode: false },
-                        )}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex justify-between font-medium pt-1 border-t">
-                    <span>Total</span>
-                    <span>
+                    <span className="tabular-nums text-destructive">
+                      −
                       {formatCurrency(
                         calculation.taxBreakdown.total,
                         state.currency,
                         { showCode: false },
                       )}
                     </span>
-                  </div>
-                </div>
-              )}
-            </CollapsibleContent>
-          </Collapsible>
-        </div>
-      </div>
+                  </button>
 
-      {/* Right Column - Results (shows first on mobile) */}
-      <div className="lg:sticky lg:top-4 lg:self-start space-y-3 lg:space-y-4 order-1 lg:order-2">
-        {/* Results Card - Row-based Layout */}
-        <Card
-          className="relative overflow-hidden border-0 shadow-xl shadow-black/5 hover:shadow-2xl transition-shadow duration-300"
-          data-tour="result-card"
-        >
-          {/* Gradient accent stripe */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500" />
-          <CardContent className="p-4 sm:p-5 lg:p-6 pt-5 sm:pt-6 lg:pt-7 space-y-4 lg:space-y-5">
-            {/* Currency Headers Row - hidden on mobile since flags show inline */}
-            {state.showCurrencyConversion &&
-            state.currency !== displayCurrency ? (
-              <div className="hidden sm:grid grid-cols-2 gap-4">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-lg">
-                    {CURRENCY_FLAGS[state.currency]}
-                  </span>
-                  <span className="text-sm font-medium text-muted-foreground">
-                    {state.currency}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-lg">
-                      {CURRENCY_FLAGS[displayCurrency]}
-                    </span>
-                    <span className="text-sm font-medium text-muted-foreground">
-                      {displayCurrency}
-                    </span>
-                    {state.traderMargin > 0 && (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Badge
-                              variant="secondary"
-                              className="text-xs px-1.5 py-0 h-5 cursor-help"
+                  {/* Tax bracket breakdown */}
+                  {showTaxBreakdown && (
+                    <div className="pl-4 space-y-2 text-xs border-l-2 border-border/50 ml-1">
+                      {/* Federal brackets */}
+                      {calculation.federalBrackets.length > 0 && (
+                        <div className="space-y-1">
+                          <div className="text-muted-foreground font-medium">
+                            Federal
+                          </div>
+                          {calculation.federalBrackets.map((bracket, i) => (
+                            <div
+                              key={i}
+                              className="flex justify-between text-muted-foreground"
                             >
-                              −{state.traderMargin}%
-                            </Badge>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>
-                              Forex margin: ~
-                              {formatCurrency(marginLossNet, displayCurrency, {
-                                showCode: false,
-                              })}{" "}
-                              lost annually
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    )}
-                  </div>
-                  <Select
-                    value={displayCurrency}
-                    onValueChange={(v) =>
-                      updateState({ displayCurrency: v as Currency })
-                    }
-                  >
-                    <SelectTrigger
-                      className="w-20 h-7 text-xs px-2"
-                      aria-label="Select display currency"
-                    >
-                      <SelectValue>{displayCurrency}</SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CURRENCIES.filter((c) => c.value !== state.currency).map(
-                        (c) => (
-                          <SelectItem key={c.value} value={c.value}>
-                            {CURRENCY_FLAGS[c.value]} {c.label}
-                          </SelectItem>
-                        ),
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            ) : (
-              <div className="hidden sm:flex items-center gap-1.5">
-                <span className="text-lg">
-                  {CURRENCY_FLAGS[state.currency]}
-                </span>
-                <span className="text-sm font-medium text-muted-foreground">
-                  {state.currency}
-                </span>
-              </div>
-            )}
-
-            {/* Results Rows */}
-            {state.calculationMode === "hourlyToSalary" ? (
-              <div className="space-y-3">
-                {/* Gross Row (Before Tax) - show first when taxes enabled */}
-                {state.showTaxEstimate && (
-                  <div className="py-2 border-b border-border/30">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-                      Gross <span className="normal-case">(before tax)</span>
-                    </p>
-                    <div
-                      className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"} gap-1 sm:gap-4`}
-                    >
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-sm text-muted-foreground sm:hidden">
-                          {CURRENCY_FLAGS[state.currency]}
-                        </span>
-                        <p className="text-xl sm:text-2xl font-bold tracking-tight leading-none tabular-nums">
-                          <AnimatedNumber
-                            value={calculation.grossAnnual}
-                            formatter={(n) =>
-                              formatCurrency(n, state.currency, {
-                                showCode: false,
-                              })
-                            }
-                          />
-                        </p>
-                      </div>
-                      {state.showCurrencyConversion &&
-                        state.currency !== displayCurrency && (
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-sm text-muted-foreground sm:hidden">
-                              {CURRENCY_FLAGS[displayCurrency]}
-                            </span>
-                            <p className="text-lg sm:text-2xl font-bold tracking-tight leading-none tabular-nums">
-                              {formatCurrency(convertedGross, displayCurrency, {
-                                showCode: false,
-                              })}
-                            </p>
-                          </div>
-                        )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Take-home Row (After Tax) - Hero when taxes enabled */}
-                {state.showTaxEstimate && (
-                  <div className="py-2 border-b border-border/30">
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide">
-                        Take-home{" "}
-                        <span className="normal-case">(after tax)</span>
-                      </p>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <HelpCircle className="h-3 w-3 text-muted-foreground hover:text-foreground cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent side="top" className="max-w-xs">
-                            <p>
-                              This is your estimated income after federal and{" "}
-                              {state.country === "CA" ? "provincial" : "state"}{" "}
-                              taxes. It does not account for other deductions
-                              like health insurance, retirement contributions,
-                              or business expenses.
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                    <div
-                      className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"} gap-1 sm:gap-4`}
-                    >
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-sm text-muted-foreground sm:hidden">
-                          {CURRENCY_FLAGS[state.currency]}
-                        </span>
-                        <p className="text-3xl sm:text-4xl font-bold tracking-tight leading-none text-green-600 dark:text-green-400 tabular-nums">
-                          <AnimatedNumber
-                            value={calculation.netAnnual}
-                            formatter={(n) =>
-                              formatCurrency(n, state.currency, {
-                                showCode: false,
-                              })
-                            }
-                          />
-                        </p>
-                      </div>
-                      {state.showCurrencyConversion &&
-                        state.currency !== displayCurrency && (
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-sm text-muted-foreground sm:hidden">
-                              {CURRENCY_FLAGS[displayCurrency]}
-                            </span>
-                            <div>
-                              <p className="text-2xl sm:text-4xl font-bold tracking-tight leading-none text-green-700 dark:text-green-400 tabular-nums">
-                                {formatCurrency(convertedNet, displayCurrency, {
-                                  showCode: false,
-                                })}
-                              </p>
-                              {state.traderMargin > 0 && marginLossNet > 0 && (
-                                <p className="text-xs sm:text-sm text-red-500 tabular-nums mt-0.5">
-                                  −
-                                  {formatCurrency(
-                                    marginLossNet,
-                                    displayCurrency,
-                                    { showCode: false },
-                                  )}{" "}
-                                  margin
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Annual Row (only when taxes not shown) */}
-                {!state.showTaxEstimate && (
-                  <div className="py-2 border-b border-border/30">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-                      Annual
-                    </p>
-                    <div
-                      className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"} gap-1 sm:gap-4`}
-                    >
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-sm text-muted-foreground sm:hidden">
-                          {CURRENCY_FLAGS[state.currency]}
-                        </span>
-                        <p className="text-3xl sm:text-4xl font-bold tracking-tight leading-none tabular-nums">
-                          <AnimatedNumber
-                            value={calculation.grossAnnual}
-                            formatter={(n) =>
-                              formatCurrency(n, state.currency, {
-                                showCode: false,
-                              })
-                            }
-                          />
-                        </p>
-                      </div>
-                      {state.showCurrencyConversion &&
-                        state.currency !== displayCurrency && (
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-sm text-muted-foreground sm:hidden">
-                              {CURRENCY_FLAGS[displayCurrency]}
-                            </span>
-                            <div>
-                              <p className="text-2xl sm:text-4xl font-bold tracking-tight leading-none tabular-nums">
+                              <span>
+                                {formatPercent(bracket.rate)} on{" "}
                                 {formatCurrency(
-                                  convertedGross,
-                                  displayCurrency,
-                                  {
-                                    showCode: false,
-                                  },
+                                  bracket.taxableAmount,
+                                  state.currency,
+                                  { showCode: false },
                                 )}
-                              </p>
-                              {state.traderMargin > 0 &&
-                                marginLossGross > 0 && (
-                                  <p className="text-xs sm:text-sm text-red-500 tabular-nums mt-0.5">
-                                    -
-                                    {formatCurrency(
-                                      marginLossGross,
-                                      displayCurrency,
-                                      { showCode: false },
-                                    )}{" "}
-                                    margin
-                                  </p>
+                              </span>
+                              <span className="tabular-nums">
+                                {formatCurrency(
+                                  bracket.taxAmount,
+                                  state.currency,
+                                  { showCode: false },
                                 )}
+                              </span>
                             </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Provincial/State brackets */}
+                      {calculation.provincialStateBrackets.length > 0 && (
+                        <div className="space-y-1">
+                          <div className="text-muted-foreground font-medium">
+                            {state.country === "CA" ? "Provincial" : "State"}
                           </div>
-                        )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Period Breakdowns */}
-                <div className="pt-2 border-t border-border/30 space-y-1.5 sm:space-y-2 lg:space-y-3">
-                  {/* Monthly */}
-                  <div className="flex justify-between items-baseline">
-                    <span className="text-xs sm:text-sm text-muted-foreground">
-                      Monthly
-                    </span>
-                    <div
-                      className={`text-right ${state.showCurrencyConversion && state.currency !== displayCurrency ? "flex flex-col sm:flex-row sm:gap-3" : ""}`}
-                    >
-                      <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums">
-                        {formatCurrency(monthly, state.currency, {
-                          showCode: false,
-                        })}
-                      </span>
-                      {state.showCurrencyConversion &&
-                        state.currency !== displayCurrency && (
-                          <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums text-muted-foreground">
-                            {formatCurrency(monthlyConverted, displayCurrency, {
-                              showCode: false,
-                            })}
-                          </span>
-                        )}
-                    </div>
-                  </div>
-
-                  {/* Bi-weekly */}
-                  <div className="flex justify-between items-baseline">
-                    <span className="text-xs sm:text-sm text-muted-foreground">
-                      Bi-weekly
-                    </span>
-                    <div
-                      className={`text-right ${state.showCurrencyConversion && state.currency !== displayCurrency ? "flex flex-col sm:flex-row sm:gap-3" : ""}`}
-                    >
-                      <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums">
-                        {formatCurrency(biweekly, state.currency, {
-                          showCode: false,
-                        })}
-                      </span>
-                      {state.showCurrencyConversion &&
-                        state.currency !== displayCurrency && (
-                          <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums text-muted-foreground">
-                            {formatCurrency(
-                              biweeklyConverted,
-                              displayCurrency,
-                              { showCode: false },
-                            )}
-                          </span>
-                        )}
-                    </div>
-                  </div>
-
-                  {/* Daily */}
-                  <div className="flex justify-between items-baseline">
-                    <span className="text-xs sm:text-sm text-muted-foreground">
-                      Daily
-                    </span>
-                    <div
-                      className={`text-right ${state.showCurrencyConversion && state.currency !== displayCurrency ? "flex flex-col sm:flex-row sm:gap-3" : ""}`}
-                    >
-                      <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums">
-                        {formatCurrency(daily, state.currency, {
-                          showCode: false,
-                        })}
-                      </span>
-                      {state.showCurrencyConversion &&
-                        state.currency !== displayCurrency && (
-                          <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums text-muted-foreground">
-                            {formatCurrency(dailyConverted, displayCurrency, {
-                              showCode: false,
-                            })}
-                          </span>
-                        )}
-                    </div>
-                  </div>
-
-                  {/* Hourly */}
-                  <div className="flex justify-between items-baseline">
-                    <span className="text-xs sm:text-sm text-muted-foreground">
-                      Hourly
-                    </span>
-                    <div
-                      className={`text-right ${state.showCurrencyConversion && state.currency !== displayCurrency ? "flex flex-col sm:flex-row sm:gap-3" : ""}`}
-                    >
-                      <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums">
-                        {formatCurrency(state.hourlyRate, state.currency, {
-                          showCode: false,
-                        })}
-                      </span>
-                      {state.showCurrencyConversion &&
-                        state.currency !== displayCurrency && (
-                          <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums text-muted-foreground">
-                            {formatCurrency(
-                              convertWithMargin(
-                                state.hourlyRate,
-                                state.currency,
-                                displayCurrency,
-                                state.traderMargin,
-                              ),
-                              displayCurrency,
-                              { showCode: false },
-                            )}
-                          </span>
-                        )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              /* Salary to Hourly Mode */
-              <div className="space-y-3">
-                {/* Calculated Hourly Rate Row (Hero) */}
-                <div className="py-2 border-b border-border/30">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-                    Hourly Rate
-                  </p>
-                  <div
-                    className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"} gap-1 sm:gap-4`}
-                  >
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-sm text-muted-foreground sm:hidden">
-                        {CURRENCY_FLAGS[state.currency]}
-                      </span>
-                      <p className="text-3xl sm:text-4xl font-bold tracking-tight leading-none tabular-nums">
-                        {formatCurrency(
-                          calculation.calculatedHourlyRate,
-                          state.currency,
-                          { showCode: false },
-                        )}
-                        /hr
-                      </p>
-                    </div>
-                    {state.showCurrencyConversion &&
-                      state.currency !== displayCurrency && (
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-sm text-muted-foreground sm:hidden">
-                            {CURRENCY_FLAGS[displayCurrency]}
-                          </span>
-                          <p className="text-2xl sm:text-4xl font-bold tracking-tight leading-none tabular-nums">
-                            {formatCurrency(convertedHourly, displayCurrency, {
-                              showCode: false,
-                            })}
-                            /hr
-                          </p>
-                        </div>
-                      )}
-                  </div>
-                </div>
-
-                {/* Gross Row (Before Tax) */}
-                <div className="py-2 border-b border-border/30">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-                    {state.showTaxEstimate ? (
-                      <>
-                        Gross <span className="normal-case">(before tax)</span>
-                      </>
-                    ) : (
-                      "Annual"
-                    )}
-                  </p>
-                  <div
-                    className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"} gap-1 sm:gap-4`}
-                  >
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-sm text-muted-foreground sm:hidden">
-                        {CURRENCY_FLAGS[state.currency]}
-                      </span>
-                      <p className="text-xl sm:text-2xl font-bold tracking-tight leading-none tabular-nums">
-                        {formatCurrency(
-                          calculation.grossAnnual,
-                          state.currency,
-                          { showCode: false },
-                        )}
-                      </p>
-                    </div>
-                    {state.showCurrencyConversion &&
-                      state.currency !== displayCurrency && (
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-sm text-muted-foreground sm:hidden">
-                            {CURRENCY_FLAGS[displayCurrency]}
-                          </span>
-                          <p className="text-lg sm:text-2xl font-bold tracking-tight leading-none tabular-nums">
-                            {formatCurrency(convertedGross, displayCurrency, {
-                              showCode: false,
-                            })}
-                          </p>
-                        </div>
-                      )}
-                  </div>
-                </div>
-
-                {/* Take-home Row (After Tax) */}
-                {state.showTaxEstimate && (
-                  <div className="py-2 border-b border-border/30">
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide">
-                        Take-home{" "}
-                        <span className="normal-case">(after tax)</span>
-                      </p>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <HelpCircle className="h-3 w-3 text-muted-foreground hover:text-foreground cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent side="top" className="max-w-xs">
-                            <p>
-                              This is your estimated income after federal and{" "}
-                              {state.country === "CA" ? "provincial" : "state"}{" "}
-                              taxes. It does not account for other deductions
-                              like health insurance, retirement contributions,
-                              or business expenses.
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                    <div
-                      className={`grid ${state.showCurrencyConversion && state.currency !== displayCurrency ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"} gap-1 sm:gap-4`}
-                    >
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-sm text-muted-foreground sm:hidden">
-                          {CURRENCY_FLAGS[state.currency]}
-                        </span>
-                        <p className="text-xl sm:text-2xl font-bold tracking-tight leading-none text-green-600 dark:text-green-400 tabular-nums">
-                          {formatCurrency(
-                            calculation.netAnnual,
-                            state.currency,
-                            { showCode: false },
-                          )}
-                        </p>
-                      </div>
-                      {state.showCurrencyConversion &&
-                        state.currency !== displayCurrency && (
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-sm text-muted-foreground sm:hidden">
-                              {CURRENCY_FLAGS[displayCurrency]}
-                            </span>
-                            <div>
-                              <p className="text-lg sm:text-2xl font-bold tracking-tight leading-none text-green-700 dark:text-green-400 tabular-nums">
-                                {formatCurrency(convertedNet, displayCurrency, {
-                                  showCode: false,
-                                })}
-                              </p>
-                              {state.traderMargin > 0 && marginLossNet > 0 && (
-                                <p className="text-xs sm:text-sm text-red-500 tabular-nums mt-0.5">
-                                  −
+                          {calculation.provincialStateBrackets.map(
+                            (bracket, i) => (
+                              <div
+                                key={i}
+                                className="flex justify-between text-muted-foreground"
+                              >
+                                <span>
+                                  {formatPercent(bracket.rate)} on{" "}
                                   {formatCurrency(
-                                    marginLossNet,
-                                    displayCurrency,
+                                    bracket.taxableAmount,
+                                    state.currency,
                                     { showCode: false },
-                                  )}{" "}
-                                  margin
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                    </div>
-                  </div>
-                )}
+                                  )}
+                                </span>
+                                <span className="tabular-nums">
+                                  {formatCurrency(
+                                    bracket.taxAmount,
+                                    state.currency,
+                                    { showCode: false },
+                                  )}
+                                </span>
+                              </div>
+                            ),
+                          )}
+                        </div>
+                      )}
 
-                {/* Period Breakdowns */}
-                <div className="pt-2 border-t border-border/30 space-y-1.5 sm:space-y-2 lg:space-y-3">
-                  {/* Monthly */}
-                  <div className="flex justify-between items-baseline">
-                    <span className="text-xs sm:text-sm text-muted-foreground">
-                      Monthly
-                    </span>
-                    <div
-                      className={`text-right ${state.showCurrencyConversion && state.currency !== displayCurrency ? "flex flex-col sm:flex-row sm:gap-3" : ""}`}
-                    >
-                      <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums">
-                        {formatCurrency(monthly, state.currency, {
-                          showCode: false,
-                        })}
-                      </span>
-                      {state.showCurrencyConversion &&
-                        state.currency !== displayCurrency && (
-                          <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums text-muted-foreground">
-                            {formatCurrency(monthlyConverted, displayCurrency, {
-                              showCode: false,
-                            })}
-                          </span>
-                        )}
-                    </div>
-                  </div>
-
-                  {/* Bi-weekly */}
-                  <div className="flex justify-between items-baseline">
-                    <span className="text-xs sm:text-sm text-muted-foreground">
-                      Bi-weekly
-                    </span>
-                    <div
-                      className={`text-right ${state.showCurrencyConversion && state.currency !== displayCurrency ? "flex flex-col sm:flex-row sm:gap-3" : ""}`}
-                    >
-                      <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums">
-                        {formatCurrency(biweekly, state.currency, {
-                          showCode: false,
-                        })}
-                      </span>
-                      {state.showCurrencyConversion &&
-                        state.currency !== displayCurrency && (
-                          <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums text-muted-foreground">
+                      {/* Self-employment tax */}
+                      {calculation.taxBreakdown.selfEmployment > 0 && (
+                        <div className="flex justify-between text-muted-foreground">
+                          <span>Self-employment</span>
+                          <span className="tabular-nums">
                             {formatCurrency(
-                              biweeklyConverted,
-                              displayCurrency,
+                              calculation.taxBreakdown.selfEmployment,
+                              state.currency,
                               { showCode: false },
                             )}
                           </span>
-                        )}
+                        </div>
+                      )}
                     </div>
-                  </div>
-
-                  {/* Daily */}
-                  <div className="flex justify-between items-baseline">
-                    <span className="text-xs sm:text-sm text-muted-foreground">
-                      Daily
-                    </span>
-                    <div
-                      className={`text-right ${state.showCurrencyConversion && state.currency !== displayCurrency ? "flex flex-col sm:flex-row sm:gap-3" : ""}`}
-                    >
-                      <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums">
-                        {formatCurrency(daily, state.currency, {
-                          showCode: false,
-                        })}
-                      </span>
-                      {state.showCurrencyConversion &&
-                        state.currency !== displayCurrency && (
-                          <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums text-muted-foreground">
-                            {formatCurrency(dailyConverted, displayCurrency, {
-                              showCode: false,
-                            })}
-                          </span>
-                        )}
-                    </div>
-                  </div>
-
-                  {/* Hourly */}
-                  <div className="flex justify-between items-baseline">
-                    <span className="text-xs sm:text-sm text-muted-foreground">
-                      Hourly
-                    </span>
-                    <div
-                      className={`text-right ${state.showCurrencyConversion && state.currency !== displayCurrency ? "flex flex-col sm:flex-row sm:gap-3" : ""}`}
-                    >
-                      <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums">
-                        {formatCurrency(
-                          calculation.calculatedHourlyRate,
-                          state.currency,
-                          { showCode: false },
-                        )}
-                      </span>
-                      {state.showCurrencyConversion &&
-                        state.currency !== displayCurrency && (
-                          <span className="text-xs sm:text-sm lg:text-base font-medium tabular-nums text-muted-foreground">
-                            {formatCurrency(convertedHourly, displayCurrency, {
-                              showCode: false,
-                            })}
-                          </span>
-                        )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Hours Summary */}
-            <div className="flex justify-center gap-3 text-sm text-muted-foreground pt-1">
-              <span>
-                {(state.hoursPerDay * state.daysPerWeek).toLocaleString()}{" "}
-                hrs/wk
-              </span>
-              <span className="text-border">|</span>
-              <span>
-                {Math.round(calculation.billableHours / 12).toLocaleString()}{" "}
-                hrs/mo
-              </span>
-              <span className="text-border">|</span>
-              <span>{calculation.billableHours.toLocaleString()} hrs/yr</span>
-            </div>
-          </CardContent>
-
-          {/* Exchange Rate Footer */}
-          {exchangeRates &&
-            state.showCurrencyConversion &&
-            state.currency !== displayCurrency && (
-              <div className="px-4 py-2 border-t bg-muted/5 flex items-center justify-center text-sm text-muted-foreground">
-                <div className="flex items-center gap-1.5">
-                  <ArrowRightLeft className="h-3.5 w-3.5" />
-                  <span>
-                    1 {state.currency} = {rateWithMargin.toFixed(4)}{" "}
-                    {displayCurrency}
-                    {state.traderMargin > 0 && (
-                      <span className="opacity-60">
-                        {" "}
-                        (−{state.traderMargin}%)
-                      </span>
-                    )}
-                  </span>
-                  {error && (
-                    <span
-                      className="text-amber-500"
-                      title="Using offline fallback rates"
-                    >
-                      (offline)
-                    </span>
                   )}
                 </div>
+              )}
+              {state.showCurrencyConversion && state.traderMargin > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">
+                    Conversion fees ({state.traderMargin}%)
+                  </span>
+                  <span className="tabular-nums text-destructive">
+                    −
+                    {formatCurrency(conversionFeeAmount, state.currency, {
+                      showCode: false,
+                    })}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Take-home (primary) */}
+          {state.showTaxEstimate && (
+            <div className="pt-4 border-t">
+              <div className="flex items-center gap-1 mb-1">
+                <span className="text-sm text-muted-foreground">
+                  Take-home (after tax)
+                </span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-xs">
+                        After income tax. Doesn't include health insurance,
+                        retirement, or other deductions.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
-            )}
-        </Card>
+              <div className="text-3xl font-bold tabular-nums text-primary">
+                <span className="mr-1.5">{CURRENCY_FLAGS[state.currency]}</span>
+                <AnimatedNumber
+                  value={calculation.netAnnual}
+                  formatter={(v) => formatCurrency(v, state.currency)}
+                />
+                <span className="text-sm text-muted-foreground font-normal ml-1">
+                  /year
+                </span>
+              </div>
+            </div>
+          )}
 
-        <div className="flex justify-end">
-          <button
-            onClick={handleShare}
-            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted/50 transition-all duration-150 hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <Share2 className="h-4 w-4" />
-            {copied ? "Copied!" : "Share calculation"}
-          </button>
+          {/* Take-home converted (if currency conversion enabled and taxes shown) */}
+          {state.showCurrencyConversion && state.showTaxEstimate && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <span className="text-lg">→</span>
+              <span className="text-xl font-medium tabular-nums text-foreground">
+                {CURRENCY_FLAGS[displayCurrency]}{" "}
+                <AnimatedNumber
+                  value={convertedNet}
+                  formatter={(v) => formatCurrency(v, displayCurrency)}
+                />
+              </span>
+            </div>
+          )}
+
+          {/* Period breakdown */}
+          <div className="pt-4 border-t space-y-2">
+            <div className="text-sm text-muted-foreground mb-2">Breakdown</div>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Monthly</span>
+                <span className="tabular-nums font-medium">
+                  {formatCurrency(monthly, state.currency, { showCode: false })}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Bi-weekly</span>
+                <span className="tabular-nums font-medium">
+                  {formatCurrency(biweekly, state.currency, {
+                    showCode: false,
+                  })}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Weekly</span>
+                <span className="tabular-nums font-medium">
+                  {formatCurrency(weekly, state.currency, { showCode: false })}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Daily</span>
+                <span className="tabular-nums font-medium">
+                  {formatCurrency(daily, state.currency, { showCode: false })}
+                </span>
+              </div>
+              <div className="flex justify-between col-span-2 pt-2 border-t">
+                <span className="text-muted-foreground">Effective hourly</span>
+                <span className="tabular-nums font-medium">
+                  {formatCurrency(hourly, state.currency, { showCode: false })}
+                  /hr
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
-
-        {/* Exchange Rate Display */}
-        <ExchangeRateDisplay baseCurrency={state.currency} />
       </div>
     </div>
   );

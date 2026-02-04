@@ -224,6 +224,30 @@ export const usTax: TaxConfig = {
   },
 };
 
-export function getTaxConfig(country: "CA" | "US"): TaxConfig {
-  return country === "CA" ? canadaTax : usTax;
+// Mexico 2026 Tax Brackets (ISR - Impuesto Sobre la Renta)
+// Federal progressive rates; states don't levy separate income tax on wages
+export const mexicoTax: TaxConfig = {
+  federal: [
+    { min: 0, max: 8952, rate: 0.0192 },
+    { min: 8952, max: 75984, rate: 0.064 },
+    { min: 75984, max: 133536, rate: 0.1088 },
+    { min: 133536, max: 155229, rate: 0.16 },
+    { min: 155229, max: 185852, rate: 0.1792 },
+    { min: 185852, max: 374837, rate: 0.2136 },
+    { min: 374837, max: 590795, rate: 0.2352 },
+    { min: 590795, max: 1127926, rate: 0.3 },
+    { min: 1127926, max: 1503902, rate: 0.32 },
+    { min: 1503902, max: 4511707, rate: 0.34 },
+    { min: 4511707, max: null, rate: 0.35 },
+  ],
+  selfEmployment: [
+    // IMSS voluntary contribution for self-employed (estimated average)
+    { name: "IMSS", rate: 0.028, maxEarnings: null },
+  ],
+};
+
+export function getTaxConfig(country: "CA" | "US" | "MX"): TaxConfig {
+  if (country === "CA") return canadaTax;
+  if (country === "MX") return mexicoTax;
+  return usTax;
 }

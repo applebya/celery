@@ -38,6 +38,10 @@ export interface CalculatorState {
   monthlyRetainer: number; // Fixed monthly amount for contractor-retainer
   expectedHoursMin: number; // Min expected hours/month (for effective rate calc)
   expectedHoursMax: number; // Max expected hours/month (for effective rate range)
+
+  // Fixed monthly hours (for contractors with negotiated monthly commitment)
+  useFixedMonthlyHours: boolean;
+  fixedMonthlyHours: number;
 }
 
 export interface ExchangeRates {
@@ -83,6 +87,9 @@ export const DEFAULT_STATE: CalculatorState = {
   monthlyRetainer: 10000,
   expectedHoursMin: 120,
   expectedHoursMax: 160,
+  // Fixed monthly hours defaults
+  useFixedMonthlyHours: false,
+  fixedMonthlyHours: 160,
 };
 
 // Helper to derive isSelfEmployed from employmentType
