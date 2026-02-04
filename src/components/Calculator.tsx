@@ -787,8 +787,8 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                       {formatCurrency(
                         calculation.taxBreakdown.total,
                         state.currency,
-                        { showCode: false },
-                      )}
+                      )}{" "}
+                      {state.currency}
                     </span>
                   </button>
 
