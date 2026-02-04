@@ -366,7 +366,7 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                 /* Non-retainer: full schedule details */
                 <>
                   {/* Fixed monthly hours toggle */}
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
                     <Label htmlFor="fixedMonthly" className="text-sm">
                       Fixed monthly hours
                     </Label>
