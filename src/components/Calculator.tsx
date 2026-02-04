@@ -129,6 +129,10 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
     setOpenSection(openSection === section ? null : section);
   };
 
+  // Home currency based on tax residence country
+  const countryInfo = getCountry(state.country);
+  const homeCurrency: Currency = countryInfo?.currency ?? "CAD";
+
   // Currency conversion - auto-determine based on home currency
   // CAD/MXN users see USD, USD users see CAD
   const displayCurrency: Currency = state.currency === "USD" ? "CAD" : "USD";
@@ -782,9 +786,8 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                       −
                       {formatCurrency(
                         calculation.taxBreakdown.total,
-                        state.currency,
-                      )}{" "}
-                      {state.currency}
+                        homeCurrency,
+                      )}
                     </span>
                   </button>
 
