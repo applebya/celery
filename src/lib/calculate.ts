@@ -1,4 +1,4 @@
-import type { Currency } from '@/types'
+import type { Currency } from "@/types";
 
 /**
  * Calculate base working hours per year
@@ -6,9 +6,9 @@ import type { Currency } from '@/types'
 export function calcBaseHours(
   weeksPerYear: number,
   daysPerWeek: number,
-  hoursPerDay: number
+  hoursPerDay: number,
 ): number {
-  return weeksPerYear * daysPerWeek * hoursPerDay
+  return weeksPerYear * daysPerWeek * hoursPerDay;
 }
 
 /**
@@ -20,36 +20,54 @@ export function calcBillableHours(
   hoursPerDay: number,
   holidays: number,
   ptoDays: number,
-  sickDays: number
+  sickDays: number,
 ): number {
-  const baseHours = calcBaseHours(weeksPerYear, daysPerWeek, hoursPerDay)
-  const holidayHours = holidays * hoursPerDay
-  const ptoHours = ptoDays * hoursPerDay
-  const sickHours = sickDays * hoursPerDay
-  return baseHours - holidayHours - ptoHours - sickHours
+  const baseHours = calcBaseHours(weeksPerYear, daysPerWeek, hoursPerDay);
+  const holidayHours = holidays * hoursPerDay;
+  const ptoHours = ptoDays * hoursPerDay;
+  const sickHours = sickDays * hoursPerDay;
+  return baseHours - holidayHours - ptoHours - sickHours;
 }
 
 /**
  * Calculate gross annual income
  */
-export function calcGrossAnnual(hourlyRate: number, billableHours: number): number {
-  return hourlyRate * billableHours
+export function calcGrossAnnual(
+  hourlyRate: number,
+  billableHours: number,
+): number {
+  return hourlyRate * billableHours;
 }
 
 /**
  * Calculate net annual income (after tax)
  */
 export function calcNetAnnual(grossAnnual: number, totalTax: number): number {
-  return grossAnnual - totalTax
+  return grossAnnual - totalTax;
 }
 
 const CURRENCY_SYMBOLS: Record<Currency, string> = {
-  USD: '$',
-  CAD: '$',
-  EUR: '€',
-  GBP: '£',
-  MXN: '$',
-}
+  USD: "$",
+  CAD: "$",
+  EUR: "€",
+  GBP: "£",
+  AUD: "$",
+  NZD: "$",
+  CHF: "Fr",
+  JPY: "¥",
+  INR: "₹",
+  BRL: "R$",
+  MXN: "$",
+  SGD: "$",
+  HKD: "$",
+  SEK: "kr",
+  NOK: "kr",
+  DKK: "kr",
+  PLN: "zł",
+  CZK: "Kč",
+  ILS: "₪",
+  ZAR: "R",
+};
 
 /**
  * Format currency for display
@@ -57,22 +75,22 @@ const CURRENCY_SYMBOLS: Record<Currency, string> = {
 export function formatCurrency(
   amount: number,
   currency: Currency,
-  options: { compact?: boolean; showCode?: boolean } = {}
+  options: { compact?: boolean; showCode?: boolean } = {},
 ): string {
-  const { compact = false, showCode = true } = options
-  const symbol = CURRENCY_SYMBOLS[currency]
-  const formatter = new Intl.NumberFormat('en-US', {
+  const { compact = false, showCode = true } = options;
+  const symbol = CURRENCY_SYMBOLS[currency];
+  const formatter = new Intl.NumberFormat("en-US", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-    notation: compact ? 'compact' : 'standard',
-  })
-  const formatted = `${symbol}${formatter.format(amount)}`
-  return showCode ? `${formatted} ${currency}` : formatted
+    notation: compact ? "compact" : "standard",
+  });
+  const formatted = `${symbol}${formatter.format(amount)}`;
+  return showCode ? `${formatted} ${currency}` : formatted;
 }
 
 /**
  * Format percentage for display
  */
 export function formatPercent(rate: number): string {
-  return `${(rate * 100).toFixed(1)}%`
+  return `${(rate * 100).toFixed(1)}%`;
 }

@@ -5,7 +5,31 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { FooterContent } from "@/components/FooterContent";
 import { useScenarios } from "@/hooks/useScenarios";
 import { useTheme } from "@/hooks/useTheme";
-import { DEFAULT_STATE, type CalculatorState } from "@/types";
+import { DEFAULT_STATE, type CalculatorState, type Currency } from "@/types";
+
+// Currency options for "Other" country selection
+const CURRENCY_OPTIONS: { value: Currency; label: string; flag: string }[] = [
+  { value: "USD", label: "US Dollar", flag: "🇺🇸" },
+  { value: "CAD", label: "Canadian Dollar", flag: "🇨🇦" },
+  { value: "EUR", label: "Euro", flag: "🇪🇺" },
+  { value: "GBP", label: "British Pound", flag: "🇬🇧" },
+  { value: "AUD", label: "Australian Dollar", flag: "🇦🇺" },
+  { value: "NZD", label: "New Zealand Dollar", flag: "🇳🇿" },
+  { value: "CHF", label: "Swiss Franc", flag: "🇨🇭" },
+  { value: "JPY", label: "Japanese Yen", flag: "🇯🇵" },
+  { value: "INR", label: "Indian Rupee", flag: "🇮🇳" },
+  { value: "BRL", label: "Brazilian Real", flag: "🇧🇷" },
+  { value: "MXN", label: "Mexican Peso", flag: "🇲🇽" },
+  { value: "SGD", label: "Singapore Dollar", flag: "🇸🇬" },
+  { value: "HKD", label: "Hong Kong Dollar", flag: "🇭🇰" },
+  { value: "SEK", label: "Swedish Krona", flag: "🇸🇪" },
+  { value: "NOK", label: "Norwegian Krone", flag: "🇳🇴" },
+  { value: "DKK", label: "Danish Krone", flag: "🇩🇰" },
+  { value: "PLN", label: "Polish Zloty", flag: "🇵🇱" },
+  { value: "CZK", label: "Czech Koruna", flag: "🇨🇿" },
+  { value: "ILS", label: "Israeli Shekel", flag: "🇮🇱" },
+  { value: "ZAR", label: "South African Rand", flag: "🇿🇦" },
+];
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Plus, X, BarChart3, MapPin } from "lucide-react";
 import { countries, getCountry, getHolidayCount } from "@/data/holidays-2026";
@@ -168,18 +192,34 @@ function App() {
 
   // Location change handlers (updates all scenarios)
   const handleCountryChange = useCallback(
-    (country: "CA" | "US" | "MX") => {
-      const countryData = getCountry(country);
-      // Default regions: CA=Ontario, US=California, MX=Mexico City
-      const defaultRegion =
-        country === "CA" ? "ON" : country === "MX" ? "CDMX" : "CA";
-      const holidays = getHolidayCount(country, defaultRegion);
-      updateAllScenarios({
-        country,
-        region: defaultRegion,
-        currency: countryData?.currency ?? (country === "MX" ? "MXN" : "CAD"),
-        holidaysPerYear: holidays,
-      });
+    (country: "CA" | "US" | "OTHER") => {
+      if (country === "OTHER") {
+        // For "Other" countries, keep current currency but clear region/tax
+        updateAllScenarios({
+          country,
+          region: "",
+          holidaysPerYear: 0,
+        });
+      } else {
+        const countryData = getCountry(country);
+        // Default regions: CA=Ontario, US=California
+        const defaultRegion = country === "CA" ? "ON" : "CA";
+        const holidays = getHolidayCount(country, defaultRegion);
+        updateAllScenarios({
+          country,
+          region: defaultRegion,
+          currency: countryData?.currency ?? "CAD",
+          holidaysPerYear: holidays,
+        });
+      }
+    },
+    [updateAllScenarios],
+  );
+
+  // Currency change handler for "Other" countries
+  const handleCurrencyChange = useCallback(
+    (currency: string) => {
+      updateAllScenarios({ currency: currency as Currency });
     },
     [updateAllScenarios],
   );
@@ -244,12 +284,13 @@ function App() {
                         {c.flag} {c.name}
                       </SelectItem>
                     ))}
+                    <SelectItem value="OTHER">🌍 Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              {/* Hide region dropdown for Mexico (same tax rate across states) */}
-              {currentState.country !== "MX" && (
+              {/* Show region dropdown for CA/US only */}
+              {currentState.country !== "OTHER" && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium">
                     {currentState.country === "CA" ? "Province" : "State"}
@@ -272,6 +313,34 @@ function App() {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+              )}
+
+              {/* Show currency picker for Other countries */}
+              {currentState.country === "OTHER" && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Currency</label>
+                  <Select
+                    value={currentState.currency}
+                    onValueChange={handleCurrencyChange}
+                  >
+                    <SelectTrigger
+                      className="w-full"
+                      aria-label="Select currency"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CURRENCY_OPTIONS.map((c) => (
+                        <SelectItem key={c.value} value={c.value}>
+                          {c.flag} {c.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Tax estimates are not available for this country
+                  </p>
                 </div>
               )}
             </div>
@@ -440,10 +509,11 @@ function App() {
                       {c.flag} {c.name}
                     </SelectItem>
                   ))}
+                  <SelectItem value="OTHER">🌍 Other</SelectItem>
                 </SelectContent>
               </Select>
-              {/* Hide region dropdown for Mexico (same tax rate across states) */}
-              {currentState.country !== "MX" && (
+              {/* Show region dropdown for CA/US only */}
+              {currentState.country !== "OTHER" && (
                 <Select
                   value={currentState.region}
                   onValueChange={handleRegionChange}
@@ -455,6 +525,24 @@ function App() {
                     {currentCountry?.regions.map((r) => (
                       <SelectItem key={r.code} value={r.code}>
                         {r.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              {/* Show currency dropdown for Other countries */}
+              {currentState.country === "OTHER" && (
+                <Select
+                  value={currentState.currency}
+                  onValueChange={handleCurrencyChange}
+                >
+                  <SelectTrigger className="h-7 w-[90px] text-xs border-0 bg-transparent px-2 focus:ring-0 focus:ring-offset-0">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CURRENCY_OPTIONS.map((c) => (
+                      <SelectItem key={c.value} value={c.value}>
+                        {c.flag} {c.value}
                       </SelectItem>
                     ))}
                   </SelectContent>

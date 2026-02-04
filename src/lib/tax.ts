@@ -1,9 +1,4 @@
-import {
-  canadaTax,
-  usTax,
-  mexicoTax,
-  type TaxBracket,
-} from "@/data/tax-brackets-2026";
+import { canadaTax, usTax, type TaxBracket } from "@/data/tax-brackets-2026";
 
 /**
  * Individual bracket tax detail
@@ -70,25 +65,23 @@ export function calcBracketTaxDetailed(
  * Calculate federal tax for a country
  */
 export function calcFederalTax(
-  country: "CA" | "US" | "MX",
+  country: "CA" | "US" | "OTHER",
   income: number,
 ): number {
-  const config =
-    country === "CA" ? canadaTax : country === "MX" ? mexicoTax : usTax;
+  if (country === "OTHER") return 0;
+  const config = country === "CA" ? canadaTax : usTax;
   return calcBracketTax(income, config.federal);
 }
 
 /**
  * Calculate provincial (CA) or state (US) tax
- * Mexico has no state income tax on wages
  */
 export function calcProvincialStateTax(
-  country: "CA" | "US" | "MX",
+  country: "CA" | "US" | "OTHER",
   region: string,
   income: number,
 ): number {
-  // Mexico states don't levy income tax on wages
-  if (country === "MX") return 0;
+  if (country === "OTHER") return 0;
 
   const config = country === "CA" ? canadaTax : usTax;
   const regions = country === "CA" ? config.provinces : config.states;
@@ -106,16 +99,15 @@ export function calcProvincialStateTax(
 }
 
 /**
- * Calculate self-employment taxes (CPP for Canada, SE tax for US, IMSS for Mexico)
+ * Calculate self-employment taxes (CPP for Canada, SE tax for US)
  */
 export function calcSelfEmploymentTax(
-  country: "CA" | "US" | "MX",
+  country: "CA" | "US" | "OTHER",
   income: number,
 ): number {
+  if (country === "OTHER") return 0;
   if (country === "CA") {
     return calcCanadaCPP(income);
-  } else if (country === "MX") {
-    return calcMexicoIMSS(income);
   } else {
     return calcUSSelfEmploymentTax(income);
   }
@@ -128,15 +120,6 @@ function calcCanadaCPP(income: number): number {
   const cpp = canadaTax.selfEmployment[0]; // CPP config
   const taxableIncome = Math.min(income, cpp.maxEarnings ?? income);
   return taxableIncome * cpp.rate;
-}
-
-/**
- * Calculate Mexico IMSS voluntary contribution for self-employed
- */
-function calcMexicoIMSS(income: number): number {
-  const imss = mexicoTax.selfEmployment[0];
-  const taxableIncome = Math.min(income, imss.maxEarnings ?? income);
-  return taxableIncome * imss.rate;
 }
 
 /**
@@ -177,11 +160,12 @@ function calcUSSelfEmploymentTax(income: number): number {
  * Calculate total tax (federal + provincial/state + self-employment)
  */
 export function calcTotalTax(
-  country: "CA" | "US" | "MX",
+  country: "CA" | "US" | "OTHER",
   region: string,
   income: number,
   isSelfEmployed: boolean,
 ): number {
+  if (country === "OTHER") return 0;
   const federalTax = calcFederalTax(country, income);
   const provincialStateTax = calcProvincialStateTax(country, region, income);
   const selfEmploymentTax = isSelfEmployed
@@ -195,12 +179,12 @@ export function calcTotalTax(
  * Calculate effective tax rate
  */
 export function calcEffectiveRate(
-  country: "CA" | "US" | "MX",
+  country: "CA" | "US" | "OTHER",
   region: string,
   income: number,
   isSelfEmployed: boolean,
 ): number {
-  if (income === 0) return 0;
+  if (income === 0 || country === "OTHER") return 0;
   const totalTax = calcTotalTax(country, region, income, isSelfEmployed);
   return totalTax / income;
 }
@@ -217,11 +201,20 @@ export interface TaxBreakdown {
 }
 
 export function getTaxBreakdown(
-  country: "CA" | "US" | "MX",
+  country: "CA" | "US" | "OTHER",
   region: string,
   income: number,
   isSelfEmployed: boolean,
 ): TaxBreakdown {
+  if (country === "OTHER") {
+    return {
+      federal: 0,
+      provincialState: 0,
+      selfEmployment: 0,
+      total: 0,
+      effectiveRate: 0,
+    };
+  }
   const federal = calcFederalTax(country, income);
   const provincialState = calcProvincialStateTax(country, region, income);
   const selfEmployment = isSelfEmployed
@@ -243,25 +236,23 @@ export function getTaxBreakdown(
  * Get detailed bracket breakdown for federal taxes
  */
 export function getFederalBracketDetails(
-  country: "CA" | "US" | "MX",
+  country: "CA" | "US" | "OTHER",
   income: number,
 ): BracketDetail[] {
-  const config =
-    country === "CA" ? canadaTax : country === "MX" ? mexicoTax : usTax;
+  if (country === "OTHER") return [];
+  const config = country === "CA" ? canadaTax : usTax;
   return calcBracketTaxDetailed(income, config.federal);
 }
 
 /**
  * Get detailed bracket breakdown for provincial/state taxes
- * Mexico has no state income tax on wages
  */
 export function getProvincialStateBracketDetails(
-  country: "CA" | "US" | "MX",
+  country: "CA" | "US" | "OTHER",
   region: string,
   income: number,
 ): BracketDetail[] {
-  // Mexico states don't levy income tax on wages
-  if (country === "MX") return [];
+  if (country === "OTHER") return [];
 
   const config = country === "CA" ? canadaTax : usTax;
   const regions = country === "CA" ? config.provinces : config.states;

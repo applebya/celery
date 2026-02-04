@@ -1,4 +1,24 @@
-export type Currency = "CAD" | "USD" | "EUR" | "GBP" | "MXN";
+export type Currency =
+  | "CAD"
+  | "USD"
+  | "EUR"
+  | "GBP"
+  | "AUD"
+  | "NZD"
+  | "CHF"
+  | "JPY"
+  | "INR"
+  | "BRL"
+  | "MXN"
+  | "SGD"
+  | "HKD"
+  | "SEK"
+  | "NOK"
+  | "DKK"
+  | "PLN"
+  | "CZK"
+  | "ILS"
+  | "ZAR";
 
 export type EmploymentType =
   | "contractor-hourly" // Self-employed, bill by the hour
@@ -10,7 +30,7 @@ export interface CalculatorState {
   title: string;
   hourlyRate: number;
   currency: Currency;
-  country: "CA" | "US" | "MX";
+  country: "CA" | "US" | "OTHER";
   region: string;
   holidaysPerYear: number;
   ptoDays: number;
