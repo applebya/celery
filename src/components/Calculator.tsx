@@ -26,7 +26,12 @@ import { AnimatedNumber } from "./AnimatedNumber";
 import { getCountry } from "@/data/holidays-2026";
 import { useCalculation } from "@/hooks/useCalculation";
 import { useExchangeRate } from "@/hooks/useExchangeRate";
-import { formatCurrency, formatPercent } from "@/lib/calculate";
+import { formatCurrency, formatPercent, calcNetAnnual } from "@/lib/calculate";
+import {
+  getTaxBreakdown,
+  getFederalBracketDetails,
+  getProvincialStateBracketDetails,
+} from "@/lib/tax";
 import type { CalculatorState, Currency, EmploymentType } from "@/types";
 import { isSelfEmployedFromType } from "@/types";
 
@@ -137,32 +142,64 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
   const displayCurrency: Currency = state.currency === "USD" ? "CAD" : "USD";
   const shouldShowConversion =
     state.showCurrencyConversion && state.currency !== homeCurrency;
+  const currenciesDiffer = state.currency !== homeCurrency;
 
-  const convertedGross = convertWithMargin(
-    calculation.grossAnnual,
-    state.currency,
-    displayCurrency,
-    state.traderMargin,
+  // Convert gross to home currency (for tax calculation when currencies differ)
+  const grossInHomeCurrency = currenciesDiffer
+    ? convertWithMargin(
+        calculation.grossAnnual,
+        state.currency,
+        homeCurrency,
+        0,
+      )
+    : calculation.grossAnnual;
+
+  // Recalculate taxes on home currency amount when currencies differ
+  // (You pay taxes in your home country based on converted income)
+  const effectiveTaxBreakdown = currenciesDiffer
+    ? getTaxBreakdown(
+        state.country,
+        state.region,
+        grossInHomeCurrency,
+        state.isSelfEmployed,
+      )
+    : calculation.taxBreakdown;
+
+  const effectiveFederalBrackets = currenciesDiffer
+    ? getFederalBracketDetails(state.country, grossInHomeCurrency)
+    : calculation.federalBrackets;
+
+  const effectiveProvincialBrackets = currenciesDiffer
+    ? getProvincialStateBracketDetails(
+        state.country,
+        state.region,
+        grossInHomeCurrency,
+      )
+    : calculation.provincialStateBrackets;
+
+  // Net annual in home currency
+  const netInHomeCurrency = calcNetAnnual(
+    grossInHomeCurrency,
+    effectiveTaxBreakdown.total,
   );
 
-  const convertedNet = convertWithMargin(
-    calculation.netAnnual,
-    state.currency,
-    displayCurrency,
-    state.traderMargin,
-  );
+  // For display: net in job currency, converted from home currency net
+  const netInJobCurrency = currenciesDiffer
+    ? convertWithMargin(netInHomeCurrency, homeCurrency, state.currency, 0)
+    : calculation.netAnnual;
 
   // Conversion fee calculation
-  const conversionFeeAmount =
-    (state.showTaxEstimate ? calculation.netAnnual : calculation.grossAnnual) *
-    (state.traderMargin / 100);
+  const conversionFeeAmount = netInJobCurrency * (state.traderMargin / 100);
 
-  // Period breakdowns
-  const monthly = calculation.netAnnual / 12;
-  const biweekly = calculation.netAnnual / 26;
-  const weekly = calculation.netAnnual / 52;
+  // Period breakdowns (use home currency net for accurate after-tax amounts)
+  const netForBreakdown = currenciesDiffer
+    ? netInHomeCurrency
+    : calculation.netAnnual;
+  const monthly = netForBreakdown / 12;
+  const biweekly = netForBreakdown / 26;
+  const weekly = netForBreakdown / 52;
   const billableDays = calculation.billableHours / state.hoursPerDay;
-  const daily = calculation.netAnnual / billableDays;
+  const daily = netForBreakdown / billableDays;
 
   // Work schedule summary
   const hoursPerWeek = state.hoursPerDay * state.daysPerWeek;
@@ -528,7 +565,7 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">Taxes</span>
                 <span className="text-xs text-muted-foreground">
-                  {formatPercent(calculation.taxBreakdown.effectiveRate)}
+                  {formatPercent(effectiveTaxBreakdown.effectiveRate)}
                 </span>
               </div>
               <ChevronRight
@@ -545,14 +582,14 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                     </span>
                     <span className="tabular-nums">
                       {formatCurrency(
-                        calculation.taxBreakdown.federal,
+                        effectiveTaxBreakdown.federal,
                         state.currency,
                         { showCode: false },
                       )}
                     </span>
                   </div>
                   <div className="pl-2 space-y-0.5 text-xs">
-                    {calculation.federalBrackets.map((b, i) => (
+                    {effectiveFederalBrackets.map((b, i) => (
                       <div
                         key={i}
                         className="flex justify-between text-muted-foreground"
@@ -576,15 +613,15 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                     </span>
                     <span className="tabular-nums">
                       {formatCurrency(
-                        calculation.taxBreakdown.provincialState,
+                        effectiveTaxBreakdown.provincialState,
                         state.currency,
                         { showCode: false },
                       )}
                     </span>
                   </div>
-                  {calculation.provincialStateBrackets.length > 0 ? (
+                  {effectiveProvincialBrackets.length > 0 ? (
                     <div className="pl-2 space-y-0.5 text-xs">
-                      {calculation.provincialStateBrackets.map((b, i) => (
+                      {effectiveProvincialBrackets.map((b, i) => (
                         <div
                           key={i}
                           className="flex justify-between text-muted-foreground"
@@ -613,7 +650,7 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                     </span>
                     <span className="tabular-nums">
                       {formatCurrency(
-                        calculation.taxBreakdown.selfEmployment,
+                        effectiveTaxBreakdown.selfEmployment,
                         state.currency,
                         { showCode: false },
                       )}
@@ -626,7 +663,7 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                   <span>Total tax</span>
                   <span className="tabular-nums">
                     {formatCurrency(
-                      calculation.taxBreakdown.total,
+                      effectiveTaxBreakdown.total,
                       state.currency,
                       { showCode: false },
                     )}
@@ -749,10 +786,10 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
             <div className="flex items-center gap-2 text-muted-foreground">
               <span className="text-lg">→</span>
               <span className="text-xl font-medium tabular-nums text-foreground">
-                {CURRENCY_FLAGS[displayCurrency]}{" "}
+                {CURRENCY_FLAGS[homeCurrency]}{" "}
                 <AnimatedNumber
-                  value={convertedGross}
-                  formatter={(v) => formatCurrency(v, displayCurrency)}
+                  value={grossInHomeCurrency}
+                  formatter={(v) => formatCurrency(v, homeCurrency)}
                 />
               </span>
             </div>
@@ -769,12 +806,10 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                   <ChevronRight
                     className={`h-3 w-3 transition-transform ${showTaxBreakdown ? "rotate-90" : ""}`}
                   />
-                  Taxes ({formatPercent(calculation.taxBreakdown.effectiveRate)}
-                  )
+                  Taxes ({formatPercent(effectiveTaxBreakdown.effectiveRate)})
                 </span>
                 <span className="tabular-nums text-destructive">
-                  −
-                  {formatCurrency(calculation.taxBreakdown.total, homeCurrency)}
+                  −{formatCurrency(effectiveTaxBreakdown.total, homeCurrency)}
                 </span>
               </button>
 
@@ -782,12 +817,12 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
               {showTaxBreakdown && (
                 <div className="pl-4 space-y-2 text-xs border-l-2 border-border/50 ml-1">
                   {/* Federal brackets */}
-                  {calculation.federalBrackets.length > 0 && (
+                  {effectiveFederalBrackets.length > 0 && (
                     <div className="space-y-1">
                       <div className="text-muted-foreground font-medium">
                         Federal
                       </div>
-                      {calculation.federalBrackets.map((bracket, i) => (
+                      {effectiveFederalBrackets.map((bracket, i) => (
                         <div
                           key={i}
                           className="flex justify-between text-muted-foreground"
@@ -811,12 +846,12 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                   )}
 
                   {/* Provincial/State brackets */}
-                  {calculation.provincialStateBrackets.length > 0 && (
+                  {effectiveProvincialBrackets.length > 0 && (
                     <div className="space-y-1">
                       <div className="text-muted-foreground font-medium">
                         {state.country === "CA" ? "Provincial" : "State"}
                       </div>
-                      {calculation.provincialStateBrackets.map((bracket, i) => (
+                      {effectiveProvincialBrackets.map((bracket, i) => (
                         <div
                           key={i}
                           className="flex justify-between text-muted-foreground"
@@ -840,12 +875,12 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                   )}
 
                   {/* Self-employment tax */}
-                  {calculation.taxBreakdown.selfEmployment > 0 && (
+                  {effectiveTaxBreakdown.selfEmployment > 0 && (
                     <div className="flex justify-between text-muted-foreground">
                       <span>Self-employment</span>
                       <span className="tabular-nums">
                         {formatCurrency(
-                          calculation.taxBreakdown.selfEmployment,
+                          effectiveTaxBreakdown.selfEmployment,
                           state.currency,
                           { showCode: false },
                         )}
@@ -890,7 +925,7 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
             <div className="text-3xl font-bold tabular-nums text-primary">
               <span className="mr-1.5">{CURRENCY_FLAGS[state.currency]}</span>
               <AnimatedNumber
-                value={calculation.netAnnual}
+                value={netInJobCurrency}
                 formatter={(v) => formatCurrency(v, state.currency)}
               />
               <span className="text-sm text-muted-foreground font-normal ml-1">
@@ -904,10 +939,10 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
             <div className="flex items-center gap-2 text-muted-foreground">
               <span className="text-lg">→</span>
               <span className="text-xl font-medium tabular-nums text-foreground">
-                {CURRENCY_FLAGS[displayCurrency]}{" "}
+                {CURRENCY_FLAGS[homeCurrency]}{" "}
                 <AnimatedNumber
-                  value={convertedNet}
-                  formatter={(v) => formatCurrency(v, displayCurrency)}
+                  value={netInHomeCurrency}
+                  formatter={(v) => formatCurrency(v, homeCurrency)}
                 />
               </span>
             </div>
