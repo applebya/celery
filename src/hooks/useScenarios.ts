@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import type { CalculatorState, SavedScenario } from "@/types";
 import { DEFAULT_STATE } from "@/types";
-import { getCountry } from "@/data/holidays-2026";
 
 const STORAGE_KEY = "celery-scenarios";
 const MAX_SCENARIOS = 10;
@@ -11,18 +10,13 @@ function generateId(): string {
   return Math.random().toString(36).substring(2, 9);
 }
 
-// Auto-generate scenario name from state
-export function generateScenarioName(state: CalculatorState): string {
-  const country = getCountry(state.country);
-  const regionName =
-    country?.regions.find((r) => r.code === state.region)?.name ?? state.region;
-
-  if (state.calculationMode === "hourlyToSalary") {
-    return `$${state.hourlyRate}/hr · ${regionName}`;
-  } else {
-    const salaryK = Math.round(state.targetSalary / 1000);
-    return `$${salaryK}k target · ${regionName}`;
-  }
+// Generate scenario name based on position
+function getScenarioName(index: number): string {
+  if (index === 0) return "Current Job";
+  if (index === 1) return "New Job";
+  // Third+ scenarios: New Job B, New Job C, etc.
+  const letter = String.fromCharCode(64 + index); // 2->B, 3->C, etc.
+  return `New Job ${letter}`;
 }
 
 function loadScenarios(): SavedScenario[] {
@@ -72,7 +66,6 @@ export function useScenarios() {
                     ...s,
                     state,
                     updatedAt: now,
-                    name: s.name || generateScenarioName(state),
                   }
                 : s,
             );
@@ -83,14 +76,14 @@ export function useScenarios() {
         const newId = generateId();
         const newScenario: SavedScenario = {
           id: newId,
-          name: generateScenarioName(state),
+          name: getScenarioName(prev.length),
           state,
           createdAt: now,
           updatedAt: now,
         };
 
-        // Add to front, enforce max limit (remove oldest)
-        const updated = [newScenario, ...prev];
+        // Add to end, enforce max limit (remove oldest)
+        const updated = [...prev, newScenario];
         if (updated.length > MAX_SCENARIOS) {
           return updated.slice(0, MAX_SCENARIOS);
         }
@@ -136,42 +129,30 @@ export function useScenarios() {
     setScenarios((prev) => prev.map((s) => (s.id === id ? { ...s, name } : s)));
   }, []);
 
-  const createScenario = useCallback(
-    (baseState?: CalculatorState): string => {
-      const state = baseState ?? DEFAULT_STATE;
-      const now = Date.now();
-      const newId = generateId();
+  const createScenario = useCallback((baseState?: CalculatorState): string => {
+    const state = baseState ?? DEFAULT_STATE;
+    const now = Date.now();
+    const newId = generateId();
 
-      // First scenario is "Current Job", subsequent are "New Job A", "New Job B", etc.
-      let defaultName: string;
-      if (scenarios.length === 0) {
-        defaultName = "Current Job";
-      } else {
-        const jobLetter = String.fromCharCode(64 + scenarios.length); // A=65, so 64+1=A, 64+2=B
-        defaultName = `New Job ${jobLetter}`;
-      }
-
+    setScenarios((prev) => {
       const newScenario: SavedScenario = {
         id: newId,
-        name: baseState ? generateScenarioName(state) : defaultName,
+        name: getScenarioName(prev.length), // Use prev.length for accurate count
         state,
         createdAt: now,
         updatedAt: now,
       };
 
-      setScenarios((prev) => {
-        const updated = [...prev, newScenario];
-        if (updated.length > MAX_SCENARIOS) {
-          return updated.slice(0, MAX_SCENARIOS);
-        }
-        return updated;
-      });
+      const updated = [...prev, newScenario];
+      if (updated.length > MAX_SCENARIOS) {
+        return updated.slice(0, MAX_SCENARIOS);
+      }
+      return updated;
+    });
 
-      setActiveScenarioId(newId);
-      return newId;
-    },
-    [scenarios.length],
-  );
+    setActiveScenarioId(newId);
+    return newId;
+  }, []);
 
   const getActiveScenario = useCallback((): SavedScenario | null => {
     if (!activeScenarioId) return null;

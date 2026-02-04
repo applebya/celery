@@ -64,21 +64,24 @@ function App() {
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Migrate legacy data on first load
+  // Migrate legacy data on first load, or create default scenarios
   useEffect(() => {
     if (scenarios.length === 0) {
       const legacyLeft = localStorage.getItem(LEGACY_STORAGE_KEY_LEFT);
       if (legacyLeft) {
         try {
           const state = JSON.parse(legacyLeft) as CalculatorState;
-          createScenario(state);
+          createScenario(state); // "Current Job" with legacy data
+          createScenario(); // "New Job" with defaults
           localStorage.removeItem(LEGACY_STORAGE_KEY_LEFT);
           localStorage.removeItem(LEGACY_STORAGE_KEY_RIGHT);
         } catch {
-          createScenario();
+          createScenario(); // "Current Job"
+          createScenario(); // "New Job"
         }
       } else {
-        createScenario();
+        createScenario(); // "Current Job"
+        createScenario(); // "New Job"
       }
     }
   }, [scenarios.length, createScenario]);
