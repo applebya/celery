@@ -221,17 +221,24 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                 $
               </span>
               <Input
-                type="number"
+                type={
+                  state.employmentType === "employee-salary" ? "text" : "number"
+                }
+                inputMode="numeric"
                 min={0}
                 value={
                   state.employmentType === "contractor-retainer"
                     ? state.monthlyRetainer || ""
                     : state.employmentType === "employee-salary"
-                      ? state.targetSalary || ""
+                      ? state.targetSalary
+                        ? state.targetSalary.toLocaleString()
+                        : ""
                       : state.hourlyRate || ""
                 }
                 onChange={(e) => {
-                  const val = parseFloat(e.target.value) || 0;
+                  // Remove commas for parsing
+                  const rawValue = e.target.value.replace(/,/g, "");
+                  const val = parseFloat(rawValue) || 0;
                   if (state.employmentType === "contractor-retainer") {
                     updateState({ monthlyRetainer: val });
                   } else if (state.employmentType === "employee-salary") {
@@ -256,7 +263,7 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
               value={state.currency}
               onValueChange={(v) => updateState({ currency: v as Currency })}
             >
-              <SelectTrigger className="w-24 h-10">
+              <SelectTrigger className="w-28 h-10">
                 <SelectValue>
                   <span className="mr-1">{CURRENCY_FLAGS[state.currency]}</span>
                   <span>{state.currency}</span>

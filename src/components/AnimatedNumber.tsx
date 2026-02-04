@@ -1,45 +1,51 @@
-import { useSpring, MotionValue } from 'framer-motion'
-import { useEffect, useState } from 'react'
+import { useSpring, MotionValue } from "framer-motion";
+import { useEffect, useState } from "react";
 
 interface AnimatedNumberProps {
-  value: number
-  formatter: (n: number) => string
-  className?: string
+  value: number;
+  formatter: (n: number) => string;
+  className?: string;
 }
 
 function AnimatedValue({
   motionValue,
-  formatter
+  formatter,
 }: {
-  motionValue: MotionValue<number>
-  formatter: (n: number) => string
+  motionValue: MotionValue<number>;
+  formatter: (n: number) => string;
 }) {
-  const [displayValue, setDisplayValue] = useState(formatter(motionValue.get()))
+  const [displayValue, setDisplayValue] = useState(
+    formatter(motionValue.get()),
+  );
 
   useEffect(() => {
-    const unsubscribe = motionValue.on('change', (v) => {
-      setDisplayValue(formatter(v))
-    })
-    return unsubscribe
-  }, [motionValue, formatter])
+    const unsubscribe = motionValue.on("change", (v) => {
+      setDisplayValue(formatter(v));
+    });
+    return unsubscribe;
+  }, [motionValue, formatter]);
 
-  return <>{displayValue}</>
+  return <>{displayValue}</>;
 }
 
-export function AnimatedNumber({ value, formatter, className }: AnimatedNumberProps) {
+export function AnimatedNumber({
+  value,
+  formatter,
+  className,
+}: AnimatedNumberProps) {
   const spring = useSpring(value, {
-    stiffness: 100,
-    damping: 20,
-    mass: 0.5,
-  })
+    stiffness: 300,
+    damping: 30,
+    mass: 0.8,
+  });
 
   useEffect(() => {
-    spring.set(value)
-  }, [value, spring])
+    spring.set(value);
+  }, [value, spring]);
 
   return (
     <span className={className}>
       <AnimatedValue motionValue={spring} formatter={formatter} />
     </span>
-  )
+  );
 }
