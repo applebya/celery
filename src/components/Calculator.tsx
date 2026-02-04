@@ -158,10 +158,6 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
   const weekly = calculation.netAnnual / 52;
   const billableDays = calculation.billableHours / state.hoursPerDay;
   const daily = calculation.netAnnual / billableDays;
-  const hourly =
-    calculation.billableHours > 0
-      ? calculation.netAnnual / calculation.billableHours
-      : 0;
 
   // Work schedule summary
   const hoursPerWeek = state.hoursPerDay * state.daysPerWeek;
@@ -968,13 +964,6 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                 <span className="text-muted-foreground">Daily</span>
                 <span className="tabular-nums font-medium">
                   {formatCurrency(daily, state.currency, { showCode: false })}
-                </span>
-              </div>
-              <div className="flex justify-between col-span-2 pt-2 border-t">
-                <span className="text-muted-foreground">Effective hourly</span>
-                <span className="tabular-nums font-medium">
-                  {formatCurrency(hourly, state.currency, { showCode: false })}
-                  /hr
                 </span>
               </div>
             </div>
