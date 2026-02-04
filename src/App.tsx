@@ -300,7 +300,7 @@ function App() {
           <div className="flex items-center gap-2">
             <img src="/logo.png" alt="Celery logo" className="h-8 w-auto" />
             <h1 className="text-xl font-semibold tracking-tight">Celery</h1>
-            <span className="text-sm text-muted-foreground hidden sm:inline">
+            <span className="text-sm text-muted-foreground hidden sm:inline mt-0.5">
               The Salary Calculator
             </span>
           </div>
