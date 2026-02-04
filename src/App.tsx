@@ -4,6 +4,7 @@ import { CompareView } from "@/components/CompareView";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { FooterContent } from "@/components/FooterContent";
 import { useScenarios } from "@/hooks/useScenarios";
+import { useTheme } from "@/hooks/useTheme";
 import { DEFAULT_STATE, type CalculatorState } from "@/types";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Plus, X, BarChart3, MapPin } from "lucide-react";
@@ -35,6 +36,9 @@ function detectCountryFromLocale(): "CA" | "US" {
 }
 
 function App() {
+  // Initialize theme early so it applies to all screens including onboarding
+  useTheme();
+
   const {
     scenarios,
     activeScenarioId,
@@ -214,10 +218,10 @@ function App() {
 
           <div className="bg-card border rounded-xl p-6 space-y-6 text-left">
             <div className="space-y-2">
-              <h2 className="text-lg font-medium">Where do you pay taxes?</h2>
+              <h2 className="text-lg font-medium">Let's get started</h2>
               <p className="text-sm text-muted-foreground">
-                We'll use this to estimate your take-home pay with the correct
-                tax brackets.
+                First, tell us where you pay taxes so we can estimate your
+                take-home pay with the correct 2026 tax brackets.
               </p>
             </div>
 
@@ -273,7 +277,7 @@ function App() {
               onClick={handleConfirmLocation}
               className="w-full py-3 px-4 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
             >
-              Continue
+              Calculate My Salary →
             </button>
           </div>
 

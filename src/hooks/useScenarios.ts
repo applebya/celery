@@ -142,9 +142,14 @@ export function useScenarios() {
       const now = Date.now();
       const newId = generateId();
 
-      // Generate "Job A", "Job B" style name based on existing count
-      const jobLetter = String.fromCharCode(65 + scenarios.length);
-      const defaultName = `Job ${jobLetter}`;
+      // First scenario is "Current Job", subsequent are "New Job A", "New Job B", etc.
+      let defaultName: string;
+      if (scenarios.length === 0) {
+        defaultName = "Current Job";
+      } else {
+        const jobLetter = String.fromCharCode(64 + scenarios.length); // A=65, so 64+1=A, 64+2=B
+        defaultName = `New Job ${jobLetter}`;
+      }
 
       const newScenario: SavedScenario = {
         id: newId,

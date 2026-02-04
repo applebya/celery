@@ -129,13 +129,9 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
     setOpenSection(openSection === section ? null : section);
   };
 
-  // Currency conversion
-  const displayCurrency =
-    state.displayCurrency === state.currency
-      ? state.currency === "USD"
-        ? "CAD"
-        : "USD"
-      : state.displayCurrency;
+  // Currency conversion - auto-determine based on home currency
+  // CAD/MXN users see USD, USD users see CAD
+  const displayCurrency: Currency = state.currency === "USD" ? "CAD" : "USD";
 
   const convertedGross = convertWithMargin(
     calculation.grossAnnual,
@@ -670,30 +666,9 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
             <CollapsibleContent className="px-4 pb-4 space-y-4">
               {state.showCurrencyConversion && (
                 <>
-                  <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">
-                      Display in
-                    </Label>
-                    <Select
-                      value={displayCurrency}
-                      onValueChange={(v) =>
-                        updateState({ displayCurrency: v as Currency })
-                      }
-                    >
-                      <SelectTrigger className="h-9">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {CURRENCIES.filter(
-                          (c) => c.value !== state.currency,
-                        ).map((c) => (
-                          <SelectItem key={c.value} value={c.value}>
-                            {CURRENCY_FLAGS[c.value]} {c.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Converting {state.currency} → {displayCurrency}
+                  </p>
                   <div className="space-y-2">
                     <div className="flex items-center gap-1">
                       <Label className="text-xs text-muted-foreground">

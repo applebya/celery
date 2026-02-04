@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, Shield, Zap, BarChart } from "lucide-react";
+import { ChevronDown, ArrowLeftRight, Zap, BarChart } from "lucide-react";
 
 const faqs = [
   {
@@ -31,9 +31,9 @@ const steps = [
     desc: "Schedule, time off, taxes",
   },
   {
-    icon: Shield,
+    icon: ArrowLeftRight,
     title: "Compare",
-    desc: "Save scenarios, decide",
+    desc: "Save multiple scenarios, compare side-by-side",
   },
 ];
 
