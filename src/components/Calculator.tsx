@@ -764,36 +764,47 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
       {/* Right Column - Results */}
       <div className="w-full md:w-[400px] md:flex-shrink-0 md:sticky md:top-6 md:self-start">
         <div className="rounded-xl border bg-card p-6 space-y-5">
-          {/* Gross in primary currency */}
+          {/* Gross section */}
           <div>
             <div className="text-sm text-muted-foreground mb-1">
               Gross (before tax)
             </div>
-            <div className="text-2xl font-semibold tabular-nums">
-              <span className="mr-1.5">{CURRENCY_FLAGS[state.currency]}</span>
-              <AnimatedNumber
-                value={calculation.grossAnnual}
-                formatter={(v) => formatCurrency(v, state.currency)}
-              />
-              <span className="text-sm text-muted-foreground font-normal ml-1">
-                /year
-              </span>
-            </div>
-          </div>
-
-          {/* Gross converted (if currency conversion enabled) */}
-          {shouldShowConversion && (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <span className="text-lg">→</span>
-              <span className="text-xl font-medium tabular-nums text-foreground">
-                {CURRENCY_FLAGS[homeCurrency]}{" "}
+            {shouldShowConversion ? (
+              <>
+                {/* Job currency first (smaller) */}
+                <div className="text-lg tabular-nums text-muted-foreground">
+                  <span className="mr-1">{CURRENCY_FLAGS[state.currency]}</span>
+                  <AnimatedNumber
+                    value={calculation.grossAnnual}
+                    formatter={(v) => formatCurrency(v, state.currency)}
+                  />
+                  <span className="text-sm font-normal ml-1">/year</span>
+                </div>
+                {/* Arrow + Home currency (larger, green) */}
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-muted-foreground">→</span>
+                  <span className="text-3xl font-bold tabular-nums text-primary">
+                    {CURRENCY_FLAGS[homeCurrency]}{" "}
+                    <AnimatedNumber
+                      value={grossInHomeCurrency}
+                      formatter={(v) => formatCurrency(v, homeCurrency)}
+                    />
+                  </span>
+                </div>
+              </>
+            ) : (
+              <div className="text-3xl font-bold tabular-nums text-primary">
+                <span className="mr-1.5">{CURRENCY_FLAGS[state.currency]}</span>
                 <AnimatedNumber
-                  value={grossInHomeCurrency}
-                  formatter={(v) => formatCurrency(v, homeCurrency)}
+                  value={calculation.grossAnnual}
+                  formatter={(v) => formatCurrency(v, state.currency)}
                 />
-              </span>
-            </div>
-          )}
+                <span className="text-sm text-muted-foreground font-normal ml-1">
+                  /year
+                </span>
+              </div>
+            )}
+          </div>
 
           {/* Deductions section */}
           <div className="py-3 px-4 bg-muted/30 rounded-lg space-y-1.5">
@@ -902,7 +913,7 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
             )}
           </div>
 
-          {/* Take-home (primary) */}
+          {/* Take-home section */}
           <div className="pt-4 border-t">
             <div className="flex items-center gap-1 mb-1">
               <span className="text-sm text-muted-foreground">
@@ -922,31 +933,42 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                 </Tooltip>
               </TooltipProvider>
             </div>
-            <div className="text-3xl font-bold tabular-nums text-primary">
-              <span className="mr-1.5">{CURRENCY_FLAGS[state.currency]}</span>
-              <AnimatedNumber
-                value={netInJobCurrency}
-                formatter={(v) => formatCurrency(v, state.currency)}
-              />
-              <span className="text-sm text-muted-foreground font-normal ml-1">
-                /year
-              </span>
-            </div>
-          </div>
-
-          {/* Take-home converted (if currency conversion enabled) */}
-          {shouldShowConversion && (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <span className="text-lg">→</span>
-              <span className="text-xl font-medium tabular-nums text-foreground">
-                {CURRENCY_FLAGS[homeCurrency]}{" "}
+            {shouldShowConversion ? (
+              <>
+                {/* Job currency first (smaller) */}
+                <div className="text-lg tabular-nums text-muted-foreground">
+                  <span className="mr-1">{CURRENCY_FLAGS[state.currency]}</span>
+                  <AnimatedNumber
+                    value={netInJobCurrency}
+                    formatter={(v) => formatCurrency(v, state.currency)}
+                  />
+                  <span className="text-sm font-normal ml-1">/year</span>
+                </div>
+                {/* Arrow + Home currency (larger, green) */}
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-muted-foreground">→</span>
+                  <span className="text-3xl font-bold tabular-nums text-primary">
+                    {CURRENCY_FLAGS[homeCurrency]}{" "}
+                    <AnimatedNumber
+                      value={netInHomeCurrency}
+                      formatter={(v) => formatCurrency(v, homeCurrency)}
+                    />
+                  </span>
+                </div>
+              </>
+            ) : (
+              <div className="text-3xl font-bold tabular-nums text-primary">
+                <span className="mr-1.5">{CURRENCY_FLAGS[state.currency]}</span>
                 <AnimatedNumber
-                  value={netInHomeCurrency}
-                  formatter={(v) => formatCurrency(v, homeCurrency)}
+                  value={netInJobCurrency}
+                  formatter={(v) => formatCurrency(v, state.currency)}
                 />
-              </span>
-            </div>
-          )}
+                <span className="text-sm text-muted-foreground font-normal ml-1">
+                  /year
+                </span>
+              </div>
+            )}
+          </div>
 
           {/* Period breakdown */}
           <div className="pt-4 border-t space-y-2">
