@@ -33,7 +33,7 @@ export function useCalculation(state: CalculatorState): CalculationResult {
     // If fixed monthly hours is enabled, use that × 12
     // If unlimited PTO, time off doesn't reduce billable hours (paid time off)
     const billableHours = state.useFixedMonthlyHours
-      ? state.fixedMonthlyHours * 12
+      ? (state.fixedMonthlyHours || 160) * 12
       : calcBillableHours(
           52,
           state.daysPerWeek,

@@ -286,7 +286,7 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
               </>
             ) : state.useFixedMonthlyHours ? (
               <>
-                {state.fixedMonthlyHours} hrs/mo ·{" "}
+                {state.fixedMonthlyHours || 160} hrs/mo ·{" "}
                 {calculation.billableHours.toLocaleString()} hrs/yr
               </>
             ) : (
@@ -385,7 +385,7 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                         type="number"
                         min={1}
                         max={300}
-                        value={state.fixedMonthlyHours || ""}
+                        value={state.fixedMonthlyHours || 160}
                         onChange={(e) =>
                           updateState({
                             fixedMonthlyHours: parseInt(e.target.value) || 160,
@@ -394,7 +394,10 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                         className="w-24 h-9 tabular-nums"
                       />
                       <p className="text-xs text-muted-foreground mt-1">
-                        = {(state.fixedMonthlyHours * 12).toLocaleString()}{" "}
+                        ={" "}
+                        {(
+                          (state.fixedMonthlyHours || 160) * 12
+                        ).toLocaleString()}{" "}
                         hrs/year
                       </p>
                     </div>
