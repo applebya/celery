@@ -5,7 +5,12 @@ const faqs = [
   {
     question: "How accurate are the tax estimates?",
     answer:
-      "Tax estimates use 2026 projected federal and provincial/state brackets for Canada, the USA, and Mexico. They provide a reasonable approximation but don't account for all deductions, credits, or individual circumstances.",
+      "Tax estimates use 2026 federal and provincial/state brackets for Canada and the USA. Regional taxes are approximate and don't account for all deductions, credits, or individual circumstances.",
+  },
+  {
+    question: "How do extras and equity work?",
+    answer:
+      "Cash extras can be marked as taxable or non-taxable. Equity is treated as non-cash and shown as estimated annual value only (no tax impact).",
   },
   {
     question: "Is my data saved or shared?",

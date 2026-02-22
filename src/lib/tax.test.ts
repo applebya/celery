@@ -3,9 +3,12 @@ import {
   calcBracketTax,
   calcFederalTax,
   calcProvincialStateTax,
+  calcEmployeePayrollTax,
   calcSelfEmploymentTax,
   calcTotalTax,
   calcEffectiveRate,
+  calcTaxableIncome,
+  getTaxBreakdown,
 } from './tax'
 
 describe('calcBracketTax', () => {
@@ -33,14 +36,14 @@ describe('calcBracketTax', () => {
 
 describe('calcFederalTax', () => {
   it('calculates Canada federal tax for $100k income', () => {
-    // $55,867 * 15% + $44,133 * 20.5% = $8,380 + $9,047 = ~$17,427
+    // $58,523 * 14% + $41,477 * 20.5% = ~$16,697
     const tax = calcFederalTax('CA', 100000)
-    expect(tax).toBeGreaterThan(17000)
+    expect(tax).toBeGreaterThan(16000)
     expect(tax).toBeLessThan(18000)
   })
 
-  it('calculates US federal tax for $100k income (single)', () => {
-    // $11,925 * 10% + $36,550 * 12% + $51,525 * 22% = ~$16,914
+  it('calculates US federal tax for $100k taxable income (single)', () => {
+    // $12,400 * 10% + $38,000 * 12% + $49,600 * 22% = ~$16,712
     const tax = calcFederalTax('US', 100000)
     expect(tax).toBeGreaterThan(16000)
     expect(tax).toBeLessThan(18000)
@@ -49,13 +52,13 @@ describe('calcFederalTax', () => {
   it('calculates Canada federal tax for $200k income', () => {
     const tax = calcFederalTax('CA', 200000)
     expect(tax).toBeGreaterThan(40000)
-    expect(tax).toBeLessThan(50000)
+    expect(tax).toBeLessThan(45000)
   })
 
-  it('calculates US federal tax for $200k income', () => {
+  it('calculates US federal tax for $200k taxable income', () => {
     const tax = calcFederalTax('US', 200000)
-    expect(tax).toBeGreaterThan(40000)
-    expect(tax).toBeLessThan(50000)
+    expect(tax).toBeGreaterThan(38000)
+    expect(tax).toBeLessThan(45000)
   })
 })
 
@@ -92,16 +95,17 @@ describe('calcProvincialStateTax', () => {
 
 describe('calcSelfEmploymentTax', () => {
   it('calculates Canada CPP for $100k income', () => {
-    // CPP: 11.9% on earnings up to $68,500 max
-    // $68,500 * 11.9% = $8,151.50
+    // CPP base + additional to YMPE + CPP2 to YAMPE
     const tax = calcSelfEmploymentTax('CA', 100000)
-    expect(tax).toBeCloseTo(8151.5, 1)
+    expect(tax).toBeGreaterThan(9000)
+    expect(tax).toBeLessThan(9700)
   })
 
   it('calculates Canada CPP for $50k income (below max)', () => {
-    // $50,000 * 11.9% = $5,950
+    // (50,000 - 3,500) * 11.9% = ~$5,534
     const tax = calcSelfEmploymentTax('CA', 50000)
-    expect(tax).toBeCloseTo(5950, 0)
+    expect(tax).toBeGreaterThan(5400)
+    expect(tax).toBeLessThan(5800)
   })
 
   it('calculates US self-employment tax for $100k income', () => {
@@ -117,12 +121,12 @@ describe('calcSelfEmploymentTax', () => {
   it('calculates US self-employment tax for $250k income (with additional Medicare)', () => {
     // Over $200k triggers additional 0.9% Medicare
     // SE earnings: $250k * 92.35% = $230,875
-    // SS: $168,600 * 12.4% = $20,906
+    // SS: $184,500 * 12.4% = $22,878
     // Medicare: $230,875 * 2.9% = $6,695
     // Additional Medicare: $50k * 0.9% = $450
-    // Total: ~$28,052
+    // Total: ~$30,023
     const tax = calcSelfEmploymentTax('US', 250000)
-    expect(tax).toBeGreaterThan(27000)
+    expect(tax).toBeGreaterThan(29000)
     expect(tax).toBeLessThan(32000)
   })
 })
@@ -130,45 +134,87 @@ describe('calcSelfEmploymentTax', () => {
 describe('calcTotalTax', () => {
   it('calculates total tax for Ontario contractor at $100k', () => {
     const total = calcTotalTax('CA', 'ON', 100000, true)
-    // Federal ~$17,427 + Ontario ~$7,040 + CPP ~$8,152 = ~$32,619
-    expect(total).toBeGreaterThan(30000)
-    expect(total).toBeLessThan(36000)
+    // Includes federal + provincial (after BPA credits) + CPP/CPP2
+    expect(total).toBeGreaterThan(28000)
+    expect(total).toBeLessThan(33000)
   })
 
   it('calculates total tax without self-employment', () => {
     const total = calcTotalTax('CA', 'ON', 100000, false)
-    // Federal ~$17,427 + Ontario ~$7,040 = ~$24,467
-    expect(total).toBeGreaterThan(22000)
+    // Federal + Ontario after BPA credits
+    expect(total).toBeGreaterThan(24000)
     expect(total).toBeLessThan(28000)
   })
 
   it('calculates total tax for Texas contractor at $100k', () => {
     const total = calcTotalTax('US', 'TX', 100000, true)
-    // Federal ~$17,400 + TX $0 + SE ~$14,130 = ~$31,530
-    expect(total).toBeGreaterThan(28000)
-    expect(total).toBeLessThan(35000)
+    // Federal (after standard deduction) + SE tax
+    expect(total).toBeGreaterThan(25000)
+    expect(total).toBeLessThan(31000)
   })
 })
 
 describe('calcEffectiveRate', () => {
   it('calculates effective rate for Ontario at $100k', () => {
     const rate = calcEffectiveRate('CA', 'ON', 100000, true)
-    // ~32% effective
-    expect(rate).toBeGreaterThan(0.30)
-    expect(rate).toBeLessThan(0.36)
+    // ~30% effective
+    expect(rate).toBeGreaterThan(0.27)
+    expect(rate).toBeLessThan(0.33)
   })
 
   it('calculates effective rate for Texas at $100k', () => {
     const rate = calcEffectiveRate('US', 'TX', 100000, true)
-    // ~31% effective (no state tax but SE tax)
-    expect(rate).toBeGreaterThan(0.28)
-    expect(rate).toBeLessThan(0.35)
+    // ~27% effective (no state tax but SE tax)
+    expect(rate).toBeGreaterThan(0.24)
+    expect(rate).toBeLessThan(0.31)
   })
 
   it('calculates effective rate for California at $150k', () => {
     const rate = calcEffectiveRate('US', 'CA', 150000, true)
     // Higher due to CA state tax
-    expect(rate).toBeGreaterThan(0.32)
-    expect(rate).toBeLessThan(0.42)
+    expect(rate).toBeGreaterThan(0.28)
+    expect(rate).toBeLessThan(0.4)
+  })
+})
+
+describe('calcTaxableIncome', () => {
+  it('applies US standard deduction (single)', () => {
+    const taxable = calcTaxableIncome('US', 100000)
+    expect(taxable).toBe(83900)
+  })
+
+  it('does not reduce Canada taxable income', () => {
+    const taxable = calcTaxableIncome('CA', 100000)
+    expect(taxable).toBe(100000)
+  })
+})
+
+describe('basic personal amount credits', () => {
+  it('reduces Canada federal and provincial taxes', () => {
+    const baseFederal = calcFederalTax('CA', 100000)
+    const baseProv = calcProvincialStateTax('CA', 'ON', 100000)
+    const breakdown = getTaxBreakdown('CA', 'ON', 100000, false)
+    expect(breakdown.federal).toBeLessThan(baseFederal)
+    expect(breakdown.provincialState).toBeLessThan(baseProv)
+  })
+})
+
+describe('calcEmployeePayrollTax', () => {
+  it('calculates US employee payroll tax for $100k', () => {
+    const tax = calcEmployeePayrollTax('US', 100000)
+    expect(tax).toBeGreaterThan(7000)
+    expect(tax).toBeLessThan(8000)
+  })
+
+  it('calculates US employee payroll tax for $250k (with additional Medicare)', () => {
+    const tax = calcEmployeePayrollTax('US', 250000)
+    expect(tax).toBeGreaterThan(15000)
+    expect(tax).toBeLessThan(16500)
+  })
+
+  it('calculates Canada employee payroll tax for $100k', () => {
+    const tax = calcEmployeePayrollTax('CA', 100000)
+    expect(tax).toBeGreaterThan(5200)
+    expect(tax).toBeLessThan(6200)
   })
 })

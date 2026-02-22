@@ -27,10 +27,7 @@ If moving to a platform like Vercel/Cloudflare, add headers:
 - `Content-Security-Policy`
 
 ### Analytics
-Analytics script is commented out. Uncomment when Plausible account is set up:
-```html
-<script defer data-domain="celery.info" src="https://plausible.io/js/script.js"></script>
-```
+PostHog is initialized in `src/lib/analytics.ts` when env vars are set.
 
 ---
 

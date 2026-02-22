@@ -62,6 +62,25 @@ export interface CalculatorState {
   // Fixed monthly hours (for contractors with negotiated monthly commitment)
   useFixedMonthlyHours: boolean;
   fixedMonthlyHours: number;
+
+  // Extras (cash + equity)
+  annualBonus: number;
+  signOnBonus: number;
+  signOnYears: number;
+  stipendAnnual: number;
+  employerMatchAnnual: number;
+  equityMode: "annual" | "vesting";
+  equityAnnualValue: number;
+  equityGrantValue: number;
+  equityVestYears: number;
+  equityCliffMonths: number;
+  extrasTaxTreatment: {
+    bonus: "taxable" | "nonTaxable" | "nonCash";
+    signOn: "taxable" | "nonTaxable" | "nonCash";
+    stipend: "taxable" | "nonTaxable" | "nonCash";
+    match: "taxable" | "nonTaxable" | "nonCash";
+    equity: "nonCash";
+  };
 }
 
 export interface ExchangeRates {
@@ -110,6 +129,24 @@ export const DEFAULT_STATE: CalculatorState = {
   // Fixed monthly hours defaults
   useFixedMonthlyHours: false,
   fixedMonthlyHours: 160,
+  // Extras defaults
+  annualBonus: 0,
+  signOnBonus: 0,
+  signOnYears: 1,
+  stipendAnnual: 0,
+  employerMatchAnnual: 0,
+  equityMode: "annual",
+  equityAnnualValue: 0,
+  equityGrantValue: 0,
+  equityVestYears: 4,
+  equityCliffMonths: 12,
+  extrasTaxTreatment: {
+    bonus: "taxable",
+    signOn: "taxable",
+    stipend: "nonTaxable",
+    match: "nonCash",
+    equity: "nonCash",
+  },
 };
 
 // Helper to derive isSelfEmployed from employmentType

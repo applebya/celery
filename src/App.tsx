@@ -47,12 +47,51 @@ const LEGACY_STORAGE_KEY_RIGHT = "celery-calculator-right";
 
 type ViewMode = "calculator" | "compare";
 
-// Detect country from browser locale
+// Detect country from browser locale, languages list, and timezone
 function detectCountryFromLocale(): "CA" | "US" {
   try {
-    const locale = navigator.language || "en-US";
-    const regionCode = locale.split("-")[1]?.toUpperCase();
-    if (regionCode === "CA") return "CA";
+    // Check all browser languages for a CA region tag (e.g. "en-CA", "fr-CA")
+    const langs = navigator.languages ?? [navigator.language ?? "en-US"];
+    for (const lang of langs) {
+      const region = lang.split("-")[1]?.toUpperCase();
+      if (region === "CA") return "CA";
+    }
+
+    // Fallback: check timezone — all Canadian zones start with "America/" but
+    // use city names that are unambiguously Canadian
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone ?? "";
+    const canadianTzCities = [
+      "Toronto",
+      "Vancouver",
+      "Edmonton",
+      "Winnipeg",
+      "Halifax",
+      "St_Johns",
+      "Regina",
+      "Whitehorse",
+      "Yellowknife",
+      "Iqaluit",
+      "Moncton",
+      "Montreal",
+      "Nipigon",
+      "Thunder_Bay",
+      "Rainy_River",
+      "Dawson",
+      "Dawson_Creek",
+      "Creston",
+      "Swift_Current",
+      "Rankin_Inlet",
+      "Resolute",
+      "Glace_Bay",
+      "Goose_Bay",
+      "Blanc-Sablon",
+      "Cambridge_Bay",
+      "Inuvik",
+      "Pangnirtung",
+      "Atikokan",
+    ];
+    const tzCity = tz.split("/").pop() ?? "";
+    if (canadianTzCities.includes(tzCity)) return "CA";
   } catch {
     // Fall back to US
   }

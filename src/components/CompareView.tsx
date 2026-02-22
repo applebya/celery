@@ -19,7 +19,7 @@ function ScenarioCard({
   const calculation = useCalculation(scenario.state);
   const effectiveHourly =
     calculation.billableHours > 0
-      ? calculation.netAnnual / calculation.billableHours
+      ? calculation.netCashAnnual / calculation.billableHours
       : 0;
 
   return (
@@ -36,9 +36,9 @@ function ScenarioCard({
 
       {/* Take-home (primary) */}
       <div className="mb-4">
-        <div className="text-xs text-muted-foreground mb-1">Take-home</div>
+        <div className="text-xs text-muted-foreground mb-1">Net cash</div>
         <div className="text-2xl font-semibold tabular-nums">
-          {formatCurrency(calculation.netAnnual, scenario.state.currency)}
+          {formatCurrency(calculation.netBaseAnnual, scenario.state.currency)}
         </div>
         <div className="text-xs text-muted-foreground">/year after tax</div>
       </div>
@@ -46,9 +46,21 @@ function ScenarioCard({
       {/* Secondary metrics */}
       <div className="space-y-2 text-sm">
         <div className="flex justify-between">
+          <span className="text-muted-foreground">Total cash</span>
+          <span className="tabular-nums font-medium">
+            {formatCurrency(calculation.netCashAnnual, scenario.state.currency)}
+          </span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">Total comp</span>
+          <span className="tabular-nums font-medium">
+            {formatCurrency(calculation.totalCompAnnual, scenario.state.currency)}
+          </span>
+        </div>
+        <div className="flex justify-between">
           <span className="text-muted-foreground">Gross</span>
           <span className="tabular-nums font-medium">
-            {formatCurrency(calculation.grossAnnual, scenario.state.currency)}
+            {formatCurrency(calculation.grossBaseAnnual, scenario.state.currency)}
           </span>
         </div>
         <div className="flex justify-between">

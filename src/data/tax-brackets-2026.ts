@@ -17,17 +17,62 @@ export interface TaxConfig {
   states?: Record<string, TaxBracket[]>; // US states
 }
 
+export const DATA_YEAR = 2026;
+
+// US standard deduction (single filer)
+export const usStandardDeductionSingle = 16100;
+
+// Canada federal basic personal amount (income-tested range)
+export const caFederalBpa = {
+  max: 16452,
+  min: 14829,
+};
+
+// Canada provincial/territorial basic personal amounts (2026)
+export const caProvincialBPA: Record<string, number> = {
+  AB: 22769,
+  BC: 13216,
+  MB: 15780,
+  NB: 13664,
+  NL: 11188,
+  NS: 11932,
+  NT: 18198,
+  NU: 19659,
+  ON: 12989,
+  PE: 15000,
+  QC: 18952,
+  SK: 20381,
+  YT: 16452,
+};
+
+// Canada payroll constants (2026)
+export const CPP_BASIC_EXEMPTION = 3500;
+export const CPP_YMPE = 74600;
+export const CPP_YAMPE = 85000;
+export const CPP_RATE_BASE = 0.0495;
+export const CPP_RATE_ADDITIONAL = 0.01;
+export const CPP2_RATE = 0.04;
+export const EI_RATE = 0.0163;
+export const EI_MAX_INSURABLE = 68900;
+
+// US payroll constants (2026)
+export const US_SOCIAL_SECURITY_RATE = 0.062;
+export const US_SOCIAL_SECURITY_WAGE_BASE = 184500;
+export const US_MEDICARE_RATE = 0.0145;
+export const US_ADDITIONAL_MEDICARE_RATE = 0.009;
+export const US_ADDITIONAL_MEDICARE_THRESHOLD = 200000;
+
 // Canada 2026 Tax Brackets
 export const canadaTax: TaxConfig = {
   federal: [
-    { min: 0, max: 55867, rate: 0.15 },
-    { min: 55867, max: 111733, rate: 0.205 },
-    { min: 111733, max: 173205, rate: 0.26 },
-    { min: 173205, max: 246752, rate: 0.29 },
-    { min: 246752, max: null, rate: 0.33 },
+    { min: 0, max: 58523, rate: 0.14 },
+    { min: 58523, max: 117045, rate: 0.205 },
+    { min: 117045, max: 181440, rate: 0.26 },
+    { min: 181440, max: 258482, rate: 0.29 },
+    { min: 258482, max: null, rate: 0.33 },
   ],
   selfEmployment: [
-    { name: "CPP", rate: 0.119, maxEarnings: 68500 }, // Both employee + employer portions
+    { name: "CPP", rate: 0.119, maxEarnings: CPP_YMPE }, // Base + first additional (self-employed)
   ],
   provinces: {
     AB: [
@@ -124,16 +169,16 @@ export const canadaTax: TaxConfig = {
 // US 2026 Tax Brackets (Single Filer)
 export const usTax: TaxConfig = {
   federal: [
-    { min: 0, max: 11925, rate: 0.1 },
-    { min: 11925, max: 48475, rate: 0.12 },
-    { min: 48475, max: 103350, rate: 0.22 },
-    { min: 103350, max: 197300, rate: 0.24 },
-    { min: 197300, max: 250525, rate: 0.32 },
-    { min: 250525, max: 626350, rate: 0.35 },
-    { min: 626350, max: null, rate: 0.37 },
+    { min: 0, max: 12400, rate: 0.1 },
+    { min: 12400, max: 50400, rate: 0.12 },
+    { min: 50400, max: 105700, rate: 0.22 },
+    { min: 105700, max: 201775, rate: 0.24 },
+    { min: 201775, max: 256225, rate: 0.32 },
+    { min: 256225, max: 640600, rate: 0.35 },
+    { min: 640600, max: null, rate: 0.37 },
   ],
   selfEmployment: [
-    { name: "Social Security", rate: 0.124, maxEarnings: 168600 }, // 6.2% x 2
+    { name: "Social Security", rate: 0.124, maxEarnings: 184500 }, // 6.2% x 2
     { name: "Medicare", rate: 0.029, maxEarnings: null }, // 1.45% x 2
     { name: "Additional Medicare", rate: 0.009, maxEarnings: null }, // Over $200k, threshold handled in calc
   ],

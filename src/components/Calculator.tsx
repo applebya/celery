@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/tooltip";
 import { AnimatedNumber } from "./AnimatedNumber";
 import { getCountry } from "@/data/holidays-2026";
+import { DATA_YEAR } from "@/data/tax-brackets-2026";
 import { useCalculation } from "@/hooks/useCalculation";
 import { useExchangeRate } from "@/hooks/useExchangeRate";
 import { formatCurrency, formatPercent, calcNetAnnual } from "@/lib/calculate";
@@ -85,6 +86,17 @@ const MARGIN_PRESETS = [
   { label: "Wise", value: 0.5 },
   { label: "Bank", value: 2.5 },
   { label: "PayPal", value: 3.5 },
+] as const;
+
+const TAX_TREATMENT_OPTIONS = [
+  { value: "taxable", label: "Taxable" },
+  { value: "nonTaxable", label: "Non-taxable" },
+  { value: "nonCash", label: "Non-cash" },
+] as const;
+
+const EQUITY_MODE_OPTIONS = [
+  { value: "annual", label: "Annual value" },
+  { value: "vesting", label: "Grant + vesting" },
 ] as const;
 
 const EMPLOYMENT_TYPES: {
@@ -177,12 +189,12 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
   // Convert gross to home currency (for tax calculation when currencies differ)
   const grossInHomeCurrency = currenciesDiffer
     ? convertWithMargin(
-        calculation.grossAnnual,
+        calculation.grossBaseAnnual,
         state.currency,
         homeCurrency,
         0,
       )
-    : calculation.grossAnnual;
+    : calculation.grossBaseAnnual;
 
   // Recalculate taxes on home currency amount when currencies differ
   // (You pay taxes in your home country based on converted income)
@@ -207,29 +219,90 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
       )
     : calculation.provincialStateBrackets;
 
-  // Net annual in home currency
-  const netInHomeCurrency = calcNetAnnual(
+  // Net base annual in home currency
+  const netBaseInHomeCurrency = calcNetAnnual(
     grossInHomeCurrency,
     effectiveTaxBreakdown.total,
   );
 
-  // For display: net in job currency, converted from home currency net
-  const netInJobCurrency = currenciesDiffer
-    ? convertWithMargin(netInHomeCurrency, homeCurrency, state.currency, 0)
-    : calculation.netAnnual;
+  // For display: base net in job currency, converted from home currency net
+  const netBaseInJobCurrency = currenciesDiffer
+    ? convertWithMargin(netBaseInHomeCurrency, homeCurrency, state.currency, 0)
+    : calculation.netBaseAnnual;
+
+  // Extras-aware tax calculation in home currency (when currencies differ)
+  const grossTaxableInHomeCurrency = currenciesDiffer
+    ? convertWithMargin(
+        calculation.grossTaxableAnnual,
+        state.currency,
+        homeCurrency,
+        0,
+      )
+    : calculation.grossTaxableAnnual;
+
+  const grossCashInHomeCurrency = currenciesDiffer
+    ? convertWithMargin(
+        calculation.grossCashAnnual,
+        state.currency,
+        homeCurrency,
+        0,
+      )
+    : calculation.grossCashAnnual;
+
+  const taxBreakdownWithExtras = getTaxBreakdown(
+    state.country,
+    state.region,
+    grossTaxableInHomeCurrency,
+    state.isSelfEmployed,
+  );
+
+  const netCashInHomeCurrency = calcNetAnnual(
+    grossCashInHomeCurrency,
+    taxBreakdownWithExtras.total,
+  );
+
+  const netCashInJobCurrency = currenciesDiffer
+    ? convertWithMargin(netCashInHomeCurrency, homeCurrency, state.currency, 0)
+    : calculation.netCashAnnual;
+
+  const extrasTaxInHomeCurrency = Math.max(
+    0,
+    taxBreakdownWithExtras.total - effectiveTaxBreakdown.total,
+  );
+  const extrasTaxInJobCurrency = currenciesDiffer
+    ? convertWithMargin(
+        extrasTaxInHomeCurrency,
+        homeCurrency,
+        state.currency,
+        0,
+      )
+    : calculation.extrasTax;
+
+  const totalCompInJobCurrency =
+    netCashInJobCurrency + calculation.extrasNonCash;
 
   // Conversion fee calculation
-  const conversionFeeAmount = netInJobCurrency * (state.traderMargin / 100);
+  const conversionFeeAmount = netBaseInJobCurrency * (state.traderMargin / 100);
 
   // Period breakdowns (use home currency net for accurate after-tax amounts)
   const netForBreakdown = currenciesDiffer
-    ? netInHomeCurrency
-    : calculation.netAnnual;
+    ? netBaseInHomeCurrency
+    : calculation.netBaseAnnual;
   const monthly = netForBreakdown / 12;
   const biweekly = netForBreakdown / 26;
   const weekly = netForBreakdown / 52;
-  const billableDays = calculation.billableHours / state.hoursPerDay;
-  const daily = netForBreakdown / billableDays;
+  const billableDays =
+    state.hoursPerDay > 0 ? calculation.billableHours / state.hoursPerDay : 0;
+  const daily = billableDays > 0 ? netForBreakdown / billableDays : 0;
+
+  const hasExtras =
+    calculation.extrasCashTaxable +
+      calculation.extrasCashNonTaxable +
+      calculation.extrasNonCash >
+    0;
+
+  const signOnAnnualized =
+    state.signOnBonus / Math.max(1, state.signOnYears || 1);
 
   // Work schedule summary
   const hoursPerWeek = state.hoursPerDay * state.daysPerWeek;
@@ -595,6 +668,19 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
               <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 hover:bg-muted/50 transition-colors border-t">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium">Taxes</span>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-xs">
+                          Uses {DATA_YEAR} federal brackets and payroll rates.
+                          Regional taxes are approximate.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   <span className="text-xs text-muted-foreground">
                     {formatPercent(effectiveTaxBreakdown.effectiveRate)}
                   </span>
@@ -689,6 +775,24 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                     </div>
                   )}
 
+                  {/* Payroll */}
+                  {!state.isSelfEmployed && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground font-medium">
+                        {state.country === "CA"
+                          ? "Payroll (CPP/EI)"
+                          : "Payroll (FICA)"}
+                      </span>
+                      <span className="tabular-nums">
+                        {formatCurrency(
+                          effectiveTaxBreakdown.payroll,
+                          state.currency,
+                          { showCode: false },
+                        )}
+                      </span>
+                    </div>
+                  )}
+
                   {/* Total */}
                   <div className="flex justify-between font-medium pt-2 border-t">
                     <span>Total tax</span>
@@ -704,6 +808,339 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
               </CollapsibleContent>
             </Collapsible>
           )}
+
+          {/* Extras */}
+          <Collapsible
+            open={openSection === "extras"}
+            onOpenChange={() => toggleSection("extras")}
+          >
+            <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 hover:bg-muted/50 transition-colors border-t">
+              <span className="text-sm font-medium">Extras</span>
+              <ChevronRight
+                className={`h-4 w-4 text-muted-foreground transition-transform ${openSection === "extras" ? "rotate-90" : ""}`}
+              />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="px-4 pb-4 space-y-4">
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">
+                      Annual bonus
+                    </Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={state.annualBonus || ""}
+                      onChange={(e) =>
+                        updateState({
+                          annualBonus: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      className="h-9 tabular-nums"
+                    />
+                  </div>
+                  <div className="space-y-1 sm:col-span-2">
+                    <Label className="text-xs text-muted-foreground">
+                      Tax treatment
+                    </Label>
+                    <Select
+                      value={state.extrasTaxTreatment.bonus}
+                      onValueChange={(v) =>
+                        updateState({
+                          extrasTaxTreatment: {
+                            ...state.extrasTaxTreatment,
+                            bonus: v as "taxable" | "nonTaxable" | "nonCash",
+                          },
+                        })
+                      }
+                    >
+                      <SelectTrigger className="h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TAX_TREATMENT_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                  <div className="space-y-1 sm:col-span-2">
+                    <Label className="text-xs text-muted-foreground">
+                      Sign-on bonus (one-time)
+                    </Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={state.signOnBonus || ""}
+                      onChange={(e) =>
+                        updateState({
+                          signOnBonus: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      className="h-9 tabular-nums"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">
+                      Spread (years)
+                    </Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={state.signOnYears || 1}
+                      onChange={(e) =>
+                        updateState({
+                          signOnYears: Math.max(
+                            1,
+                            parseInt(e.target.value) || 1,
+                          ),
+                        })
+                      }
+                      className="h-9 tabular-nums"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">
+                      Tax treatment
+                    </Label>
+                    <Select
+                      value={state.extrasTaxTreatment.signOn}
+                      onValueChange={(v) =>
+                        updateState({
+                          extrasTaxTreatment: {
+                            ...state.extrasTaxTreatment,
+                            signOn: v as "taxable" | "nonTaxable" | "nonCash",
+                          },
+                        })
+                      }
+                    >
+                      <SelectTrigger className="h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TAX_TREATMENT_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">
+                      Stipend (annual)
+                    </Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={state.stipendAnnual || ""}
+                      onChange={(e) =>
+                        updateState({
+                          stipendAnnual: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      className="h-9 tabular-nums"
+                    />
+                  </div>
+                  <div className="space-y-1 sm:col-span-2">
+                    <Label className="text-xs text-muted-foreground">
+                      Tax treatment
+                    </Label>
+                    <Select
+                      value={state.extrasTaxTreatment.stipend}
+                      onValueChange={(v) =>
+                        updateState({
+                          extrasTaxTreatment: {
+                            ...state.extrasTaxTreatment,
+                            stipend: v as "taxable" | "nonTaxable" | "nonCash",
+                          },
+                        })
+                      }
+                    >
+                      <SelectTrigger className="h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TAX_TREATMENT_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">
+                      Employer match (annual)
+                    </Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={state.employerMatchAnnual || ""}
+                      onChange={(e) =>
+                        updateState({
+                          employerMatchAnnual: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      className="h-9 tabular-nums"
+                    />
+                  </div>
+                  <div className="space-y-1 sm:col-span-2">
+                    <Label className="text-xs text-muted-foreground">
+                      Tax treatment
+                    </Label>
+                    <Select
+                      value={state.extrasTaxTreatment.match}
+                      onValueChange={(v) =>
+                        updateState({
+                          extrasTaxTreatment: {
+                            ...state.extrasTaxTreatment,
+                            match: v as "taxable" | "nonTaxable" | "nonCash",
+                          },
+                        })
+                      }
+                    >
+                      <SelectTrigger className="h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TAX_TREATMENT_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-3 border-t pt-3">
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">
+                      Equity value
+                    </Label>
+                    <Select
+                      value={state.equityMode}
+                      onValueChange={(v) =>
+                        updateState({
+                          equityMode: v as "annual" | "vesting",
+                        })
+                      }
+                    >
+                      <SelectTrigger className="h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {EQUITY_MODE_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {state.equityMode === "annual" ? (
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">
+                        Annual equity value
+                      </Label>
+                      <Input
+                        type="number"
+                        min={0}
+                        value={state.equityAnnualValue || ""}
+                        onChange={(e) =>
+                          updateState({
+                            equityAnnualValue: parseFloat(e.target.value) || 0,
+                          })
+                        }
+                        className="h-9 tabular-nums"
+                      />
+                      <div className="text-xs text-muted-foreground">
+                        Non-cash (not taxed)
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="space-y-1 sm:col-span-2">
+                        <Label className="text-xs text-muted-foreground">
+                          Total grant value
+                        </Label>
+                        <Input
+                          type="number"
+                          min={0}
+                          value={state.equityGrantValue || ""}
+                          onChange={(e) =>
+                            updateState({
+                              equityGrantValue: parseFloat(e.target.value) || 0,
+                            })
+                          }
+                          className="h-9 tabular-nums"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">
+                          Vest (years)
+                        </Label>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={state.equityVestYears || 4}
+                          onChange={(e) =>
+                            updateState({
+                              equityVestYears: Math.max(
+                                1,
+                                parseInt(e.target.value) || 4,
+                              ),
+                            })
+                          }
+                          className="h-9 tabular-nums"
+                        />
+                      </div>
+                      <div className="space-y-1 sm:col-span-2">
+                        <Label className="text-xs text-muted-foreground">
+                          Cliff (months)
+                        </Label>
+                        <Input
+                          type="number"
+                          min={0}
+                          value={state.equityCliffMonths || 0}
+                          onChange={(e) =>
+                            updateState({
+                              equityCliffMonths: Math.max(
+                                0,
+                                parseInt(e.target.value) || 0,
+                              ),
+                            })
+                          }
+                          className="h-9 tabular-nums"
+                        />
+                      </div>
+                      <div className="space-y-1 sm:col-span-1">
+                        <Label className="text-xs text-muted-foreground">
+                          Tax treatment
+                        </Label>
+                        <div className="h-9 flex items-center text-xs text-muted-foreground">
+                          Non-cash
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
 
           {/* Currency Conversion */}
           <Collapsible
@@ -807,7 +1244,7 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                 <div className="text-lg tabular-nums text-muted-foreground">
                   <span className="mr-1">{CURRENCY_FLAGS[state.currency]}</span>
                   <AnimatedNumber
-                    value={calculation.grossAnnual}
+                    value={calculation.grossBaseAnnual}
                     formatter={(v) => formatCurrency(v, state.currency)}
                   />
                   <span className="text-sm font-normal ml-1">/year</span>
@@ -828,7 +1265,7 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
               <div className="text-3xl font-bold tabular-nums text-primary">
                 <span className="mr-1.5">{CURRENCY_FLAGS[state.currency]}</span>
                 <AnimatedNumber
-                  value={calculation.grossAnnual}
+                  value={calculation.grossBaseAnnual}
                   formatter={(v) => formatCurrency(v, state.currency)}
                 />
                 <span className="text-sm text-muted-foreground font-normal ml-1">
@@ -851,6 +1288,19 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                       className={`h-3 w-3 transition-transform ${showTaxBreakdown ? "rotate-90" : ""}`}
                     />
                     Taxes ({formatPercent(effectiveTaxBreakdown.effectiveRate)})
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="max-w-xs">
+                            {DATA_YEAR} federal brackets and payroll rates.
+                            Regional taxes are approximate.
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </span>
                   <span className="tabular-nums text-destructive">
                     −{formatCurrency(effectiveTaxBreakdown.total, homeCurrency)}
@@ -939,6 +1389,24 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                         </span>
                       </div>
                     )}
+
+                    {/* Payroll tax */}
+                    {effectiveTaxBreakdown.payroll > 0 && (
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>
+                          {state.country === "CA"
+                            ? "Payroll (CPP/EI)"
+                            : "Payroll (FICA)"}
+                        </span>
+                        <span className="tabular-nums">
+                          {formatCurrency(
+                            effectiveTaxBreakdown.payroll,
+                            state.currency,
+                            { showCode: false },
+                          )}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -959,7 +1427,7 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
           <div className="pt-4 border-t">
             <div className="flex items-center gap-1 mb-1">
               <span className="text-sm text-muted-foreground">
-                Take-home (after tax)
+                Net cash (after tax)
               </span>
               <TooltipProvider>
                 <Tooltip>
@@ -968,8 +1436,8 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                   </TooltipTrigger>
                   <TooltipContent>
                     <p className="max-w-xs">
-                      After income tax. Doesn't include health insurance,
-                      retirement, or other deductions.
+                      After income and payroll taxes on base income. Extras are
+                      added below.
                     </p>
                   </TooltipContent>
                 </Tooltip>
@@ -981,7 +1449,7 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                 <div className="text-lg tabular-nums text-muted-foreground">
                   <span className="mr-1">{CURRENCY_FLAGS[state.currency]}</span>
                   <AnimatedNumber
-                    value={netInJobCurrency}
+                    value={netBaseInJobCurrency}
                     formatter={(v) => formatCurrency(v, state.currency)}
                   />
                   <span className="text-sm font-normal ml-1">/year</span>
@@ -992,7 +1460,7 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                   <span className="text-3xl font-bold tabular-nums text-primary">
                     {CURRENCY_FLAGS[homeCurrency]}{" "}
                     <AnimatedNumber
-                      value={netInHomeCurrency}
+                      value={netBaseInHomeCurrency}
                       formatter={(v) => formatCurrency(v, homeCurrency)}
                     />
                   </span>
@@ -1002,7 +1470,7 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
               <div className="text-3xl font-bold tabular-nums text-primary">
                 <span className="mr-1.5">{CURRENCY_FLAGS[state.currency]}</span>
                 <AnimatedNumber
-                  value={netInJobCurrency}
+                  value={netBaseInJobCurrency}
                   formatter={(v) => formatCurrency(v, state.currency)}
                 />
                 <span className="text-sm text-muted-foreground font-normal ml-1">
@@ -1011,6 +1479,103 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
               </div>
             )}
           </div>
+
+          {/* Totals + Extras */}
+          {hasExtras && (
+            <div className="pt-4 border-t space-y-2">
+              <div className="text-sm text-muted-foreground mb-2">Totals</div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Total cash</span>
+                <span className="tabular-nums font-medium">
+                  {formatCurrency(netCashInJobCurrency, state.currency, {
+                    showCode: false,
+                  })}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">
+                  Total comp (incl. equity)
+                </span>
+                <span className="tabular-nums font-medium">
+                  {formatCurrency(totalCompInJobCurrency, state.currency, {
+                    showCode: false,
+                  })}
+                </span>
+              </div>
+
+              <div className="pt-2 space-y-1 text-sm">
+                {state.annualBonus > 0 && (
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Bonus</span>
+                    <span className="tabular-nums">
+                      {formatCurrency(state.annualBonus, state.currency, {
+                        showCode: false,
+                      })}
+                    </span>
+                  </div>
+                )}
+                {state.signOnBonus > 0 && (
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Sign-on (annualized {state.signOnYears || 1}y)</span>
+                    <span className="tabular-nums">
+                      {formatCurrency(signOnAnnualized, state.currency, {
+                        showCode: false,
+                      })}
+                    </span>
+                  </div>
+                )}
+                {state.stipendAnnual > 0 && (
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Stipend</span>
+                    <span className="tabular-nums">
+                      {formatCurrency(state.stipendAnnual, state.currency, {
+                        showCode: false,
+                      })}
+                    </span>
+                  </div>
+                )}
+                {state.employerMatchAnnual > 0 && (
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Employer match</span>
+                    <span className="tabular-nums">
+                      {formatCurrency(
+                        state.employerMatchAnnual,
+                        state.currency,
+                        {
+                          showCode: false,
+                        },
+                      )}
+                    </span>
+                  </div>
+                )}
+                {calculation.equityAnnualized > 0 && (
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Equity (annualized)</span>
+                    <span className="tabular-nums">
+                      {formatCurrency(
+                        calculation.equityAnnualized,
+                        state.currency,
+                        {
+                          showCode: false,
+                        },
+                      )}
+                    </span>
+                  </div>
+                )}
+                {extrasTaxInJobCurrency > 0 && (
+                  <div className="flex justify-between text-destructive">
+                    <span>Estimated tax on extras</span>
+                    <span className="tabular-nums">
+                      −
+                      {formatCurrency(extrasTaxInJobCurrency, state.currency, {
+                        showCode: false,
+                      })}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Period breakdown */}
           <div className="pt-4 border-t space-y-2">
@@ -1042,6 +1607,27 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                   {formatCurrency(daily, state.currency, { showCode: false })}
                 </span>
               </div>
+              {state.employmentType === "contractor-retainer" && (
+                <div className="flex justify-between col-span-2">
+                  <span className="text-muted-foreground">
+                    Effective hourly range
+                  </span>
+                  <span className="tabular-nums font-medium">
+                    {formatCurrency(
+                      calculation.effectiveHourlyMin,
+                      state.currency,
+                      { showCode: false },
+                    )}
+                    {" – "}
+                    {formatCurrency(
+                      calculation.effectiveHourlyMax,
+                      state.currency,
+                      { showCode: false },
+                    )}
+                    /hr
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>

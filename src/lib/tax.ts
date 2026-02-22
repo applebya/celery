@@ -1,4 +1,24 @@
-import { canadaTax, usTax, type TaxBracket } from "@/data/tax-brackets-2026";
+import {
+  canadaTax,
+  usTax,
+  caFederalBpa,
+  caProvincialBPA,
+  usStandardDeductionSingle,
+  CPP_BASIC_EXEMPTION,
+  CPP_YMPE,
+  CPP_YAMPE,
+  CPP_RATE_BASE,
+  CPP_RATE_ADDITIONAL,
+  CPP2_RATE,
+  EI_RATE,
+  EI_MAX_INSURABLE,
+  US_SOCIAL_SECURITY_RATE,
+  US_SOCIAL_SECURITY_WAGE_BASE,
+  US_MEDICARE_RATE,
+  US_ADDITIONAL_MEDICARE_RATE,
+  US_ADDITIONAL_MEDICARE_THRESHOLD,
+  type TaxBracket,
+} from "@/data/tax-brackets-2026";
 
 /**
  * Individual bracket tax detail
@@ -28,6 +48,21 @@ export function calcBracketTax(income: number, brackets: TaxBracket[]): number {
   }
 
   return tax;
+}
+
+/**
+ * Calculate taxable income (single filer assumption for US)
+ */
+export function calcTaxableIncome(
+  country: "CA" | "US" | "OTHER",
+  income: number,
+): number {
+  if (country === "OTHER") return 0;
+  if (country === "US") {
+    return Math.max(0, income - usStandardDeductionSingle);
+  }
+  // Canada: taxable income is gross (basic personal amount handled as credit)
+  return Math.max(0, income);
 }
 
 /**
@@ -99,6 +134,40 @@ export function calcProvincialStateTax(
 }
 
 /**
+ * Calculate employee payroll taxes (CPP/EI for CA, FICA for US)
+ */
+export function calcEmployeePayrollTax(
+  country: "CA" | "US" | "OTHER",
+  income: number,
+): number {
+  if (country === "OTHER") return 0;
+
+  if (country === "US") {
+    const ssEarnings = Math.min(income, US_SOCIAL_SECURITY_WAGE_BASE);
+    const ssTax = ssEarnings * US_SOCIAL_SECURITY_RATE;
+    const medicareTax = income * US_MEDICARE_RATE;
+    const additionalMedicareTax =
+      Math.max(0, income - US_ADDITIONAL_MEDICARE_THRESHOLD) *
+      US_ADDITIONAL_MEDICARE_RATE;
+    return ssTax + medicareTax + additionalMedicareTax;
+  }
+
+  // Canada (employee portion)
+  const pensionableEarnings = Math.max(0, income - CPP_BASIC_EXEMPTION);
+  const cppBaseEarnings = Math.min(pensionableEarnings, CPP_YMPE - CPP_BASIC_EXEMPTION);
+  const cppBaseTax =
+    cppBaseEarnings * (CPP_RATE_BASE + CPP_RATE_ADDITIONAL);
+
+  const cpp2Earnings = Math.max(0, Math.min(income, CPP_YAMPE) - CPP_YMPE);
+  const cpp2Tax = cpp2Earnings * CPP2_RATE;
+
+  const eiEarnings = Math.min(income, EI_MAX_INSURABLE);
+  const eiTax = eiEarnings * EI_RATE;
+
+  return cppBaseTax + cpp2Tax + eiTax;
+}
+
+/**
  * Calculate self-employment taxes (CPP for Canada, SE tax for US)
  */
 export function calcSelfEmploymentTax(
@@ -117,9 +186,19 @@ export function calcSelfEmploymentTax(
  * Calculate Canada CPP contribution (both employer + employee portions)
  */
 function calcCanadaCPP(income: number): number {
-  const cpp = canadaTax.selfEmployment[0]; // CPP config
-  const taxableIncome = Math.min(income, cpp.maxEarnings ?? income);
-  return taxableIncome * cpp.rate;
+  // Self-employed pays both employee + employer portions (base + additional)
+  const pensionableEarnings = Math.max(0, income - CPP_BASIC_EXEMPTION);
+  const cppBaseEarnings = Math.min(
+    pensionableEarnings,
+    CPP_YMPE - CPP_BASIC_EXEMPTION,
+  );
+  const cppBaseTax =
+    cppBaseEarnings * 2 * (CPP_RATE_BASE + CPP_RATE_ADDITIONAL);
+
+  const cpp2Earnings = Math.max(0, Math.min(income, CPP_YAMPE) - CPP_YMPE);
+  const cpp2Tax = cpp2Earnings * 2 * CPP2_RATE;
+
+  return cppBaseTax + cpp2Tax;
 }
 
 /**
@@ -166,13 +245,7 @@ export function calcTotalTax(
   isSelfEmployed: boolean,
 ): number {
   if (country === "OTHER") return 0;
-  const federalTax = calcFederalTax(country, income);
-  const provincialStateTax = calcProvincialStateTax(country, region, income);
-  const selfEmploymentTax = isSelfEmployed
-    ? calcSelfEmploymentTax(country, income)
-    : 0;
-
-  return federalTax + provincialStateTax + selfEmploymentTax;
+  return getTaxBreakdown(country, region, income, isSelfEmployed).total;
 }
 
 /**
@@ -196,6 +269,7 @@ export interface TaxBreakdown {
   federal: number;
   provincialState: number;
   selfEmployment: number;
+  payroll: number;
   total: number;
   effectiveRate: number;
 }
@@ -211,22 +285,40 @@ export function getTaxBreakdown(
       federal: 0,
       provincialState: 0,
       selfEmployment: 0,
+      payroll: 0,
       total: 0,
       effectiveRate: 0,
     };
   }
-  const federal = calcFederalTax(country, income);
-  const provincialState = calcProvincialStateTax(country, region, income);
+  const taxableIncome = calcTaxableIncome(country, income);
+  let federal = calcFederalTax(country, taxableIncome);
+  let provincialState = calcProvincialStateTax(country, region, taxableIncome);
+
+  // Canada basic personal amount credits (approximate - max amount)
+  if (country === "CA") {
+    const federalCredit = caFederalBpa.max * canadaTax.federal[0].rate;
+    federal = Math.max(0, federal - federalCredit);
+
+    const provincialBpa = caProvincialBPA[region] ?? 0;
+    const provincialRate = canadaTax.provinces?.[region]?.[0]?.rate ?? 0;
+    const provincialCredit = provincialBpa * provincialRate;
+    provincialState = Math.max(0, provincialState - provincialCredit);
+  }
+
   const selfEmployment = isSelfEmployed
     ? calcSelfEmploymentTax(country, income)
     : 0;
-  const total = federal + provincialState + selfEmployment;
+  const payroll = !isSelfEmployed
+    ? calcEmployeePayrollTax(country, income)
+    : 0;
+  const total = federal + provincialState + selfEmployment + payroll;
   const effectiveRate = income > 0 ? total / income : 0;
 
   return {
     federal,
     provincialState,
     selfEmployment,
+    payroll,
     total,
     effectiveRate,
   };
@@ -241,7 +333,9 @@ export function getFederalBracketDetails(
 ): BracketDetail[] {
   if (country === "OTHER") return [];
   const config = country === "CA" ? canadaTax : usTax;
-  return calcBracketTaxDetailed(income, config.federal);
+  const taxableIncome =
+    country === "US" ? calcTaxableIncome(country, income) : income;
+  return calcBracketTaxDetailed(taxableIncome, config.federal);
 }
 
 /**
@@ -261,5 +355,7 @@ export function getProvincialStateBracketDetails(
     return [];
   }
 
-  return calcBracketTaxDetailed(income, regions[region]);
+  const taxableIncome =
+    country === "US" ? calcTaxableIncome(country, income) : income;
+  return calcBracketTaxDetailed(taxableIncome, regions[region]);
 }

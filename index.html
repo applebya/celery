@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Celery - Salary Calculator</title>
-    <meta name="description" content="Calculate your annual take-home pay. Convert hourly rate to annual compensation with tax estimates for Canada and USA. Works offline." />
+    <meta name="description" content="Calculate your annual take-home pay and total compensation. Convert hourly rate to annual compensation with tax estimates for Canada and USA. Works offline." />
     <meta name="keywords" content="salary calculator, hourly to annual, take home pay, tax calculator, income calculator" />
     <meta name="author" content="Andrew Appleby" />
 
@@ -29,7 +29,7 @@
 
     <!-- Open Graph -->
     <meta property="og:title" content="Celery - Salary Calculator" />
-    <meta property="og:description" content="Calculate your annual take-home pay. Hourly rate to annual compensation with tax estimates for Canada and USA." />
+    <meta property="og:description" content="Calculate your annual take-home pay and total compensation. Hourly rate to annual compensation with tax estimates for Canada and USA." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://celery.info/" />
     <meta property="og:image" content="https://celery.info/og-image.png" />
@@ -41,7 +41,7 @@
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Celery - Salary Calculator" />
-    <meta name="twitter:description" content="Calculate your annual take-home pay. Hourly rate to annual compensation with tax estimates." />
+    <meta name="twitter:description" content="Calculate your annual take-home pay and total compensation. Hourly rate to annual compensation with tax estimates." />
     <meta name="twitter:image" content="https://celery.info/og-image.png" />
 
     <!-- Structured Data (JSON-LD) -->
@@ -74,6 +74,7 @@
           "featureList": [
             "Hourly to annual salary conversion",
             "Tax estimates for USA and Canada",
+            "Total compensation extras (bonus, equity, stipends)",
             "Multiple currency support",
             "Works offline (PWA)",
             "Privacy-focused (no data collection)"
@@ -89,9 +90,8 @@
     }
     </script>
 
-    <!-- Analytics (Plausible - privacy-focused, no cookies) -->
-    <!-- Uncomment when Plausible is set up -->
-    <!-- <script defer data-domain="celery.info" src="https://plausible.io/js/script.js"></script> -->
+    <!-- Analytics -->
+    <!-- PostHog is initialized in src/lib/analytics.ts when env vars are set -->
   </head>
   <body>
     <div id="root"></div>

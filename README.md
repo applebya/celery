@@ -1,12 +1,13 @@
 # Celery - Contractor Salary Calculator
 
-A lightweight, offline-first salary calculator for contractors in Canada and the USA. Convert hourly rates to annual compensation with tax estimates.
+A lightweight, offline-first salary calculator for contractors in Canada and the USA. Convert hourly rates to annual compensation with tax estimates and total comp extras.
 
 ## Features
 
 - **Hourly to Annual**: Calculate annual gross and net income from hourly rate
 - **Tax Estimates**: 2026 federal + provincial/state tax brackets
 - **Self-Employment Taxes**: CPP (Canada) and SE tax (US) calculations
+- **Extras & Total Comp**: Bonuses, sign-on, equity, stipends, and employer match
 - **Holiday Presets**: Province/state-specific statutory holidays for CA and US
 - **Currency Conversion**: Live CAD/USD exchange rates with offline caching
 - **Comparison Mode**: Compare two scenarios side-by-side
@@ -19,7 +20,7 @@ A lightweight, offline-first salary calculator for contractors in Canada and the
 - **Tailwind CSS** + **shadcn/ui** for styling
 - **Vitest** for testing (58 tests)
 - **vite-plugin-pwa** for offline support
-- **Plausible** for privacy-friendly analytics
+- **PostHog** for privacy-friendly analytics
 
 ## Development
 
@@ -62,8 +63,10 @@ Replace `YOUR_DOMAIN` in `index.html` with your actual domain to enable Plausibl
 ## Tax Data Sources
 
 - Canada: 2026 federal and provincial tax brackets
-- USA: 2026 federal and state tax brackets (single filer)
-- Self-employment: CPP contributions (CA), Social Security + Medicare (US)
+- USA: 2026 federal and state tax brackets (single filer), standard deduction
+- Canada: Federal and provincial basic personal amounts (BPA)
+- Payroll taxes: CPP/EI (CA), FICA (US)
+- Self-employment: CPP/CPP2 (CA), Social Security + Medicare (US)
 
 **Disclaimer**: Tax estimates are rough approximations. Assumes single filer with no deductions or credits. Consult a tax professional for accurate calculations.
 

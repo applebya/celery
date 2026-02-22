@@ -1,5 +1,10 @@
 import { useState, useCallback, useEffect } from "react";
-import type { CalculatorState, SavedScenario } from "@/types";
+import type {
+  CalculatorState,
+  Currency,
+  EmploymentType,
+  SavedScenario,
+} from "@/types";
 import { DEFAULT_STATE } from "@/types";
 
 const STORAGE_KEY = "celery-scenarios";
@@ -23,7 +28,21 @@ function loadScenarios(): SavedScenario[] {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      return JSON.parse(stored);
+      const parsed = JSON.parse(stored);
+      if (!Array.isArray(parsed)) return [];
+      return parsed
+        .filter(
+          (s: unknown): s is SavedScenario =>
+            typeof s === "object" &&
+            s !== null &&
+            typeof (s as SavedScenario).id === "string" &&
+            typeof (s as SavedScenario).state === "object",
+        )
+        .map((scenario) => ({
+          ...scenario,
+          name: typeof scenario.name === "string" ? scenario.name : "Untitled",
+          state: normalizeState(scenario.state),
+        }));
     }
   } catch {
     // Invalid data, start fresh
@@ -33,6 +52,125 @@ function loadScenarios(): SavedScenario[] {
 
 function persistScenarios(scenarios: SavedScenario[]): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(scenarios));
+}
+
+function normalizeState(
+  state: CalculatorState | Partial<CalculatorState>,
+): CalculatorState {
+  const merged = {
+    ...DEFAULT_STATE,
+    ...state,
+    extrasTaxTreatment: {
+      ...DEFAULT_STATE.extrasTaxTreatment,
+      ...(state as CalculatorState).extrasTaxTreatment,
+    },
+  };
+
+  // Sanitize numeric fields — guard against NaN/Infinity from corrupt localStorage
+  const numericDefaults: Partial<Record<keyof CalculatorState, number>> = {
+    hourlyRate: DEFAULT_STATE.hourlyRate,
+    hoursPerDay: DEFAULT_STATE.hoursPerDay,
+    daysPerWeek: DEFAULT_STATE.daysPerWeek,
+    holidaysPerYear: DEFAULT_STATE.holidaysPerYear,
+    ptoDays: DEFAULT_STATE.ptoDays,
+    sickDays: DEFAULT_STATE.sickDays,
+    targetSalary: DEFAULT_STATE.targetSalary,
+    monthlyRetainer: DEFAULT_STATE.monthlyRetainer,
+    expectedHoursMin: DEFAULT_STATE.expectedHoursMin,
+    expectedHoursMax: DEFAULT_STATE.expectedHoursMax,
+    fixedMonthlyHours: DEFAULT_STATE.fixedMonthlyHours,
+    traderMargin: DEFAULT_STATE.traderMargin,
+    annualBonus: DEFAULT_STATE.annualBonus,
+    signOnBonus: DEFAULT_STATE.signOnBonus,
+    signOnYears: DEFAULT_STATE.signOnYears,
+    stipendAnnual: DEFAULT_STATE.stipendAnnual,
+    employerMatchAnnual: DEFAULT_STATE.employerMatchAnnual,
+    equityAnnualValue: DEFAULT_STATE.equityAnnualValue,
+    equityGrantValue: DEFAULT_STATE.equityGrantValue,
+    equityVestYears: DEFAULT_STATE.equityVestYears,
+    equityCliffMonths: DEFAULT_STATE.equityCliffMonths,
+  };
+
+  for (const [key, fallback] of Object.entries(numericDefaults)) {
+    const val = merged[key as keyof CalculatorState];
+    if (typeof val !== "number" || !Number.isFinite(val)) {
+      (merged as Record<string, unknown>)[key] = fallback;
+    }
+  }
+
+  // Sanitize enum/string fields
+  const validCurrencies: Currency[] = [
+    "CAD",
+    "USD",
+    "EUR",
+    "GBP",
+    "AUD",
+    "NZD",
+    "CHF",
+    "JPY",
+    "INR",
+    "BRL",
+    "MXN",
+    "SGD",
+    "HKD",
+    "SEK",
+    "NOK",
+    "DKK",
+    "PLN",
+    "CZK",
+    "ILS",
+    "ZAR",
+  ];
+  if (!validCurrencies.includes(merged.currency)) {
+    merged.currency = DEFAULT_STATE.currency;
+  }
+  if (!validCurrencies.includes(merged.displayCurrency)) {
+    merged.displayCurrency = DEFAULT_STATE.displayCurrency;
+  }
+
+  const validCountries: Array<"CA" | "US" | "OTHER"> = ["CA", "US", "OTHER"];
+  if (!validCountries.includes(merged.country)) {
+    merged.country = DEFAULT_STATE.country;
+  }
+
+  const validEmploymentTypes: EmploymentType[] = [
+    "contractor-hourly",
+    "contractor-retainer",
+    "employee-hourly",
+    "employee-salary",
+  ];
+  if (!validEmploymentTypes.includes(merged.employmentType)) {
+    merged.employmentType = DEFAULT_STATE.employmentType;
+  }
+
+  const validCalcModes: Array<"hourlyToSalary" | "salaryToHourly"> = [
+    "hourlyToSalary",
+    "salaryToHourly",
+  ];
+  if (!validCalcModes.includes(merged.calculationMode)) {
+    merged.calculationMode = DEFAULT_STATE.calculationMode;
+  }
+
+  const validEquityModes: Array<"annual" | "vesting"> = ["annual", "vesting"];
+  if (!validEquityModes.includes(merged.equityMode)) {
+    merged.equityMode = DEFAULT_STATE.equityMode;
+  }
+
+  // Sanitize booleans
+  const booleanFields: Array<keyof CalculatorState> = [
+    "showTaxEstimate",
+    "isSelfEmployed",
+    "unlimitedPTO",
+    "showCurrencyConversion",
+    "useFixedMonthlyHours",
+  ];
+  for (const key of booleanFields) {
+    if (typeof merged[key] !== "boolean") {
+      (merged as Record<string, unknown>)[key] = DEFAULT_STATE[key];
+    }
+  }
+
+  return merged;
 }
 
 export function useScenarios() {
@@ -54,6 +192,7 @@ export function useScenarios() {
   const saveScenario = useCallback(
     (state: CalculatorState, id?: string): string => {
       const now = Date.now();
+      const normalizedState = normalizeState(state);
 
       setScenarios((prev) => {
         // If updating existing scenario
@@ -64,7 +203,7 @@ export function useScenarios() {
               s.id === id
                 ? {
                     ...s,
-                    state,
+                    state: normalizedState,
                     updatedAt: now,
                   }
                 : s,
@@ -77,7 +216,7 @@ export function useScenarios() {
         const newScenario: SavedScenario = {
           id: newId,
           name: getScenarioName(prev.length),
-          state,
+          state: normalizedState,
           createdAt: now,
           updatedAt: now,
         };
@@ -100,7 +239,7 @@ export function useScenarios() {
       const scenario = scenarios.find((s) => s.id === id);
       if (scenario) {
         setActiveScenarioId(id);
-        return scenario.state;
+        return normalizeState(scenario.state);
       }
       return null;
     },
@@ -130,7 +269,7 @@ export function useScenarios() {
   }, []);
 
   const createScenario = useCallback((baseState?: CalculatorState): string => {
-    const state = baseState ?? DEFAULT_STATE;
+    const state = normalizeState(baseState ?? DEFAULT_STATE);
     const now = Date.now();
     const newId = generateId();
 
@@ -166,7 +305,7 @@ export function useScenarios() {
       setScenarios((prev) =>
         prev.map((s) =>
           s.id === activeScenarioId
-            ? { ...s, state, updatedAt: Date.now() }
+            ? { ...s, state: normalizeState(state), updatedAt: Date.now() }
             : s,
         ),
       );
