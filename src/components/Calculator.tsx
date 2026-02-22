@@ -119,15 +119,9 @@ const EMPLOYMENT_TYPES: {
   },
   {
     value: "employee-hourly",
-    label: "Employee (hourly)",
+    label: "Employee",
     shortLabel: "Employee",
-    tooltip: "W-2/T4 paid by hour",
-  },
-  {
-    value: "employee-salary",
-    label: "Employee (salary)",
-    shortLabel: "Salary",
-    tooltip: "W-2/T4 fixed salary",
+    tooltip: "W-2/T4 employee",
   },
 ];
 
@@ -151,15 +145,21 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
     [state, onChange],
   );
 
+  const isEmployee =
+    state.employmentType === "employee-hourly" ||
+    state.employmentType === "employee-salary";
+  const employeeSalaryMode = state.calculationMode === "salaryToHourly";
+
   const handleEmploymentTypeChange = useCallback(
     (employmentType: EmploymentType) => {
       const isSelfEmployed = isSelfEmployedFromType(employmentType);
       let calculationMode = state.calculationMode;
-      if (employmentType === "employee-salary") {
-        calculationMode = "salaryToHourly";
+      // When switching to employee, keep current calc mode if already employee
+      if (employmentType === "employee-hourly" && !isEmployee) {
+        calculationMode = "hourlyToSalary";
       } else if (
         employmentType === "contractor-hourly" ||
-        employmentType === "employee-hourly"
+        employmentType === "contractor-retainer"
       ) {
         calculationMode = "hourlyToSalary";
       }
@@ -169,7 +169,7 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
         calculationMode,
       });
     },
-    [state.calculationMode, updateState],
+    [state.calculationMode, isEmployee, updateState],
   );
 
   const toggleSection = (section: string) => {
@@ -269,17 +269,6 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
     0,
     taxBreakdownWithExtras.total - effectiveTaxBreakdown.total,
   );
-  const extrasTaxInJobCurrency = currenciesDiffer
-    ? convertWithMargin(
-        extrasTaxInHomeCurrency,
-        homeCurrency,
-        state.currency,
-        0,
-      )
-    : calculation.extrasTax;
-
-  const totalCompInJobCurrency =
-    netCashInJobCurrency + calculation.extrasNonCash;
 
   // Conversion fee calculation
   const conversionFeeAmount = netBaseInJobCurrency * (state.traderMargin / 100);
@@ -303,6 +292,16 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
 
   const signOnAnnualized =
     state.signOnBonus / Math.max(1, state.signOnYears || 1);
+
+  // Convert extras to home currency for display in results column
+  const convertExtra = (amount: number) =>
+    currenciesDiffer
+      ? convertWithMargin(amount, state.currency, homeCurrency, 0)
+      : amount;
+  const extrasCurrency = homeCurrency;
+  const netCashInHomeCurrencyWithExtras = currenciesDiffer
+    ? netCashInHomeCurrency + convertExtra(calculation.extrasNonCash)
+    : netCashInJobCurrency + calculation.extrasNonCash;
 
   // Work schedule summary
   const hoursPerWeek = state.hoursPerDay * state.daysPerWeek;
@@ -348,28 +347,62 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
 
         {/* Rate Input */}
         <div className="space-y-2">
-          <Label className="text-sm font-medium">
-            {state.employmentType === "contractor-retainer"
-              ? "Monthly retainer"
-              : state.employmentType === "employee-salary"
-                ? "Annual salary"
-                : "Hourly rate"}
-          </Label>
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium">
+              {state.employmentType === "contractor-retainer"
+                ? "Monthly retainer"
+                : employeeSalaryMode
+                  ? "Annual salary"
+                  : "Hourly rate"}
+            </Label>
+            {isEmployee && (
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <button
+                  onClick={() =>
+                    updateState({
+                      employmentType: "employee-hourly",
+                      calculationMode: "hourlyToSalary",
+                    })
+                  }
+                  className={`px-2 py-0.5 rounded transition-colors ${
+                    !employeeSalaryMode
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-muted"
+                  }`}
+                >
+                  Hourly
+                </button>
+                <button
+                  onClick={() =>
+                    updateState({
+                      employmentType: "employee-salary",
+                      calculationMode: "salaryToHourly",
+                    })
+                  }
+                  className={`px-2 py-0.5 rounded transition-colors ${
+                    employeeSalaryMode
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-muted"
+                  }`}
+                >
+                  Salary
+                </button>
+              </div>
+            )}
+          </div>
           <div className="flex gap-2">
             <div className="relative w-32">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                 $
               </span>
               <Input
-                type={
-                  state.employmentType === "employee-salary" ? "text" : "number"
-                }
+                type={employeeSalaryMode ? "text" : "number"}
                 inputMode="numeric"
                 min={0}
                 value={
                   state.employmentType === "contractor-retainer"
                     ? state.monthlyRetainer || ""
-                    : state.employmentType === "employee-salary"
+                    : employeeSalaryMode
                       ? state.targetSalary
                         ? state.targetSalary.toLocaleString()
                         : ""
@@ -381,7 +414,7 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                   const val = parseFloat(rawValue) || 0;
                   if (state.employmentType === "contractor-retainer") {
                     updateState({ monthlyRetainer: val });
-                  } else if (state.employmentType === "employee-salary") {
+                  } else if (employeeSalaryMode) {
                     updateState({ targetSalary: val });
                   } else {
                     updateState({ hourlyRate: val });
@@ -1487,9 +1520,13 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Total cash</span>
                 <span className="tabular-nums font-medium">
-                  {formatCurrency(netCashInJobCurrency, state.currency, {
-                    showCode: false,
-                  })}
+                  {formatCurrency(
+                    currenciesDiffer
+                      ? netCashInHomeCurrency
+                      : netCashInJobCurrency,
+                    extrasCurrency,
+                    { showCode: false },
+                  )}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -1497,9 +1534,11 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                   Total comp (incl. equity)
                 </span>
                 <span className="tabular-nums font-medium">
-                  {formatCurrency(totalCompInJobCurrency, state.currency, {
-                    showCode: false,
-                  })}
+                  {formatCurrency(
+                    netCashInHomeCurrencyWithExtras,
+                    extrasCurrency,
+                    { showCode: false },
+                  )}
                 </span>
               </div>
 
@@ -1508,9 +1547,13 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                   <div className="flex justify-between text-muted-foreground">
                     <span>Bonus</span>
                     <span className="tabular-nums">
-                      {formatCurrency(state.annualBonus, state.currency, {
-                        showCode: false,
-                      })}
+                      {formatCurrency(
+                        convertExtra(state.annualBonus),
+                        extrasCurrency,
+                        {
+                          showCode: false,
+                        },
+                      )}
                     </span>
                   </div>
                 )}
@@ -1518,9 +1561,13 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                   <div className="flex justify-between text-muted-foreground">
                     <span>Sign-on (annualized {state.signOnYears || 1}y)</span>
                     <span className="tabular-nums">
-                      {formatCurrency(signOnAnnualized, state.currency, {
-                        showCode: false,
-                      })}
+                      {formatCurrency(
+                        convertExtra(signOnAnnualized),
+                        extrasCurrency,
+                        {
+                          showCode: false,
+                        },
+                      )}
                     </span>
                   </div>
                 )}
@@ -1528,9 +1575,13 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                   <div className="flex justify-between text-muted-foreground">
                     <span>Stipend</span>
                     <span className="tabular-nums">
-                      {formatCurrency(state.stipendAnnual, state.currency, {
-                        showCode: false,
-                      })}
+                      {formatCurrency(
+                        convertExtra(state.stipendAnnual),
+                        extrasCurrency,
+                        {
+                          showCode: false,
+                        },
+                      )}
                     </span>
                   </div>
                 )}
@@ -1539,8 +1590,8 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                     <span>Employer match</span>
                     <span className="tabular-nums">
                       {formatCurrency(
-                        state.employerMatchAnnual,
-                        state.currency,
+                        convertExtra(state.employerMatchAnnual),
+                        extrasCurrency,
                         {
                           showCode: false,
                         },
@@ -1553,8 +1604,8 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                     <span>Equity (annualized)</span>
                     <span className="tabular-nums">
                       {formatCurrency(
-                        calculation.equityAnnualized,
-                        state.currency,
+                        convertExtra(calculation.equityAnnualized),
+                        extrasCurrency,
                         {
                           showCode: false,
                         },
@@ -1562,12 +1613,12 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                     </span>
                   </div>
                 )}
-                {extrasTaxInJobCurrency > 0 && (
+                {extrasTaxInHomeCurrency > 0 && (
                   <div className="flex justify-between text-destructive">
                     <span>Estimated tax on extras</span>
                     <span className="tabular-nums">
                       −
-                      {formatCurrency(extrasTaxInJobCurrency, state.currency, {
+                      {formatCurrency(extrasTaxInHomeCurrency, extrasCurrency, {
                         showCode: false,
                       })}
                     </span>
