@@ -160,6 +160,18 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+  button,
+  [role="button"],
+  [role="radio"],
+  [role="tab"],
+  [type="checkbox"],
+  [type="radio"],
+  select,
+  summary,
+  label[for],
+  [data-state] {
+    cursor: pointer;
+  }
 }
 
 /* Utility classes */
