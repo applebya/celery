@@ -14,10 +14,9 @@ This milestone transforms Celery from functional to delightful. We start by simp
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Scope Simplification** - Remove corporation employment type
-- [ ] **Phase 2: Desktop Polish** - Spacious, professional desktop layout
+- [ ] **Phase 2: Desktop Polish + Visual Redesign** - Layout, typography, color, texture, motion
 - [ ] **Phase 3: Mobile Polish** - Clean, touch-friendly mobile experience
-- [ ] **Phase 4: Visual Refinement** - Typography, spacing, modern aesthetics
-- [ ] **Phase 5: Brand Assets** - Logo, favicon, icons, social images
+- [ ] **Phase 4: Brand Assets** - Logo, favicon, icons, social images
 
 ## Phase Details
 
@@ -39,24 +38,31 @@ Plans:
 
 - [x] 01-01-PLAN.md - Remove corporation types, calculation logic, tax data, and UI
 
-### Phase 2: Desktop Polish
+### Phase 2: Desktop Polish + Visual Redesign
 
-**Goal**: Desktop layout feels spacious, professional, and easy to read
+**Goal**: Desktop layout feels spacious, professional, and visually distinctive — "Financial Clarity" aesthetic
 **Depends on**: Phase 1
-**Requirements**: DESK-01, DESK-02, DESK-03, DESK-04
-**Plans:** 1 plan
+**Requirements**: DESK-01, DESK-02, DESK-03, DESK-04, VIS-01, VIS-02, VIS-03, VIS-04, VIS-05
+**Plans:** 3 plans
 
 **Success Criteria** (what must be TRUE):
 
 1. Layout uses generous whitespace on wide screens (no cramped feel)
 2. Calculator takes advantage of horizontal space (multi-column where appropriate)
-3. Visual hierarchy is clear (inputs, results, comparisons flow logically)
+3. Visual hierarchy is clear — net take-home is the hero number, 2-3x larger than other figures
 4. Results are prominently displayed with clear information architecture
-5. Desktop users can complete tasks without feeling constrained
+5. Typography uses distinctive fonts (not Inter/DM Sans) — display serif for hero numbers, clean geometric sans for body
+6. Color palette is warm and organic (moss green primary, cream backgrounds) not generic teal/gray
+7. Background has depth and texture (gradient mesh, grain) not flat solid colors
+8. Dark mode uses forest green tones, not generic slate
+9. Micro-interactions and motion feel polished (entry animations, hover states, number transitions)
+10. All components have consistent styling matching the new design language
 
 Plans:
 
-- [ ] 02-01-PLAN.md - Desktop layout polish with two-column grid, spacing, and visual hierarchy
+- [x] 02-01-PLAN.md — Desktop layout polish with two-column grid, spacing, and visual hierarchy
+- [ ] 02-02-PLAN.md — Typography, color palette, and texture foundation ("Financial Clarity" design tokens)
+- [ ] 02-03-PLAN.md — Component polish and motion (segmented control, accent bars, animations, pill tabs)
 
 ### Phase 3: Mobile Polish
 
@@ -77,29 +83,10 @@ Plans:
 
 - [ ] TBD during planning
 
-### Phase 4: Visual Refinement
-
-**Goal**: UI feels modern, polished, and professionally designed
-**Depends on**: Phase 3
-**Requirements**: VIS-01, VIS-02, VIS-03, VIS-04, VIS-05
-**Plans:** TBD
-
-**Success Criteria** (what must be TRUE):
-
-1. Typography is refined (appropriate font sizes, weights, line heights throughout)
-2. Spacing follows consistent system (no arbitrary gaps or cramped sections)
-3. UI feels modern and current (not dated or amateurish)
-4. All components have consistent styling (buttons, cards, inputs match design language)
-5. Transitions and micro-interactions feel polished (not jarring or missing)
-
-Plans:
-
-- [ ] TBD during planning
-
-### Phase 5: Brand Assets
+### Phase 4: Brand Assets
 
 **Goal**: Celery has professional branding assets for all contexts
-**Depends on**: Phase 4
+**Depends on**: Phase 3
 **Requirements**: BRAND-01, BRAND-02, BRAND-03, BRAND-04
 **Plans:** TBD
 
@@ -118,12 +105,11 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 
-| Phase                   | Plans Complete | Status      | Completed  |
-| ----------------------- | -------------- | ----------- | ---------- |
-| 1. Scope Simplification | 1/1            | Complete    | 2026-02-01 |
-| 2. Desktop Polish       | 0/1            | Not started | -          |
-| 3. Mobile Polish        | 0/TBD          | Not started | -          |
-| 4. Visual Refinement    | 0/TBD          | Not started | -          |
-| 5. Brand Assets         | 0/TBD          | Not started | -          |
+| Phase                               | Plans Complete | Status      | Completed  |
+| ----------------------------------- | -------------- | ----------- | ---------- |
+| 1. Scope Simplification             | 1/1            | Complete    | 2026-02-01 |
+| 2. Desktop Polish + Visual Redesign | 1/3            | In progress | -          |
+| 3. Mobile Polish                    | 0/TBD          | Not started | -          |
+| 4. Brand Assets                     | 0/TBD          | Not started | -          |
