@@ -309,9 +309,9 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
   const hoursPerMonth = Math.round(calculation.billableHours / 12);
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 md:gap-10">
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr,400px] gap-6 lg:gap-8">
       {/* Left Column - Inputs */}
-      <div className="flex-1 space-y-5">
+      <div className="space-y-4 lg:space-y-6">
         {/* Employment Type */}
         <div className="space-y-3">
           <Label className="text-sm font-medium">Employment type</Label>
@@ -1231,7 +1231,7 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
       </div>
 
       {/* Right Column - Results */}
-      <div className="w-full md:w-[400px] md:flex-shrink-0 md:sticky md:top-6 md:self-start">
+      <div className="lg:sticky lg:top-4 lg:self-start">
         <div className="rounded-xl border bg-card p-6 space-y-5">
           {/* Gross section */}
           <div>
