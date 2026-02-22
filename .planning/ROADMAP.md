@@ -61,7 +61,7 @@ Plans:
 Plans:
 
 - [x] 02-01-PLAN.md — Desktop layout polish with two-column grid, spacing, and visual hierarchy
-- [ ] 02-02-PLAN.md — Typography, color palette, and texture foundation ("Financial Clarity" design tokens)
+- [x] 02-02-PLAN.md — Typography, color palette, and texture foundation ("Financial Clarity" design tokens)
 - [ ] 02-03-PLAN.md — Component polish and motion (segmented control, accent bars, animations, pill tabs)
 
 ### Phase 3: Mobile Polish
@@ -110,6 +110,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | Phase                               | Plans Complete | Status      | Completed  |
 | ----------------------------------- | -------------- | ----------- | ---------- |
 | 1. Scope Simplification             | 1/1            | Complete    | 2026-02-01 |
-| 2. Desktop Polish + Visual Redesign | 1/3            | In progress | -          |
+| 2. Desktop Polish + Visual Redesign | 2/3            | In progress | -          |
 | 3. Mobile Polish                    | 0/TBD          | Not started | -          |
 | 4. Brand Assets                     | 0/TBD          | Not started | -          |
