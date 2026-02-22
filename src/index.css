@@ -1,5 +1,8 @@
-/* Import distinctive fonts */
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap");
+/* Satoshi — geometric-humanist sans-serif via Fontshare CDN */
+@import url("https://api.fontshare.com/v2/css?f[]=satoshi@1,900,700,500,400&display=swap");
+
+/* JetBrains Mono — tabular figures for numeric display */
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap");
 
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -9,6 +12,7 @@
 :root {
   /* Typography */
   font-family:
+    "Satoshi",
     "DM Sans",
     -apple-system,
     BlinkMacSystemFont,
@@ -155,6 +159,24 @@ body {
 .tabular-nums {
   font-variant-numeric: tabular-nums;
   font-family: "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* Display serif for hero labels and section headers (>=24px only) */
+.font-display {
+  font-family: "Fraunces Variable", "Georgia", serif;
+  font-variation-settings:
+    "SOFT" 25,
+    "WONK" 0,
+    "opsz" 36;
+}
+
+/* Display serif for large hero numbers/labels (>=36px) */
+.font-display-lg {
+  font-family: "Fraunces Variable", "Georgia", serif;
+  font-variation-settings:
+    "SOFT" 20,
+    "WONK" 0,
+    "opsz" 48;
 }
 
 /* Subtle texture for depth */

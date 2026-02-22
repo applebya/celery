@@ -4,17 +4,23 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Celery - Salary Calculator</title>
-    <meta name="description" content="Calculate your annual take-home pay and total compensation. Convert hourly rate to annual compensation with tax estimates for Canada and USA. Works offline." />
-    <meta name="keywords" content="salary calculator, hourly to annual, take home pay, tax calculator, income calculator" />
+    <meta
+      name="description"
+      content="Calculate your annual take-home pay and total compensation. Convert hourly rate to annual compensation with tax estimates for Canada and USA. Works offline."
+    />
+    <meta
+      name="keywords"
+      content="salary calculator, hourly to annual, take home pay, tax calculator, income calculator"
+    />
     <meta name="author" content="Andrew Appleby" />
 
     <!-- Canonical URL -->
     <link rel="canonical" href="https://celery.info/" />
 
-    <!-- Font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font preconnects -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -23,13 +29,19 @@
     <!-- PWA -->
     <meta name="theme-color" content="#22c55e" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
     <meta name="apple-mobile-web-app-title" content="Celery" />
     <!-- manifest injected by vite-plugin-pwa -->
 
     <!-- Open Graph -->
     <meta property="og:title" content="Celery - Salary Calculator" />
-    <meta property="og:description" content="Calculate your annual take-home pay and total compensation. Hourly rate to annual compensation with tax estimates for Canada and USA." />
+    <meta
+      property="og:description"
+      content="Calculate your annual take-home pay and total compensation. Hourly rate to annual compensation with tax estimates for Canada and USA."
+    />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://celery.info/" />
     <meta property="og:image" content="https://celery.info/og-image.png" />
@@ -41,53 +53,56 @@
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Celery - Salary Calculator" />
-    <meta name="twitter:description" content="Calculate your annual take-home pay and total compensation. Hourly rate to annual compensation with tax estimates." />
+    <meta
+      name="twitter:description"
+      content="Calculate your annual take-home pay and total compensation. Hourly rate to annual compensation with tax estimates."
+    />
     <meta name="twitter:image" content="https://celery.info/og-image.png" />
 
     <!-- Structured Data (JSON-LD) -->
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@graph": [
-        {
-          "@type": "WebSite",
-          "@id": "https://celery.info/#website",
-          "url": "https://celery.info/",
-          "name": "Celery",
-          "description": "Salary calculator for converting hourly rates to annual compensation",
-          "publisher": {
-            "@id": "https://celery.info/#organization"
-          }
-        },
-        {
-          "@type": "WebApplication",
-          "@id": "https://celery.info/#app",
-          "name": "Celery - Salary Calculator",
-          "url": "https://celery.info/",
-          "applicationCategory": "FinanceApplication",
-          "operatingSystem": "Any",
-          "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "USD"
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://celery.info/#website",
+            "url": "https://celery.info/",
+            "name": "Celery",
+            "description": "Salary calculator for converting hourly rates to annual compensation",
+            "publisher": {
+              "@id": "https://celery.info/#organization"
+            }
           },
-          "featureList": [
-            "Hourly to annual salary conversion",
-            "Tax estimates for USA and Canada",
-            "Total compensation extras (bonus, equity, stipends)",
-            "Multiple currency support",
-            "Works offline (PWA)",
-            "Privacy-focused (no data collection)"
-          ]
-        },
-        {
-          "@type": "Organization",
-          "@id": "https://celery.info/#organization",
-          "name": "Celery",
-          "url": "https://celery.info/"
-        }
-      ]
-    }
+          {
+            "@type": "WebApplication",
+            "@id": "https://celery.info/#app",
+            "name": "Celery - Salary Calculator",
+            "url": "https://celery.info/",
+            "applicationCategory": "FinanceApplication",
+            "operatingSystem": "Any",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "featureList": [
+              "Hourly to annual salary conversion",
+              "Tax estimates for USA and Canada",
+              "Total compensation extras (bonus, equity, stipends)",
+              "Multiple currency support",
+              "Works offline (PWA)",
+              "Privacy-focused (no data collection)"
+            ]
+          },
+          {
+            "@type": "Organization",
+            "@id": "https://celery.info/#organization",
+            "name": "Celery",
+            "url": "https://celery.info/"
+          }
+        ]
+      }
     </script>
 
     <!-- Analytics -->
