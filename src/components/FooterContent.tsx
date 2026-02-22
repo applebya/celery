@@ -22,6 +22,16 @@ const faqs = [
     answer:
       'Create multiple scenarios using the "+ Add" button, then click "Compare" to see them side-by-side with take-home pay and effective hourly rates.',
   },
+  {
+    question: "How does currency conversion work?",
+    answer:
+      "When your pay currency differs from your tax residence currency, conversion happens automatically using live exchange rates. You can adjust the conversion margin to account for fees from your bank or payment provider.",
+  },
+  {
+    question: "Does it work offline?",
+    answer:
+      "Yes. Celery is a PWA that works offline after your first visit. Tax calculations and saved scenarios are fully local. Exchange rates are cached for 24 hours.",
+  },
 ];
 
 const steps = [
@@ -47,8 +57,8 @@ export function FooterContent() {
 
   return (
     <div className="mt-16 pt-10 border-t border-border/30">
-      {/* Two-column layout: How it works + Privacy */}
-      <div className="grid md:grid-cols-2 gap-10 md:gap-16 mb-10">
+      {/* Two-column layout: How it works + Privacy — hidden on mobile */}
+      <div className="hidden md:grid md:grid-cols-2 gap-10 md:gap-16 mb-10">
         {/* Left: How it works */}
         <section>
           <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-4">
@@ -95,11 +105,11 @@ export function FooterContent() {
       </div>
 
       {/* Full-width FAQ */}
-      <section className="border-t border-border/30 pt-8">
+      <section className="md:border-t border-border/30 md:pt-8">
         <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-4">
           FAQ
         </h2>
-        <div className="grid md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
           {faqs.map((faq, index) => (
             <div
               key={index}
