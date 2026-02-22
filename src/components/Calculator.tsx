@@ -180,11 +180,9 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
   const countryInfo = getCountry(state.country);
   const homeCurrency: Currency = countryInfo?.currency ?? "CAD";
 
-  // Currency conversion - only show if job currency differs from home currency
-  const displayCurrency: Currency = state.currency === "USD" ? "CAD" : "USD";
-  const shouldShowConversion =
-    state.showCurrencyConversion && state.currency !== homeCurrency;
+  // Currency conversion - auto-enable when job currency differs from home currency
   const currenciesDiffer = state.currency !== homeCurrency;
+  const shouldShowConversion = currenciesDiffer;
 
   // Convert gross to home currency (for tax calculation when currencies differ)
   const grossInHomeCurrency = currenciesDiffer
@@ -453,28 +451,6 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
           </div>
         </div>
 
-        {/* Schedule Summary (compact) */}
-        <div className="flex items-center justify-between py-3 px-4 bg-muted/50 rounded-lg">
-          <span className="text-sm text-muted-foreground">Schedule</span>
-          <span className="text-sm tabular-nums">
-            {state.employmentType === "contractor-retainer" ? (
-              <>
-                {state.expectedHoursMin}–{state.expectedHoursMax} hrs/mo
-              </>
-            ) : state.useFixedMonthlyHours ? (
-              <>
-                {state.fixedMonthlyHours || 160} hrs/mo ·{" "}
-                {calculation.billableHours.toLocaleString()} hrs/yr
-              </>
-            ) : (
-              <>
-                {hoursPerWeek} hrs/wk · {hoursPerMonth} hrs/mo ·{" "}
-                {calculation.billableHours.toLocaleString()} hrs/yr
-              </>
-            )}
-          </span>
-        </div>
-
         {/* Collapsible Settings */}
         <div className="space-y-1 rounded-lg border bg-card overflow-hidden">
           {/* Schedule Settings */}
@@ -483,7 +459,18 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
             onOpenChange={() => toggleSection("schedule")}
           >
             <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 lg:px-5 lg:py-3.5 hover:bg-muted/50 transition-colors">
-              <span className="text-sm font-medium">Work schedule</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Work schedule</span>
+                {openSection !== "schedule" && (
+                  <span className="text-xs text-muted-foreground tabular-nums">
+                    {state.employmentType === "contractor-retainer"
+                      ? `${state.expectedHoursMin}–${state.expectedHoursMax} hrs/mo`
+                      : state.useFixedMonthlyHours
+                        ? `${state.fixedMonthlyHours || 160} hrs/mo · ${calculation.billableHours.toLocaleString()} hrs/yr`
+                        : `${hoursPerWeek} hrs/wk · ${hoursPerMonth} hrs/mo · ${calculation.billableHours.toLocaleString()} hrs/yr`}
+                  </span>
+                )}
+              </div>
               <ChevronRight
                 className={`h-4 w-4 text-muted-foreground transition-transform ${openSection === "schedule" ? "rotate-90" : ""}`}
               />
@@ -848,7 +835,27 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
             onOpenChange={() => toggleSection("extras")}
           >
             <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 lg:px-5 lg:py-3.5 hover:bg-muted/50 transition-colors border-t">
-              <span className="text-sm font-medium">Extras</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Extras</span>
+                {openSection !== "extras" && hasExtras && (
+                  <span className="text-xs text-muted-foreground tabular-nums">
+                    {[
+                      state.annualBonus > 0 &&
+                        `${formatCurrency(state.annualBonus, state.currency, { showCode: false })} bonus`,
+                      state.signOnBonus > 0 &&
+                        `${formatCurrency(state.signOnBonus, state.currency, { showCode: false })} sign-on`,
+                      state.stipendAnnual > 0 &&
+                        `${formatCurrency(state.stipendAnnual, state.currency, { showCode: false })} stipend`,
+                      state.employerMatchAnnual > 0 &&
+                        `${formatCurrency(state.employerMatchAnnual, state.currency, { showCode: false })} match`,
+                      calculation.equityAnnualized > 0 &&
+                        `${formatCurrency(calculation.equityAnnualized, state.currency, { showCode: false })} equity`,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </span>
+                )}
+              </div>
               <ChevronRight
                 className={`h-4 w-4 text-muted-foreground transition-transform ${openSection === "extras" ? "rotate-90" : ""}`}
               />
@@ -1175,91 +1182,90 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
             </CollapsibleContent>
           </Collapsible>
 
-          {/* Currency Conversion */}
-          <Collapsible
-            open={openSection === "currency"}
-            onOpenChange={() => toggleSection("currency")}
-          >
-            <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 lg:px-5 lg:py-3.5 hover:bg-muted/50 transition-colors border-t">
-              <span className="text-sm font-medium">Currency conversion</span>
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={state.showCurrencyConversion}
-                  onCheckedChange={(checked) =>
-                    updateState({ showCurrencyConversion: checked })
-                  }
-                  onClick={(e) => e.stopPropagation()}
-                />
+          {/* Currency Conversion - only shown when pay currency differs from home currency */}
+          {currenciesDiffer && (
+            <Collapsible
+              open={openSection === "currency"}
+              onOpenChange={() => toggleSection("currency")}
+            >
+              <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 lg:px-5 lg:py-3.5 hover:bg-muted/50 transition-colors border-t">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">
+                    Currency conversion
+                  </span>
+                  {openSection !== "currency" && (
+                    <span className="text-xs text-muted-foreground tabular-nums">
+                      {state.currency} → {homeCurrency} · {state.traderMargin}%
+                      fee
+                    </span>
+                  )}
+                </div>
                 <ChevronRight
                   className={`h-4 w-4 text-muted-foreground transition-transform ${openSection === "currency" ? "rotate-90" : ""}`}
                 />
-              </div>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="px-4 pb-4 lg:px-5 lg:pb-5 space-y-4 lg:space-y-5">
-              {state.showCurrencyConversion && (
-                <>
-                  <p className="text-xs text-muted-foreground">
-                    Converting {state.currency} → {displayCurrency}
-                  </p>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-1">
-                      <Label className="text-xs text-muted-foreground">
-                        Conversion margin
-                      </Label>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <HelpCircle className="h-3 w-3 text-muted-foreground" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="max-w-xs">
-                              Fee charged by your bank or payment provider when
-                              converting currencies
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {MARGIN_PRESETS.map((preset) => {
-                        const isPresetSelected =
-                          state.traderMargin === preset.value;
-                        return (
-                          <button
-                            key={preset.label}
-                            onClick={() =>
-                              updateState({ traderMargin: preset.value })
-                            }
-                            className={`px-2 py-1 text-xs rounded transition-colors ${
-                              isPresetSelected
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-muted hover:bg-muted/80"
-                            }`}
-                          >
-                            {preset.label} ({preset.value}%)
-                          </button>
-                        );
-                      })}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Slider
-                        value={[state.traderMargin]}
-                        onValueChange={([value]) =>
-                          updateState({ traderMargin: value })
-                        }
-                        max={25}
-                        step={0.5}
-                        className="w-32"
-                      />
-                      <span className="text-sm tabular-nums w-10 text-right">
-                        {state.traderMargin}%
-                      </span>
-                    </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="px-4 pb-4 lg:px-5 lg:pb-5 space-y-4 lg:space-y-5">
+                <p className="text-xs text-muted-foreground">
+                  Converting {state.currency} → {homeCurrency}
+                </p>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-1">
+                    <Label className="text-xs text-muted-foreground">
+                      Conversion margin
+                    </Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="max-w-xs">
+                            Fee charged by your bank or payment provider when
+                            converting currencies
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
-                </>
-              )}
-            </CollapsibleContent>
-          </Collapsible>
+                  <div className="flex flex-wrap gap-1.5">
+                    {MARGIN_PRESETS.map((preset) => {
+                      const isPresetSelected =
+                        state.traderMargin === preset.value;
+                      return (
+                        <button
+                          key={preset.label}
+                          onClick={() =>
+                            updateState({ traderMargin: preset.value })
+                          }
+                          className={`px-2 py-1 text-xs rounded transition-colors ${
+                            isPresetSelected
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted hover:bg-muted/80"
+                          }`}
+                        >
+                          {preset.label} ({preset.value}%)
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Slider
+                      value={[state.traderMargin]}
+                      onValueChange={([value]) =>
+                        updateState({ traderMargin: value })
+                      }
+                      max={25}
+                      step={0.5}
+                      className="w-32"
+                    />
+                    <span className="text-sm tabular-nums w-10 text-right">
+                      {state.traderMargin}%
+                    </span>
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          )}
         </div>
       </div>
 
