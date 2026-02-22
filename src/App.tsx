@@ -229,9 +229,20 @@ function App() {
     [deleteScenario, scenarios.length],
   );
 
+  // Remember last-selected region per country
+  const lastRegionRef = useRef<Record<string, string>>({
+    CA: currentState.country === "CA" ? currentState.region : "ON",
+    US: currentState.country === "US" ? currentState.region : "CA",
+  });
+
   // Location change handlers (updates all scenarios)
   const handleCountryChange = useCallback(
     (country: "CA" | "US" | "OTHER") => {
+      // Save current region before switching
+      if (currentState.country !== "OTHER" && currentState.region) {
+        lastRegionRef.current[currentState.country] = currentState.region;
+      }
+
       if (country === "OTHER") {
         // For "Other" countries, keep current currency but clear region/tax
         updateAllScenarios({
@@ -241,18 +252,18 @@ function App() {
         });
       } else {
         const countryData = getCountry(country);
-        // Default regions: CA=Ontario, US=California
-        const defaultRegion = country === "CA" ? "ON" : "CA";
-        const holidays = getHolidayCount(country, defaultRegion);
+        const region =
+          lastRegionRef.current[country] ?? (country === "CA" ? "ON" : "CA");
+        const holidays = getHolidayCount(country, region);
         updateAllScenarios({
           country,
-          region: defaultRegion,
+          region,
           currency: countryData?.currency ?? "CAD",
           holidaysPerYear: holidays,
         });
       }
     },
-    [updateAllScenarios],
+    [currentState.country, currentState.region, updateAllScenarios],
   );
 
   // Currency change handler for "Other" countries
@@ -557,7 +568,7 @@ function App() {
                   value={currentState.region}
                   onValueChange={handleRegionChange}
                 >
-                  <SelectTrigger className="h-7 w-[110px] text-xs border-0 bg-transparent px-2 focus:ring-0 focus:ring-offset-0">
+                  <SelectTrigger className="h-7 w-auto min-w-[8rem] text-xs border-0 bg-transparent px-2 focus:ring-0 focus:ring-offset-0">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

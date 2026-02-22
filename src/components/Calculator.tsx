@@ -309,7 +309,7 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
   const hoursPerMonth = Math.round(calculation.billableHours / 12);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1fr,400px] gap-6 lg:gap-8">
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6 lg:gap-8">
       {/* Left Column - Inputs */}
       <div className="space-y-4 lg:space-y-6">
         {/* Employment Type */}
@@ -1584,13 +1584,13 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Monthly</span>
                 <span className="tabular-nums font-medium lg:text-base">
-                  {formatCurrency(monthly, state.currency, { showCode: false })}
+                  {formatCurrency(monthly, homeCurrency, { showCode: false })}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Bi-weekly</span>
                 <span className="tabular-nums font-medium lg:text-base">
-                  {formatCurrency(biweekly, state.currency, {
+                  {formatCurrency(biweekly, homeCurrency, {
                     showCode: false,
                   })}
                 </span>
@@ -1598,13 +1598,13 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Weekly</span>
                 <span className="tabular-nums font-medium lg:text-base">
-                  {formatCurrency(weekly, state.currency, { showCode: false })}
+                  {formatCurrency(weekly, homeCurrency, { showCode: false })}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Daily</span>
                 <span className="tabular-nums font-medium lg:text-base">
-                  {formatCurrency(daily, state.currency, { showCode: false })}
+                  {formatCurrency(daily, homeCurrency, { showCode: false })}
                 </span>
               </div>
               {state.employmentType === "contractor-retainer" && (
