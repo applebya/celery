@@ -449,13 +449,13 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
             open={openSection === "schedule"}
             onOpenChange={() => toggleSection("schedule")}
           >
-            <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 hover:bg-muted/50 transition-colors">
+            <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 lg:px-5 lg:py-3.5 hover:bg-muted/50 transition-colors">
               <span className="text-sm font-medium">Work schedule</span>
               <ChevronRight
                 className={`h-4 w-4 text-muted-foreground transition-transform ${openSection === "schedule" ? "rotate-90" : ""}`}
               />
             </CollapsibleTrigger>
-            <CollapsibleContent className="px-4 pb-4 space-y-4">
+            <CollapsibleContent className="px-4 pb-4 lg:px-5 lg:pb-5 space-y-4 lg:space-y-5">
               {state.employmentType === "contractor-retainer" ? (
                 /* Retainer: just expected hours range */
                 <div className="space-y-3">
@@ -665,7 +665,7 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
               open={openSection === "tax"}
               onOpenChange={() => toggleSection("tax")}
             >
-              <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 hover:bg-muted/50 transition-colors border-t">
+              <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 lg:px-5 lg:py-3.5 hover:bg-muted/50 transition-colors border-t">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium">Taxes</span>
                   <TooltipProvider>
@@ -689,8 +689,8 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                   className={`h-4 w-4 text-muted-foreground transition-transform ${openSection === "tax" ? "rotate-90" : ""}`}
                 />
               </CollapsibleTrigger>
-              <CollapsibleContent className="px-4 pb-4 space-y-3">
-                <div className="space-y-3 text-sm">
+              <CollapsibleContent className="px-4 pb-4 lg:px-5 lg:pb-5 space-y-3 lg:space-y-4">
+                <div className="space-y-3 lg:space-y-4 text-sm">
                   {/* Federal brackets */}
                   <div>
                     <div className="flex justify-between mb-1">
@@ -814,14 +814,14 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
             open={openSection === "extras"}
             onOpenChange={() => toggleSection("extras")}
           >
-            <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 hover:bg-muted/50 transition-colors border-t">
+            <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 lg:px-5 lg:py-3.5 hover:bg-muted/50 transition-colors border-t">
               <span className="text-sm font-medium">Extras</span>
               <ChevronRight
                 className={`h-4 w-4 text-muted-foreground transition-transform ${openSection === "extras" ? "rotate-90" : ""}`}
               />
             </CollapsibleTrigger>
-            <CollapsibleContent className="px-4 pb-4 space-y-4">
-              <div className="space-y-4">
+            <CollapsibleContent className="px-4 pb-4 lg:px-5 lg:pb-5 space-y-4 lg:space-y-5">
+              <div className="space-y-4 lg:space-y-5">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="space-y-1">
                     <Label className="text-xs text-muted-foreground">
@@ -1147,7 +1147,7 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
             open={openSection === "currency"}
             onOpenChange={() => toggleSection("currency")}
           >
-            <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 hover:bg-muted/50 transition-colors border-t">
+            <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 lg:px-5 lg:py-3.5 hover:bg-muted/50 transition-colors border-t">
               <span className="text-sm font-medium">Currency conversion</span>
               <div className="flex items-center gap-2">
                 <Switch
@@ -1162,7 +1162,7 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
                 />
               </div>
             </CollapsibleTrigger>
-            <CollapsibleContent className="px-4 pb-4 space-y-4">
+            <CollapsibleContent className="px-4 pb-4 lg:px-5 lg:pb-5 space-y-4 lg:space-y-5">
               {state.showCurrencyConversion && (
                 <>
                   <p className="text-xs text-muted-foreground">
@@ -1232,7 +1232,7 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
 
       {/* Right Column - Results */}
       <div className="lg:sticky lg:top-4 lg:self-start">
-        <div className="rounded-xl border bg-card p-6 space-y-5">
+        <div className="rounded-xl border bg-card p-4 sm:p-5 lg:p-6 space-y-4 lg:space-y-5">
           {/* Gross section */}
           <div>
             <div className="text-sm text-muted-foreground mb-1">
@@ -1580,16 +1580,16 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
           {/* Period breakdown */}
           <div className="pt-4 border-t space-y-2">
             <div className="text-sm text-muted-foreground mb-2">Breakdown</div>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2 lg:gap-y-3">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Monthly</span>
-                <span className="tabular-nums font-medium">
+                <span className="tabular-nums font-medium lg:text-base">
                   {formatCurrency(monthly, state.currency, { showCode: false })}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Bi-weekly</span>
-                <span className="tabular-nums font-medium">
+                <span className="tabular-nums font-medium lg:text-base">
                   {formatCurrency(biweekly, state.currency, {
                     showCode: false,
                   })}
@@ -1597,13 +1597,13 @@ export function Calculator({ state, onChange, onRename }: CalculatorProps) {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Weekly</span>
-                <span className="tabular-nums font-medium">
+                <span className="tabular-nums font-medium lg:text-base">
                   {formatCurrency(weekly, state.currency, { showCode: false })}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Daily</span>
-                <span className="tabular-nums font-medium">
+                <span className="tabular-nums font-medium lg:text-base">
                   {formatCurrency(daily, state.currency, { showCode: false })}
                 </span>
               </div>
