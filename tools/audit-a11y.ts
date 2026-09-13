@@ -31,9 +31,25 @@ for (const vp of VIEWPORTS) {
      origin usually wins it, which made the same page pass or fail depending
      on where it was served from. */
   await page.evaluate(async () => {
-    await document.fonts.ready;
-    await Promise.all(
-      document.getAnimations().map((a) => a.finished.catch(() => {})),
+    const budget = (p: Promise<unknown>, ms: number) =>
+      Promise.race([p, new Promise((r) => setTimeout(r, ms))]);
+
+    await budget(document.fonts.ready, 3000);
+
+    /* Only entrance animations are worth waiting on. An infinite one — a
+       looping gradient, a spinner — never resolves `finished`, so awaiting
+       the set outright hangs the audit forever rather than settling it. */
+    const finite = document.getAnimations().filter((a) => {
+      const d = a.effect?.getComputedTiming();
+      return (
+        d != null &&
+        d.iterations !== Infinity &&
+        Number.isFinite(Number(d.duration))
+      );
+    });
+    await budget(
+      Promise.all(finite.map((a) => a.finished.catch(() => {}))),
+      3000,
     );
   });
   await page.waitForTimeout(250);

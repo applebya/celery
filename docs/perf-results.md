@@ -12,9 +12,8 @@ reported, spread given — a single Lighthouse run on this page moved by up to
 
 Before: commit `cb101a9`. After: commit `ec10db3`.
 
-Run under Node 26. `chrome-launcher` cannot hand Lighthouse a websocket
-endpoint under bun 1.3.5, so `bun run lighthouse` in
-`appleby-web-services-ltd` currently measures nothing — see "Open items".
+Run under Node 26, after a one-off `chrome-launcher` failure under bun that
+did not reproduce — see "Open items".
 
 ## Scores
 
@@ -134,10 +133,14 @@ was served from. **That fix should travel with the harness to the other repos.**
 
 ## Open items
 
-- `bun run lighthouse` in `appleby-web-services-ltd` fails under bun 1.3.5:
-  `chrome-launcher` cannot fetch the browser websocket URL. It needs to run
-  under Node, or the launcher needs replacing, before the mission's final
-  step can refresh `src/data/lighthouse.json`.
+- ~~`bun run lighthouse` fails under bun 1.3.5.~~ **Withdrawn.** The first
+  measurement run hit `Failed to fetch browser webSocket URL … HTTP Not
+  Found` from `chrome-launcher` and Node was used from then on, but the fault
+  did not reproduce: the identical script later succeeded under bun 1.3.5
+  three times out of three. It looks like a race between Chrome starting and
+  its devtools endpoint accepting connections, not a runtime
+  incompatibility. Recorded here because it was reported to the corp-site
+  session as a blocker, and it was not one.
 - `build-lighthouse.ts` takes **one** run per site. celery moved 12 points
   between runs at baseline, so the published project-card numbers are single
   samples. It should take a median of five.

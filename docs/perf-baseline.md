@@ -8,10 +8,13 @@ Lighthouse 13.4.1, **mobile preset, default simulated throttling**, run against
 the **deployed origin** `https://celery.info` (not localhost). Three runs; the
 median run is reported. Commit under test: `cb101a9`.
 
-> Run under Node 26, not bun. `chrome-launcher` fails to hand Lighthouse a
-> websocket endpoint under bun 1.3.5 (`Failed to fetch browser webSocket URL
-> … HTTP Not Found`), so the corp-site `bun run lighthouse` script cannot
-> currently measure anything. See "Harness note" below.
+> Run under Node 26. These runs hit a one-off `chrome-launcher` failure
+> under bun (`Failed to fetch browser webSocket URL … HTTP Not Found`) and
+> Node was used instead. **That was a transient fault, not a bun
+> incompatibility** — retested later, the identical script succeeded under
+> bun 1.3.5 three times out of three. It reads as a race between Chrome
+> starting and its devtools endpoint accepting connections. Either runtime
+> is fine; the numbers here are unaffected.
 
 ## Scores
 
