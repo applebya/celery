@@ -1,6 +1,23 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { Calculator } from "@/components/Calculator";
-import { CompareView } from "@/components/CompareView";
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  lazy,
+  Suspense,
+} from "react";
+
+/* Calculator and CompareView are the only things that still pull in the
+   animation library (directly and via AnimatedNumber). Loading them lazily
+   keeps ~426 KB of it out of the entry chunk, so the first screen renders
+   without waiting for code it does not use. Both are warmed on mount below,
+   so the fallback is rarely seen. */
+const Calculator = lazy(() =>
+  import("@/components/Calculator").then((m) => ({ default: m.Calculator })),
+);
+const CompareView = lazy(() =>
+  import("@/components/CompareView").then((m) => ({ default: m.CompareView })),
+);
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { FooterContent } from "@/components/FooterContent";
 import { useScenarios } from "@/hooks/useScenarios";
@@ -30,7 +47,6 @@ const CURRENCY_OPTIONS: { value: Currency; label: string; flag: string }[] = [
   { value: "ILS", label: "Israeli Shekel", flag: "🇮🇱" },
   { value: "ZAR", label: "South African Rand", flag: "🇿🇦" },
 ];
-import { AnimatePresence, motion } from "framer-motion";
 import { Check, Plus, X, BarChart3, MapPin } from "lucide-react";
 import { countries, getCountry, getHolidayCount } from "@/data/holidays-2026";
 import {
@@ -148,6 +164,23 @@ function App() {
       }
     }
   }, [scenarios.length, createScenario]);
+
+  /* Warm the lazy view chunks once the first screen is up. The onboarding
+     screen does not need them, but the very next thing a visitor does is
+     leave it, so fetching them during idle means the Suspense fallback is
+     rarely seen. */
+  useEffect(() => {
+    const warm = () => {
+      void import("@/components/Calculator");
+      void import("@/components/CompareView");
+    };
+    if ("requestIdleCallback" in window) {
+      const id = requestIdleCallback(warm, { timeout: 2000 });
+      return () => cancelIdleCallback(id);
+    }
+    const t = setTimeout(warm, 300);
+    return () => clearTimeout(t);
+  }, []);
 
   // Auto-detect location from browser locale on first load
   useEffect(() => {
@@ -296,11 +329,7 @@ function App() {
       /* A landmark here as well as on the main view: a first-time visitor
          (and so any cold Lighthouse run) only ever sees this branch. */
       <main className="min-h-screen bg-background flex items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-md w-full text-center space-y-8"
-        >
+        <div className="max-w-md w-full text-center space-y-8">
           <div className="space-y-4">
             <img
               src="/logo.webp"
@@ -410,7 +439,7 @@ function App() {
           <p className="text-xs text-muted-foreground">
             Your data stays on your device. Nothing is sent to any server.
           </p>
-        </motion.div>
+        </div>
       </main>
     );
   }
@@ -434,19 +463,12 @@ function App() {
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <AnimatePresence>
-              {showSaved && (
-                <motion.div
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -10 }}
-                  className="flex items-center gap-1 text-xs text-primary"
-                >
-                  <Check className="h-3 w-3" />
-                  Saved
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {showSaved && (
+              <div className="celery-slide-in flex items-center gap-1 text-xs text-primary">
+                <Check className="h-3 w-3" />
+                Saved
+              </div>
+            )}
             <ThemeToggle />
           </div>
         </header>
@@ -523,15 +545,7 @@ function App() {
                   )}
                   {/* Active indicator */}
                   {isActive && (
-                    <motion.div
-                      layoutId="activeTab"
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
-                      transition={{
-                        type: "spring",
-                        stiffness: 500,
-                        damping: 30,
-                      }}
-                    />
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
                   )}
                 </div>
               );
@@ -626,11 +640,7 @@ function App() {
                 <BarChart3 className="h-4 w-4" />
                 <span>Compare</span>
                 {viewMode === "compare" && (
-                  <motion.div
-                    layoutId="activeTab"
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                  />
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
                 )}
               </button>
             )}
@@ -639,15 +649,9 @@ function App() {
 
         {/* Main Content */}
         <main>
-          <AnimatePresence mode="wait">
+          <Suspense fallback={<div className="min-h-[60vh]" aria-hidden />}>
             {viewMode === "calculator" ? (
-              <motion.div
-                key="calculator"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.15 }}
-              >
+              <div key="calculator" className="celery-fade-up">
                 <Calculator
                   state={currentState}
                   onChange={handleStateChange}
@@ -657,19 +661,13 @@ function App() {
                     }
                   }}
                 />
-              </motion.div>
+              </div>
             ) : (
-              <motion.div
-                key="compare"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.15 }}
-              >
+              <div key="compare" className="celery-fade-up">
                 <CompareView scenarios={scenarios} />
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
+          </Suspense>
         </main>
 
         {/* Footer */}
