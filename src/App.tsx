@@ -303,8 +303,10 @@ function App() {
         >
           <div className="space-y-4">
             <img
-              src="/logo.png"
+              src="/logo.webp"
               alt="Celery logo"
+              width={136}
+              height={160}
               className="h-16 w-auto mx-auto"
             />
             <h1 className="text-3xl font-semibold tracking-tight">Celery</h1>
@@ -419,7 +421,13 @@ function App() {
         {/* Header */}
         <header className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="Celery logo" className="h-8 w-auto" />
+            <img
+              src="/logo.webp"
+              alt="Celery logo"
+              width={136}
+              height={160}
+              className="h-8 w-auto"
+            />
             <h1 className="text-xl font-semibold tracking-tight">Celery</h1>
             <span className="text-sm text-muted-foreground hidden sm:inline mt-0.5">
               The Salary Calculator
