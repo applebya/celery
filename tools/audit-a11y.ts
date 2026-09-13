@@ -24,6 +24,20 @@ for (const vp of VIEWPORTS) {
   const page = await ctx.newPage();
   await page.goto(URL, { waitUntil: "load" });
 
+  /* Let the page settle before scanning. axe folds opacity into its contrast
+     maths, so scanning straight after `load` catches any entrance animation
+     mid-fade and reports text that is on its way in as a contrast failure.
+     A fast local preview loses this race every time while a slower deployed
+     origin usually wins it, which made the same page pass or fail depending
+     on where it was served from. */
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    await Promise.all(
+      document.getAnimations().map((a) => a.finished.catch(() => {})),
+    );
+  });
+  await page.waitForTimeout(250);
+
   const { violations } = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
     .analyze();
