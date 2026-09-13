@@ -1,11 +1,33 @@
-/* Satoshi — geometric-humanist sans-serif via Fontshare CDN */
-@import url("https://api.fontshare.com/v2/css?f[]=satoshi@1,900,700,500,400&display=swap");
-
-/* JetBrains Mono — tabular figures for numeric display */
-@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap");
-
 @import "tailwindcss";
 @import "tw-animate-css";
+
+/* Satoshi — geometric-humanist sans-serif, self-hosted.
+   One variable cut spanning 300-900 replaces the four static weights the
+   Fontshare CSS used to serve alongside it. JetBrains Mono is imported from
+   @fontsource-variable in main.tsx. Neither font costs a round trip to a
+   third-party origin any more; both used to be reached by @import from this
+   file, so the browser could not even discover them until this stylesheet
+   had downloaded and parsed.
+
+   These @font-face rules must stay below the @import lines above: CSS only
+   honours @import at the very top of a stylesheet. */
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/satoshi-variable.woff2") format("woff2-variations");
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Metric-matched fallback so the swap to Satoshi does not reflow headlines. */
+@font-face {
+  font-family: "Satoshi Fallback";
+  src: local("Helvetica Neue"), local("Arial"), local("Liberation Sans");
+  size-adjust: 105.6%;
+  ascent-override: 92%;
+  descent-override: 24%;
+  line-gap-override: 0%;
+}
 
 @custom-variant dark (&:is(.dark *));
 
@@ -13,7 +35,7 @@
   /* Typography */
   font-family:
     "Satoshi",
-    "DM Sans",
+    "Satoshi Fallback",
     -apple-system,
     BlinkMacSystemFont,
     system-ui,

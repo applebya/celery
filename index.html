@@ -17,10 +17,17 @@
     <!-- Canonical URL -->
     <link rel="canonical" href="https://celery.info/" />
 
-    <!-- Font preconnects -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
+    <!-- Fonts are self-hosted; no third-party origin to preconnect to.
+         Satoshi carries the body copy, which is the LCP element, so it is
+         preloaded. Nothing else is — a preload that races the real critical
+         path costs more than it saves. -->
+    <link
+      rel="preload"
+      href="/fonts/satoshi-variable.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />

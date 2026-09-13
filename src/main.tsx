@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "@fontsource-variable/fraunces/full.css";
+import "@fontsource-variable/jetbrains-mono/wght.css";
 import "./index.css";
 import App from "./App.tsx";
 import { ErrorBoundary } from "./components/ErrorBoundary";
