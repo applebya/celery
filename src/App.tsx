@@ -293,7 +293,9 @@ function App() {
   // Show location confirmation screen for first-time users
   if (!locationConfirmed) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      /* A landmark here as well as on the main view: a first-time visitor
+         (and so any cold Lighthouse run) only ever sees this branch. */
+      <main className="min-h-screen bg-background flex items-center justify-center p-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -407,7 +409,7 @@ function App() {
             Your data stays on your device. Nothing is sent to any server.
           </p>
         </motion.div>
-      </div>
+      </main>
     );
   }
 
