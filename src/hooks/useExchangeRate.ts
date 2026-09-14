@@ -70,12 +70,18 @@ export function useExchangeRate() {
     setError(null);
 
     try {
-      // Using frankfurter.app API (free, no key required, ECB data)
+      // Frankfurter (free, no key required, ECB data).
+      //
+      // The host is api.frankfurter.dev/v1. The old api.frankfurter.app now
+      // answers with a 301 to it, and a browser will not follow a redirect on
+      // a cross-origin fetch — the request fails CORS instead. That silently
+      // broke every currency conversion on the deployed site: the console
+      // showed ERR_FAILED and the UI just never got rates.
       // Note: API only supports: AUD, BGN, BRL, CAD, CHF, CNY, CZK, DKK, EUR, GBP, HKD, HUF, IDR, ILS, INR, ISK, JPY, KRW, MXN, MYR, NOK, NZD, PHP, PLN, RON, SEK, SGD, THB, TRY, USD, ZAR
       const currencies =
         "CAD,EUR,GBP,AUD,NZD,CHF,JPY,INR,BRL,MXN,SGD,HKD,SEK,NOK,DKK,PLN,CZK,ILS,ZAR";
       const response = await fetch(
-        `https://api.frankfurter.app/latest?from=USD&to=${currencies}`,
+        `https://api.frankfurter.dev/v1/latest?from=USD&to=${currencies}`,
       );
 
       if (!response.ok) {
@@ -162,7 +168,7 @@ export function useExchangeRate() {
         const formatDate = (d: Date) => d.toISOString().split("T")[0];
 
         const response = await fetch(
-          `https://api.frankfurter.app/${formatDate(startDate)}..${formatDate(endDate)}?from=${from}&to=${to}`,
+          `https://api.frankfurter.dev/v1/${formatDate(startDate)}..${formatDate(endDate)}?from=${from}&to=${to}`,
         );
 
         if (!response.ok) {
